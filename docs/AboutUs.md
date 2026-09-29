@@ -14,7 +14,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/LittleLittleLittleR)]
 
-* Role: Project Advisor
+* Role: Scheduling and Tracking + Testing
+* Responsibilities: Model
 
 ### Jane Doe
 

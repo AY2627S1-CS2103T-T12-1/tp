@@ -449,6 +449,74 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC7 - Filter candidates**
+
+**MSS**
+
+1.  User submits filter candidates command
+2.  HireBase shows the filtered candidate list
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no candidates that meet the filter criteria
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+**Use case: UC8 - Update candidate status**
+
+**MSS**
+
+1. User submits update candidate command
+2. HireBase updates candidate details
+3. HireBase shows the updated candidate list
+4. HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The updated email matches another candidate
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+* 1c. Candidate could not be updated
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC9 - Shortlist candidates for a job opening**
+
+**MSS**
+
+1.  User <ins>lists job openings (UC6)</ins>
+2.  User finds target job opening skills
+3.  User <ins>filters candidates by the skills (UC7)</ins>
+4.  User <ins>updates candidates' status (UC8)</ins> to shortlisted
+
+    Use case ends.
+
+**Extensions**
+
 *{More to be added}*
 
 ### Non-Functional Requirements

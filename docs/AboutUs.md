@@ -26,14 +26,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Deliverables and deadlines
 * Responsibilities: Ui and Data
 
-### Johnny Doe
+### Jolene Tan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/jolneetanky.png" width="200px">
 
 [[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
 
-* Role: Developer
-* Responsibilities: Data
+* Role: Integration
+* Responsibilities: Ensure the software as a whole works
 
 ### Jean Doe
 

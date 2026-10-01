@@ -2,13 +2,17 @@
 
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+  HireBase is a **desktop app for tech recruiters to manage high-volume candidate pipelines**.
+  It is optimized for use via a Command Line Interface (CLI) while still having the benefits of
+  a Graphical User Interface (GUI). If you can type fast, HireBase can help you track candidates,
+  update interview stages, and manage your interview schedule faster than traditional
+  web-based recruitment software.
+
+* Track candidates' contact details, technical skills, target roles, screening notes,
+  sources, and priority scores
+* Filter and search candidates by skill, role, interview stage, name, or email
+* Update the interview stages of multiple candidates in one command
+* Manage interviews and reminders in a local calendar
+* Create job openings and revisit past candidates for new vacancies
+* If you are interested in using HireBase, head over to the [_Quick Start_ section of the **User Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/UserGuide.html).
+* If you are interested in developing HireBase, the [**Developer Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/DeveloperGuide.html) is a good place to start.

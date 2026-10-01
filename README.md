@@ -16,3 +16,7 @@
 * Create job openings and revisit past candidates for new vacancies
 * If you are interested in using HireBase, head over to the [_Quick Start_ section of the **User Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/UserGuide.html).
 * If you are interested in developing HireBase, the [**Developer Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/DeveloperGuide.html) is a good place to start.
+
+**Acknowledgements**
+
+This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).

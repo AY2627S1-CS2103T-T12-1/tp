@@ -32,7 +32,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
 
-* Role: Developer
+* Role: Integration
+* Responsibilities: Ensure the software as a whole works
 
 ### Jean Doe
 

@@ -23,7 +23,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/rayyanwong)]
 
-* Role: Developer
+* Role: Deliverables and deadlines
+* Responsibilities: Ui and Data
 
 ### Johnny Doe
 

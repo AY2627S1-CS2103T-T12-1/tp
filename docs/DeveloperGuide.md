@@ -316,16 +316,57 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
 
-*{More to be added}*
+**Compatibility:** HireBase should run on Windows, Linux, and macOS with Java `25` installed, without requiring another Java version.
+
+**Portability:** HireBase should be distributed as a single JAR file and run without an installer or additional software installation beyond Java.
+
+**Performance and capacity:** HireBase should support at least 1000 candidate records without noticeable sluggishness during typical use, including adding, editing, deleting, listing, and searching candidates. These operations should display their results within one second under normal operating conditions.
+
+**Command efficiency:** A recruiter with above-average typing speed for regular English text should be able to complete most candidate-management tasks faster through commands than through equivalent mouse-driven forms, once familiar with the command syntax. Routine tasks should be available through keyboard input, with the GUI providing clear visual feedback.
+
+**Single-user operation:** HireBase should support one recruiter managing their own local data, without requiring shared data access or multiple user accounts.
+
+**Local storage and offline availability:** Application data should be stored locally in human-editable text files. Core candidate-management operations should work without an Internet connection or a remote server.
+
+**Data integrity:** Successful changes should be saved automatically and retained after a normal restart. Invalid commands should produce an explanatory error message without changing existing records. If saving fails, HireBase should clearly inform the user that the changes could not be saved.
+
+**Display usability:** The GUI should work without resolution-related inconvenience at resolutions of 1920 × 1080 and above with 100% or 125% scaling. All functions should remain usable at resolutions of 1280 × 720 and above, including at 150% scaling.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+**API (Application Programming Interface):** The operations a software component exposes so that other components can interact with it without depending on its internal implementation.
+
+**Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
+
+**Candidate pipeline:** The set of candidates a recruiter manages and their progress through the recruitment process.
+
+**CLI (Command Line Interface):** A way of interacting with an application by typing text commands. In HireBase, commands are entered in the application's command box.
+
+**GUI (Graphical User Interface):** The application's visual interface, including its windows, candidate lists, and command feedback.
+
+**Interview stage:** A candidate's current position in the recruitment process, such as screening or interviewing. These examples describe the concept rather than specifying the application's accepted stage values.
+
+**JAR (Java Archive):** A file that packages Java application code and resources for distribution. HireBase is distributed as a runnable JAR file.
+
+**Job opening (vacancy):** A position that a recruiter is seeking to fill.
+
+**JSON (JavaScript Object Notation):** A text format that represents structured data using named fields, values, and lists. The Storage component uses it to save application data and user preferences.
+
+**Mainstream OS (Operating System):** For HireBase's compatibility requirements, Windows, Linux, or macOS.
+
+**Priority score:** A value used to indicate the relative attention a recruiter intends to give a candidate.
+
+**Private contact detail:** Contact information that is not intended to be shared with other people.
+
+**Recruiter:** The HireBase user who maintains candidate records and manages recruitment activities.
+
+**Screening notes:** A recruiter's observations from an initial assessment of a candidate's suitability for a role.
+
+**Source:** The channel through which a recruiter found a candidate, such as a referral or a job board.
+
+**Target role:** The type of position a candidate is being considered for, such as a software engineering role.
 
 --------------------------------------------------------------------------------------------------------------------
 

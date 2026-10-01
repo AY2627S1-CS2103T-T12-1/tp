@@ -320,30 +320,235 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `HireBase` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: UC1 - Add a candidate**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  User submits add candidate command with candidate details
+2.  HireBase adds the candidate with default interview stage SCREENING and a unique ID
+3.  HireBase refreshes the candidate list and highlights the new entry
+4.  HireBase displays a success message
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The user command contains missing or invalid parameters
 
-  Use case ends.
+    * 1a1. HireBase displays an error message corresponding to the first parameter verification failure.
 
-* 3a. The given index is invalid.
+      Use case ends.
 
-    * 3a1. AddressBook shows an error message.
+* 1b. A candidate with the same email already exists
 
-      Use case resumes at step 2.
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. The candidate could not be added
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC2 - List candidates**
+
+**MSS**
+
+1.  User submits list candidates command
+2.  HireBase shows the full candidate list with all candidates. Candidates have their full details
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no candidates in the system
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+**Use case: UC3 - Delete a candidate**
+
+**MSS**
+
+1.  User submits delete candidate command, specifying the candidate ID to be deleted
+2.  HireBase deletes the candidate
+3.  HireBase refreshes the candidate list
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The user command has missing or invalid id
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. A candidate with the specified ID does not exist
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. Candidate could not be deleted
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC4 - Add job opening**
+
+**MSS**
+
+1.  User submits add job opening command with details
+2.  HireBase adds the job opening with a unique ID
+3.  HireBase refreshes the job opening list and highlights the new entry
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The job opening already exists
+
+    * 1a1. HireBase displays an error message
+
+      Use case ends.
+
+* 1b. The job opening could not be added
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC5 - Delete job opening**
+
+**MSS**
+
+1.  User submits delete job opening command with details
+2.  HireBase deletes the job opening
+3.  HireBase refreshes the job opening list
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The user command has missing or invalid id
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. A job opening with the specified ID does not exist
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. Job opening could not be deleted
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC6 - List job openings**
+
+**MSS**
+
+1.  User submits list job opening command
+2.  HireBase shows the full job opening list
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no job openings in the system
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+* 1b. Additional parameters are supplied to the command
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC7 - Filter candidates**
+
+**MSS**
+
+1.  User submits filter candidates command
+2.  HireBase shows the filtered candidate list
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no candidates that meet the filter criteria
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+**Use case: UC8 - Update candidate status**
+
+**MSS**
+
+1. User submits update candidate command
+2. HireBase updates candidate details
+3. HireBase shows the updated candidate list
+4. HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The updated email matches another candidate
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+* 1c. Candidate could not be updated
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC9 - Shortlist candidates for a job opening**
+
+**MSS**
+
+1.  User <ins>lists job openings (UC6)</ins>
+2.  User finds target job opening skills
+3.  User <ins>filters candidates by the skills (UC7)</ins>
+4.  User <ins>updates candidates' status (UC8)</ins> to shortlisted
+
+    Use case ends.
+
+**Extensions**
 
 *{More to be added}*
 

@@ -14,7 +14,5 @@
 * Update the interview stages of multiple candidates in one command
 * Manage interviews and reminders in a local calendar
 * Create job openings and revisit past candidates for new vacancies
-
 * If you are interested in using HireBase, head over to the [_Quick Start_ section of the **User Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/UserGuide.html).
 * If you are interested in developing HireBase, the [**Developer Guide**](https://AY2627S1-CS2103T-T12-1.github.io/tp/DeveloperGuide.html) is a good place to start.
-* 

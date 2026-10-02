@@ -261,29 +261,62 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is a tech recruiter managing a high volume of candidates across several technical roles
+* handles dozens of candidate updates every day
+* works on their own laptop and maintains their own candidate records
+* can type fast and prefers typing commands to navigating GUI screens with a mouse
+* is comfortable using CLI apps
+* frequently switches between candidates and vacancies and needs to retrieve information quickly
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: HireBase lets tech recruiters track high-volume candidate pipelines faster than a typical mouse-driven web-based recruitment system. It supports quick updates to interview stages, fast filtering of candidates by skill, role and stage, and easy management of candidate records and interview schedules, reducing administrative overhead and mouse context-switching.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​        | I want to …​                                                                   | So that I can…​                                                         |
+| -------- | -------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `* * *`  | new user       | see usage instructions                                                       | refer to them when I forget how to use the app                          |
+| `* * *`  | new user       | see sample candidate records on first launch                                 | explore how the app works before entering real data                     |
+| `* * *`  | new user       | clear all sample records using a single command                              | start recording my own candidates                                       |
+| `* * *`  | tech recruiter | add a candidate's contact details, technical skills and target role using a single command | record new applicants quickly                             |
+| `* * *`  | tech recruiter | update a candidate's profile                                                 | keep the candidate's information accurate                               |
+| `* * *`  | tech recruiter | delete a candidate's profile                                                 | remove entries that I no longer need                                    |
+| `* * *`  | tech recruiter | search for a candidate by name                                               | retrieve their details before an interview                              |
+| `* * *`  | tech recruiter | filter candidates by technical skill                                         | identify suitable candidates for an opening                             |
+| `* * *`  | tech recruiter | filter candidates by target role                                             | find candidates who are interested in a specific role                   |
+| `* * *`  | tech recruiter | add screening notes to a candidate                                           | refer to my previous observations when deciding the next step           |
+| `* * *`  | tech recruiter | update a candidate's screening notes                                         | keep my observations up to date                                         |
+| `* * *`  | tech recruiter | update a candidate's interview stage                                         | keep track of their progress                                            |
+| `* * *`  | tech recruiter | filter candidates by interview stage                                         | focus on candidates at a particular stage                               |
+| `* * *`  | tech recruiter | assign a priority score to a candidate                                       | identify which candidates to focus on first                             |
+| `* * *`  | tech recruiter | add an interview event to my calendar                                        | prepare the relevant details before the interview                       |
+| `* * *`  | tech recruiter | view today's upcoming events                                                 | plan my day                                                             |
+| `* *`    | tech recruiter | search for a candidate by email                                              | find their record when I am reading their emails                        |
+| `* *`    | tech recruiter | link a candidate's resume file to their profile                              | refer to their experience while screening                               |
+| `* *`    | tech recruiter | remove the resume link from a candidate's profile                            | keep the candidate's record tidy                                        |
+| `* *`    | tech recruiter | compare candidates' profiles                                                 | decide whom to interview                                                |
+| `* *`    | tech recruiter | update the interview stages of multiple candidates in one command            | process batches of shortlisted or rejected applicants efficiently       |
+| `* *`    | tech recruiter | mark a candidate as awaiting follow-up                                       | remember which candidates need action from me                           |
+| `* *`    | tech recruiter | list candidates who are awaiting follow-up                                   | prioritise pending actions and avoid overlooking applicants             |
+| `* *`    | tech recruiter | sort candidates by priority score                                            | see which candidates need my attention first                            |
+| `* *`    | tech recruiter | view this month's upcoming events                                            | get an overview of the month and plan ahead                             |
+| `* *`    | tech recruiter | view my available periods in the calendar                                    | check my availability when arranging interviews with candidates         |
+| `* *`    | tech recruiter | add an important event to my calendar                                        | avoid forgetting it                                                     |
+| `* *`    | tech recruiter | update the details of a calendar event                                       | keep my calendar accurate                                               |
+| `* *`    | tech recruiter | delete a calendar event                                                      | keep my calendar accurate when plans are cancelled                      |
+| `* *`    | tech recruiter | see scheduling conflicts in my calendar                                      | resolve them immediately                                                |
+| `* *`    | tech recruiter | create a job opening                                                         | track the vacancies that I am hiring for                                |
+| `* *`    | tech recruiter | edit a job opening                                                           | keep its information accurate                                           |
+| `* *`    | tech recruiter | delete a job opening                                                         | stop outdated or closed openings from appearing                         |
+| `* *`    | tech recruiter | tag the skills required for a job opening                                    | focus on finding candidates who have those skills                       |
+| `* *`    | tech recruiter | filter previously rejected candidates with relevant skills when creating a new job opening | get an initial list of candidates to consider              |
+| `* *`    | tech recruiter | archive candidates I no longer actively manage                               | keep my daily searches focused while preserving their information       |
+| `*`      | tech recruiter | set a reminder for an event                                                  | avoid missing it                                                        |
+| `*`      | tech recruiter | delete a reminder                                                            | avoid being distracted by unimportant notifications                     |
+| `*`      | tech recruiter | view the number of candidates in each interview stage                        | review how effective my hiring process is                               |
+| `*`      | tech recruiter | view statistics on the sources of my candidates                              | review how effective different recruitment pathways are                 |
 
 ### Use cases
 
@@ -529,7 +562,7 @@ The following requirements describe the intended quality attributes and operatin
 
 **Performance and capacity:** HireBase should support at least 1000 candidate records without noticeable sluggishness during typical use, including adding, editing, deleting, listing, and searching candidates. These operations should display their results within one second under normal operating conditions.
 
-**Command efficiency:** A recruiter with above-average typing speed for regular English text should be able to complete most candidate-management tasks faster through commands than through equivalent mouse-driven forms, once familiar with the command syntax. Routine tasks should be available through keyboard input, with the GUI providing clear visual feedback.
+**Keyboard-first operation:** Every core feature of HireBase should be usable through a typed command, without requiring the mouse. The GUI is used mainly to display results and feedback.
 
 **Single-user operation:** HireBase should support one recruiter managing their own local data, without requiring shared data access or multiple user accounts.
 
@@ -539,9 +572,23 @@ The following requirements describe the intended quality attributes and operatin
 
 **Display usability:** The GUI should work without resolution-related inconvenience at resolutions of 1920 × 1080 and above with 100% or 125% scaling. All functions should remain usable at resolutions of 1280 × 720 and above, including at 150% scaling.
 
+**Privacy:** Candidate data should be stored only on the recruiter's local machine and should not be transmitted over a network.
+
+**Data file robustness:** If the data file is missing or edited into an invalid format, HireBase should start without crashing and inform the user of the problem, rather than silently discarding the data. If a linked resume file has been moved or deleted, HireBase should show an error message instead of crashing.
+
+**Distribution size:** The distributed JAR file should not exceed 100 MB.
+
 ### Glossary
 
 **API (Application Programming Interface):** The operations a software component exposes so that other components can interact with it without depending on its internal implementation.
+
+**Archived candidate:** A candidate whom the recruiter no longer actively manages. Their record is kept for use in future vacancies.
+
+**Available period:** A time period in the recruiter's calendar during which no event is scheduled.
+
+**Awaiting follow-up:** The state of a candidate for whom the recruiter has a pending action, such as replying to them or confirming an interview.
+
+**Calendar event:** An entry in HireBase's local calendar with a date and time, such as an interview.
 
 **Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
 
@@ -551,7 +598,7 @@ The following requirements describe the intended quality attributes and operatin
 
 **GUI (Graphical User Interface):** The application's visual interface, including its windows, candidate lists, and command feedback.
 
-**Interview stage:** A candidate's current position in the recruitment process, such as screening or interviewing. These examples describe the concept rather than specifying the application's accepted stage values.
+**Interview stage:** A candidate's current position in the recruitment process: screening, shortlisted, rejected, or hired.
 
 **JAR (Java Archive):** A file that packages Java application code and resources for distribution. HireBase is distributed as a runnable JAR file.
 
@@ -567,12 +614,19 @@ The following requirements describe the intended quality attributes and operatin
 
 **Recruiter:** The HireBase user who maintains candidate records and manages recruitment activities.
 
+**Reminder:** A notification attached to a calendar event to remind the recruiter of it.
+
+**Resume:** A candidate's CV, stored as a file on the recruiter's computer. HireBase keeps a reference to the file rather than a copy.
+
+**Scheduling conflict:** A situation where two or more calendar events overlap in time.
+
 **Screening notes:** A recruiter's observations from an initial assessment of a candidate's suitability for a role.
 
 **Source:** The channel through which a recruiter found a candidate, such as a referral or a job board.
 
 **Target role:** The type of position a candidate is being considered for, such as a software engineering role.
 
+**Technical skill:** A job-relevant skill, such as Java or SQL, that is recorded for a candidate or required by a job opening.
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**

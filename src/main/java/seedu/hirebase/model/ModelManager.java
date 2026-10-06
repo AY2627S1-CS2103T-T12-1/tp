@@ -57,15 +57,15 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
-    //=========== AddressBook ================================================================================
+    //=========== HireBase ================================================================================
 
     @Override
-    public void setAddressBook(ReadOnlyHireBase addressBook) {
+    public void setHireBase(ReadOnlyHireBase addressBook) {
         this.addressBook.resetData(addressBook);
     }
 
     @Override
-    public ReadOnlyHireBase getAddressBook() {
+    public ReadOnlyHireBase getHireBase() {
         return addressBook;
     }
 

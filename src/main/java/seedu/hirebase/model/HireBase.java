@@ -10,7 +10,7 @@ import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.UniquePersonList;
 
 /**
- * Wraps all the data.
+ * Wraps all data at the address-book level.
  * Duplicates are not allowed (by .isSamePerson comparison).
  */
 public class HireBase implements ReadOnlyHireBase {
@@ -76,7 +76,7 @@ public class HireBase implements ReadOnlyHireBase {
     }
 
     /**
-     * Removes {@code key} from this {@code AddressBook}.
+     * Removes {@code key} from this {@code HireBase}.
      * {@code key} must exist in the address book.
      */
     public void removePerson(Person key) {

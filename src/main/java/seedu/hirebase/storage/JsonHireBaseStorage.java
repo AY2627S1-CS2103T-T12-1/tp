@@ -15,19 +15,19 @@ import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.ReadOnlyHireBase;
 
 /**
- * A class to access AddressBook data stored as a JSON file on the hard disk.
+ * A class to access HireBase data stored as a JSON file on the hard disk.
  */
-public class JsonAddressBookStorage {
+public class JsonHireBaseStorage {
 
-    private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
+    private static final Logger logger = LogsCenter.getLogger(JsonHireBaseStorage.class);
 
     private Path filePath;
 
-    public JsonAddressBookStorage(Path filePath) {
+    public JsonHireBaseStorage(Path filePath) {
         this.filePath = filePath;
     }
 
-    public Path getAddressBookFilePath() {
+    public Path getHireBaseFilePath() {
         return filePath;
     }
 

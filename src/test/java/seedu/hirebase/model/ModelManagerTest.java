@@ -24,7 +24,7 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
-        assertEquals(new HireBase(), new HireBase(modelManager.getAddressBook()));
+        assertEquals(new HireBase(), new HireBase(modelManager.getHireBase()));
     }
 
     @Test
@@ -58,12 +58,12 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
+    public void hasPerson_personNotInHireBase_returnsFalse() {
         assertFalse(modelManager.hasPerson(ALICE));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
+    public void hasPerson_personInHireBase_returnsTrue() {
         modelManager.addPerson(ALICE);
         assertTrue(modelManager.hasPerson(ALICE));
     }
@@ -76,7 +76,7 @@ public class ModelManagerTest {
     @Test
     public void equals() {
         HireBase addressBook = new HireBaseBuilder().withPerson(ALICE).withPerson(BENSON).build();
-        HireBase differentAddressBook = new HireBase();
+        HireBase differentHireBase = new HireBase();
         UserPrefs userPrefs = new UserPrefs();
 
         // same values -> returns true
@@ -93,8 +93,9 @@ public class ModelManagerTest {
         // different types -> returns false
         assertFalse(modelManager.equals(5));
 
-        // different addressBook -> returns false
-        assertFalse(modelManager.equals(new ModelManager(differentAddressBook, userPrefs)));
+
+        // different hireBase -> returns false
+        assertFalse(modelManager.equals(new ModelManager(differentHireBase, userPrefs)));
 
         // different filteredList -> returns false
         String[] keywords = ALICE.getName().fullName.split("\\s+");

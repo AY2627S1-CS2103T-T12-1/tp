@@ -4,9 +4,9 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.candidate.Person;
 
 /**
- * A utility class to help with building AddressBook objects.
+ * A utility class to help with building HireBase objects.
  * Example usage: <br>
- * {@code AddressBook ab = new AddressBookBuilder().withPerson("John", "Doe").build();}
+ * {@code HireBase hb = new HireBaseBuilder().withPerson("John", "Doe").build();}
  */
 public class HireBaseBuilder {
 
@@ -21,7 +21,7 @@ public class HireBaseBuilder {
     }
 
     /**
-     * Adds a new {@code Person} to the {@code AddressBook} that we are building.
+     * Adds a new {@code Person} to the {@code HireBase} that we are building.
      */
     public HireBaseBuilder withPerson(Person person) {
         hireBase.addPerson(person);

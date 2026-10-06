@@ -108,12 +108,12 @@ public class AddCommandTest {
         }
 
         @Override
-        public void setAddressBook(ReadOnlyHireBase newData) {
+        public void setHireBase(ReadOnlyHireBase newData) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ReadOnlyHireBase getAddressBook() {
+        public ReadOnlyHireBase getHireBase() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -180,7 +180,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public ReadOnlyHireBase getAddressBook() {
+        public ReadOnlyHireBase getHireBase() {
             return new HireBase();
         }
     }

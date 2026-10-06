@@ -28,7 +28,7 @@ import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.candidate.Person;
-import seedu.hirebase.storage.JsonAddressBookStorage;
+import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.StorageManager;
 import seedu.hirebase.testutil.PersonBuilder;
@@ -45,10 +45,10 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(
+        JsonHireBaseStorage hireBaseStorage = new JsonHireBaseStorage(
                 temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(hireBaseStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
     }
 
@@ -135,7 +135,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 
@@ -165,9 +165,9 @@ public class LogicManagerTest {
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
         Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
 
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException
+        // Inject LogicManager with a JsonHireBaseStorage that throws the IOException
         // e when saving
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
+        JsonHireBaseStorage hireBaseStorage = new JsonHireBaseStorage(prefPath) {
             @Override
             public void saveHireBase(ReadOnlyHireBase addressBook) throws IOException {
                 throw e;
@@ -176,7 +176,7 @@ public class LogicManagerTest {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(
                 temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(hireBaseStorage, userPrefsStorage);
 
         logic = new LogicManager(model, storage);
 

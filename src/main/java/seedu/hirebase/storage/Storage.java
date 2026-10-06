@@ -40,7 +40,7 @@ public interface Storage {
     /**
      * Returns the file path of the HireBase data file.
      */
-    Path getAddressBookFilePath();
+    Path getHireBaseFilePath();
 
     /**
      * Returns HireBase data as a {@link ReadOnlyHireBase}.

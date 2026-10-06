@@ -22,7 +22,7 @@ import seedu.hirebase.testutil.PersonBuilder;
 
 
 
-public class AddressBookTest {
+public class HireBaseTest {
 
     private final HireBase addressBook = new HireBase();
 
@@ -37,7 +37,7 @@ public class AddressBookTest {
     }
 
     @Test
-    public void resetData_withValidReadOnlyAddressBook_replacesData() {
+    public void resetData_withValidReadOnlyHireBase_replacesData() {
         HireBase newData = getTypicalHireBase();
         addressBook.resetData(newData);
         assertEquals(newData, addressBook);
@@ -60,18 +60,18 @@ public class AddressBookTest {
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
+    public void hasPerson_personNotInHireBase_returnsFalse() {
         assertFalse(addressBook.hasPerson(ALICE));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
+    public void hasPerson_personInHireBase_returnsTrue() {
         addressBook.addPerson(ALICE);
         assertTrue(addressBook.hasPerson(ALICE));
     }
 
     @Test
-    public void hasPerson_personWithSameIdentityFieldsInAddressBook_returnsTrue() {
+    public void hasPerson_personWithSameIdentityFieldsInHireBase_returnsTrue() {
         addressBook.addPerson(ALICE);
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
@@ -90,7 +90,7 @@ public class AddressBookTest {
     }
 
     /**
-     * A stub ReadOnlyAddressBook whose persons list can violate interface
+     * A stub ReadOnlyHireBase whose persons list can violate interface
      * constraints.
      */
     private static class HireBaseStub implements ReadOnlyHireBase {

@@ -31,10 +31,10 @@ public interface Model {
     /**
      * Replaces address book data with the data in {@code addressBook}.
      */
-    void setAddressBook(ReadOnlyHireBase addressBook);
+    void setHireBase(ReadOnlyHireBase addressBook);
 
-    /** Returns the AddressBook */
-    ReadOnlyHireBase getAddressBook();
+    /** Returns the HireBase */
+    ReadOnlyHireBase getHireBase();
 
     /**
      * Returns true if a person with the same identity as {@code person} exists in the address book.

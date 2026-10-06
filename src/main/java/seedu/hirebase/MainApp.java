@@ -20,7 +20,7 @@ import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.ReadOnlyUserPrefs;
 import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.util.SampleDataUtil;
-import seedu.hirebase.storage.JsonAddressBookStorage;
+import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.Storage;
 import seedu.hirebase.storage.StorageManager;
@@ -36,7 +36,7 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path HIRE_BASE_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -50,14 +50,14 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
-        storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        JsonHireBaseStorage hireBaseStorage = new JsonHireBaseStorage(HIRE_BASE_FILE_PATH);
+        storage = new StorageManager(hireBaseStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = new UiManager(logic, storage.getHireBaseFilePath());
     }
 
     /**
@@ -69,19 +69,19 @@ public class MainApp extends Application {
      * {@code storage}'s address book.
      */
     private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
-        logger.info("Using data file : " + storage.getAddressBookFilePath());
+        logger.info("Using data file : " + storage.getHireBaseFilePath());
 
-        Optional<ReadOnlyHireBase> addressBookOptional;
+        Optional<ReadOnlyHireBase> hireBaseOptional;
         ReadOnlyHireBase initialData;
         try {
-            addressBookOptional = storage.readHireBase();
-            if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
+            hireBaseOptional = storage.readHireBase();
+            if (hireBaseOptional.isEmpty()) {
+                logger.info("Creating a new data file " + storage.getHireBaseFilePath()
                         + " populated with a sample HireBase.");
             }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleHireBase);
+            initialData = hireBaseOptional.orElseGet(SampleDataUtil::getSampleHireBase);
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
+            logger.warning("Data file at " + storage.getHireBaseFilePath() + " could not be loaded."
                     + " Will be starting with an empty HireBase.");
             initialData = new HireBase();
         }

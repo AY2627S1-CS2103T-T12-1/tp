@@ -19,8 +19,8 @@ import seedu.hirebase.commons.exceptions.DataLoadingException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ReadOnlyHireBase;
 
-public class JsonAddressBookStorageTest {
-    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
+public class JsonHireBaseStorageTest {
+    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonHireBaseStorageTest");
 
     @TempDir
     public Path testFolder;
@@ -31,7 +31,7 @@ public class JsonAddressBookStorageTest {
     }
 
     private java.util.Optional<ReadOnlyHireBase> readHireBase(String filePath) throws Exception {
-        return new JsonAddressBookStorage(Paths.get(filePath)).readHireBase(addToTestDataPathIfNotNull(filePath));
+        return new JsonHireBaseStorage(Paths.get(filePath)).readHireBase(addToTestDataPathIfNotNull(filePath));
     }
 
     private Path addToTestDataPathIfNotNull(String prefsFileInTestDataFolder) {
@@ -47,47 +47,47 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void read_notJsonFormat_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readHireBase("notJsonFormatAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readHireBase("notJsonFormatHireBase.json"));
     }
 
     @Test
-    public void readHireBase_invalidPersonAddressBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readHireBase("invalidPersonAddressBook.json"));
+    public void readHireBase_invalidHireBase_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readHireBase("invalidPersonHireBase.json"));
     }
 
     @Test
-    public void readHireBase_invalidAndValidPersonAddressBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readHireBase("invalidAndValidPersonAddressBook.json"));
+    public void readHireBase_invalidAndValidHireBase_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readHireBase("invalidAndValidPersonHireBase.json"));
     }
 
     @Test
-    public void readAndSaveAddressBook_allInOrder_success() throws Exception {
-        Path filePath = testFolder.resolve("TempAddressBook.json");
+    public void readAndSaveHireBase_allInOrder_success() throws Exception {
+        Path filePath = testFolder.resolve("TempHireBase.json");
         HireBase original = getTypicalHireBase();
-        JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
+        JsonHireBaseStorage jsonHireBaseStorage = new JsonHireBaseStorage(filePath);
 
         // Save in new file and read back
-        jsonAddressBookStorage.saveHireBase(original, filePath);
-        ReadOnlyHireBase readBack = jsonAddressBookStorage.readHireBase(filePath).get();
+        jsonHireBaseStorage.saveHireBase(original, filePath);
+        ReadOnlyHireBase readBack = jsonHireBaseStorage.readHireBase(filePath).get();
         assertEquals(original, new HireBase(readBack));
 
         // Modify data, overwrite existing file, and read back
         original.addPerson(HOON);
         original.removePerson(ALICE);
-        jsonAddressBookStorage.saveHireBase(original, filePath);
-        readBack = jsonAddressBookStorage.readHireBase(filePath).get();
+        jsonHireBaseStorage.saveHireBase(original, filePath);
+        readBack = jsonHireBaseStorage.readHireBase(filePath).get();
         assertEquals(original, new HireBase(readBack));
 
         // Save and read without specifying file path
         original.addPerson(IDA);
-        jsonAddressBookStorage.saveHireBase(original); // file path not specified
-        readBack = jsonAddressBookStorage.readHireBase().get(); // file path not specified
+        jsonHireBaseStorage.saveHireBase(original); // file path not specified
+        readBack = jsonHireBaseStorage.readHireBase().get(); // file path not specified
         assertEquals(original, new HireBase(readBack));
 
     }
 
     @Test
-    public void saveHireBase_nullAddressBook_throwsNullPointerException() {
+    public void saveHireBase_nullHireBase_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveHireBase(null, "SomeFile.json"));
     }
 
@@ -96,7 +96,7 @@ public class JsonAddressBookStorageTest {
      */
     private void saveHireBase(ReadOnlyHireBase addressBook, String filePath) {
         try {
-            new JsonAddressBookStorage(Paths.get(filePath))
+            new JsonHireBaseStorage(Paths.get(filePath))
                     .saveHireBase(addressBook, addToTestDataPathIfNotNull(filePath));
         } catch (IOException ioe) {
             throw new AssertionError("There should not be an error writing to the file.", ioe);

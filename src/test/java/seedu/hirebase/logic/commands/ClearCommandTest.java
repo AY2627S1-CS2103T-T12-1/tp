@@ -13,7 +13,7 @@ import seedu.hirebase.model.UserPrefs;
 public class ClearCommandTest {
 
     @Test
-    public void execute_emptyAddressBook_success() {
+    public void execute_emptyHireBase_success() {
         Model model = new ModelManager();
         Model expectedModel = new ModelManager();
 
@@ -21,10 +21,10 @@ public class ClearCommandTest {
     }
 
     @Test
-    public void execute_nonEmptyAddressBook_success() {
+    public void execute_nonEmptyHireBase_success() {
         Model model = new ModelManager(getTypicalHireBase(), new UserPrefs());
         Model expectedModel = new ModelManager(getTypicalHireBase(), new UserPrefs());
-        expectedModel.setAddressBook(new HireBase());
+        expectedModel.setHireBase(new HireBase());
 
         assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
     }

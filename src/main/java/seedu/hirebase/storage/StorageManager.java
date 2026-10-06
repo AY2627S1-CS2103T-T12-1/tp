@@ -17,15 +17,15 @@ import seedu.hirebase.model.UserPrefs;
 public class StorageManager implements Storage {
 
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
-    private JsonAddressBookStorage addressBookStorage;
+    private JsonHireBaseStorage hireBaseStorage;
     private JsonUserPrefsStorage userPrefsStorage;
 
     /**
      * Creates a {@code StorageManager} with the given address book and user prefs
      * storage.
      */
-    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage) {
-        this.addressBookStorage = addressBookStorage;
+    public StorageManager(JsonHireBaseStorage hireBaseStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this.hireBaseStorage = hireBaseStorage;
         this.userPrefsStorage = userPrefsStorage;
     }
 
@@ -46,23 +46,23 @@ public class StorageManager implements Storage {
         userPrefsStorage.saveUserPrefs(userPrefs);
     }
 
-    // ================ AddressBook methods ==============================
+    // ================ HireBase methods ==============================
 
     @Override
-    public Path getAddressBookFilePath() {
-        return addressBookStorage.getAddressBookFilePath();
+    public Path getHireBaseFilePath() {
+        return hireBaseStorage.getHireBaseFilePath();
     }
 
     @Override
     public Optional<ReadOnlyHireBase> readHireBase() throws DataLoadingException {
-        logger.fine("Attempting to read data from file: " + addressBookStorage.getAddressBookFilePath());
-        return addressBookStorage.readHireBase();
+        logger.fine("Attempting to read data from file: " + hireBaseStorage.getHireBaseFilePath());
+        return hireBaseStorage.readHireBase();
     }
 
     @Override
     public void saveHireBase(ReadOnlyHireBase hireBase) throws IOException {
-        logger.fine("Attempting to write to data file: " + addressBookStorage.getAddressBookFilePath());
-        addressBookStorage.saveHireBase(hireBase);
+        logger.fine("Attempting to write to data file: " + hireBaseStorage.getHireBaseFilePath());
+        hireBaseStorage.saveHireBase(hireBase);
     }
 
 }

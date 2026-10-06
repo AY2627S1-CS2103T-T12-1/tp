@@ -14,7 +14,7 @@ import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.candidate.Person;
 
 /**
- * An Immutable AddressBook that is serializable to JSON format.
+ * An Immutable HireBase that is serializable to JSON format.
  */
 @JsonRootName(value = "addressbook")
 class JsonSerializableHireBase {
@@ -32,7 +32,7 @@ class JsonSerializableHireBase {
     }
 
     /**
-     * Converts a given {@code ReadOnlyAddressBook} into this class for Jackson use.
+     * Converts a given {@code ReadOnlyHireBase} into this class for Jackson use.
      *
      * @param source future changes to this will not affect the created
      *               {@code JsonSerializableHireBase}.
@@ -42,7 +42,7 @@ class JsonSerializableHireBase {
     }
 
     /**
-     * Converts this address book into the model's {@code AddressBook} object.
+     * Converts this address book into the model's {@code HireBase} object.
      *
      * @throws IllegalValueException if there were any data constraints violated.
      */

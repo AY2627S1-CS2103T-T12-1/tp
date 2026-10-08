@@ -104,6 +104,11 @@ repeat it to supply multiple skills. Skills are optional: use `edit INDEX s/` to
 When supplying multiple skills, each value must be non-blank.
 Repeated skills are combined without regard to case. A repeated single-value prefix such as `r/` is rejected.
 
+For example, `edit 1 s/` removes all skills from the first displayed candidate. Mixing an empty skill with a
+non-empty skill, as in `edit 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
+To replace all existing skills with just "new skill", use `edit 1 s/new skill`.
+Omitting `s/` entirely preserves the candidate's existing skills.
+
 Names accept 1–100 characters consisting of letters, spaces, hyphens and apostrophes. Phone numbers accept 3–15 digits,
 with an optional leading `+`. Emails must have a valid email format and must not match another candidate's email,
 ignoring case. Candidates may share the same name. Changing only the case of a candidate's own email is allowed.

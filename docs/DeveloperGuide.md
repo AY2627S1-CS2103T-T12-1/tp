@@ -100,7 +100,7 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
+1. When `Logic` is called upon to execute a command, the command is passed to an `HireBaseParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
@@ -111,7 +111,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <img src="images/ParserClasses.png" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* When called upon to parse a user command, the `HireBaseParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `HireBaseParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
@@ -142,12 +142,12 @@ The `Model` component,
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonHireBaseStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Classes used by multiple components are in the `seedu.hirebase.commons` package.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -261,72 +261,372 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is a tech recruiter managing a high volume of candidates across several technical roles
+* handles dozens of candidate updates every day
+* works on their own laptop and maintains their own candidate records
+* can type fast and prefers typing commands to navigating GUI screens with a mouse
+* is comfortable using CLI apps
+* frequently switches between candidates and vacancies and needs to retrieve information quickly
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: HireBase lets tech recruiters track high-volume candidate pipelines faster than a typical mouse-driven web-based recruitment system. It supports quick updates to interview stages, fast filtering of candidates by skill, role and stage, and easy management of candidate records and interview schedules, reducing administrative overhead and mouse context-switching.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​        | I want to …​                                                                   | So that I can…​                                                         |
+| -------- | -------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `* * *`  | new user       | see usage instructions                                                       | refer to them when I forget how to use the app                          |
+| `* * *`  | new user       | see sample candidate records on first launch                                 | explore how the app works before entering real data                     |
+| `* * *`  | new user       | clear all sample records using a single command                              | start recording my own candidates                                       |
+| `* * *`  | tech recruiter | add a candidate's contact details, technical skills and target role using a single command | record new applicants quickly                             |
+| `* * *`  | tech recruiter | update a candidate's profile                                                 | keep the candidate's information accurate                               |
+| `* * *`  | tech recruiter | delete a candidate's profile                                                 | remove entries that I no longer need                                    |
+| `* * *`  | tech recruiter | search for a candidate by name                                               | retrieve their details before an interview                              |
+| `* * *`  | tech recruiter | filter candidates by technical skill                                         | identify suitable candidates for an opening                             |
+| `* * *`  | tech recruiter | filter candidates by target role                                             | find candidates who are interested in a specific role                   |
+| `* * *`  | tech recruiter | add screening notes to a candidate                                           | refer to my previous observations when deciding the next step           |
+| `* * *`  | tech recruiter | update a candidate's screening notes                                         | keep my observations up to date                                         |
+| `* * *`  | tech recruiter | update a candidate's interview stage                                         | keep track of their progress                                            |
+| `* * *`  | tech recruiter | filter candidates by interview stage                                         | focus on candidates at a particular stage                               |
+| `* * *`  | tech recruiter | assign a priority score to a candidate                                       | identify which candidates to focus on first                             |
+| `* * *`  | tech recruiter | add an interview event to my calendar                                        | prepare the relevant details before the interview                       |
+| `* * *`  | tech recruiter | view today's upcoming events                                                 | plan my day                                                             |
+| `* *`    | tech recruiter | search for a candidate by email                                              | find their record when I am reading their emails                        |
+| `* *`    | tech recruiter | link a candidate's resume file to their profile                              | refer to their experience while screening                               |
+| `* *`    | tech recruiter | remove the resume link from a candidate's profile                            | keep the candidate's record tidy                                        |
+| `* *`    | tech recruiter | compare candidates' profiles                                                 | decide whom to interview                                                |
+| `* *`    | tech recruiter | update the interview stages of multiple candidates in one command            | process batches of shortlisted or rejected applicants efficiently       |
+| `* *`    | tech recruiter | mark a candidate as awaiting follow-up                                       | remember which candidates need action from me                           |
+| `* *`    | tech recruiter | list candidates who are awaiting follow-up                                   | prioritise pending actions and avoid overlooking applicants             |
+| `* *`    | tech recruiter | sort candidates by priority score                                            | see which candidates need my attention first                            |
+| `* *`    | tech recruiter | view this month's upcoming events                                            | get an overview of the month and plan ahead                             |
+| `* *`    | tech recruiter | view my available periods in the calendar                                    | check my availability when arranging interviews with candidates         |
+| `* *`    | tech recruiter | add an important event to my calendar                                        | avoid forgetting it                                                     |
+| `* *`    | tech recruiter | update the details of a calendar event                                       | keep my calendar accurate                                               |
+| `* *`    | tech recruiter | delete a calendar event                                                      | keep my calendar accurate when plans are cancelled                      |
+| `* *`    | tech recruiter | see scheduling conflicts in my calendar                                      | resolve them immediately                                                |
+| `* *`    | tech recruiter | create a job opening                                                         | track the vacancies that I am hiring for                                |
+| `* *`    | tech recruiter | edit a job opening                                                           | keep its information accurate                                           |
+| `* *`    | tech recruiter | delete a job opening                                                         | stop outdated or closed openings from appearing                         |
+| `* *`    | tech recruiter | tag the skills required for a job opening                                    | focus on finding candidates who have those skills                       |
+| `* *`    | tech recruiter | filter previously rejected candidates with relevant skills when creating a new job opening | get an initial list of candidates to consider              |
+| `* *`    | tech recruiter | archive candidates I no longer actively manage                               | keep my daily searches focused while preserving their information       |
+| `*`      | tech recruiter | set a reminder for an event                                                  | avoid missing it                                                        |
+| `*`      | tech recruiter | delete a reminder                                                            | avoid being distracted by unimportant notifications                     |
+| `*`      | tech recruiter | view the number of candidates in each interview stage                        | review how effective my hiring process is                               |
+| `*`      | tech recruiter | view statistics on the sources of my candidates                              | review how effective different recruitment pathways are                 |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `HireBase` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: UC1 - Add a candidate**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  User submits add candidate command with candidate details
+2.  HireBase adds the candidate with default interview stage SCREENING and a unique ID
+3.  HireBase refreshes the candidate list and highlights the new entry
+4.  HireBase displays a success message
 
     Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. The user command contains missing or invalid parameters
 
-  Use case ends.
+    * 1a1. HireBase displays an error message corresponding to the first parameter verification failure.
 
-* 3a. The given index is invalid.
+      Use case ends.
 
-    * 3a1. AddressBook shows an error message.
+* 1b. A candidate with the same email already exists
 
-      Use case resumes at step 2.
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. The candidate could not be added
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC2 - List candidates**
+
+**MSS**
+
+1.  User submits list candidates command
+2.  HireBase shows the full candidate list with all candidates. Candidates have their full details
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no candidates in the system
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+**Use case: UC3 - Delete a candidate**
+
+**MSS**
+
+1.  User submits delete candidate command, specifying the candidate ID to be deleted
+2.  HireBase deletes the candidate
+3.  HireBase refreshes the candidate list
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The user command has missing or invalid id
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. A candidate with the specified ID does not exist
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. Candidate could not be deleted
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC4 - Add job opening**
+
+**MSS**
+
+1.  User submits add job opening command with details
+2.  HireBase adds the job opening with a unique ID
+3.  HireBase refreshes the job opening list and highlights the new entry
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The job opening already exists
+
+    * 1a1. HireBase displays an error message
+
+      Use case ends.
+
+* 1b. The job opening could not be added
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC5 - Delete job opening**
+
+**MSS**
+
+1.  User submits delete job opening command with details
+2.  HireBase deletes the job opening
+3.  HireBase refreshes the job opening list
+4.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The user command has missing or invalid id
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. A job opening with the specified ID does not exist
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. Job opening could not be deleted
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC6 - List job openings**
+
+**MSS**
+
+1.  User submits list job opening command
+2.  HireBase shows the full job opening list
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no job openings in the system
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+* 1b. Additional parameters are supplied to the command
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC7 - Filter candidates**
+
+**MSS**
+
+1.  User submits filter candidates command
+2.  HireBase shows the filtered candidate list
+3.  HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. There are no candidates that meet the filter criteria
+
+    * 1a1. HireBase displays a success message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+**Use case: UC8 - Update candidate status**
+
+**MSS**
+
+1. User submits update candidate command
+2. HireBase updates candidate details
+3. HireBase shows the updated candidate list
+4. HireBase displays a success message
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The updated email matches another candidate
+
+    * 1a1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1b. The user command contains missing or invalid parameters
+
+    * 1b1. HireBase displays an error message corresponding to the first parameter verification failure.
+
+      Use case ends.
+
+* 1c. Candidate could not be updated
+
+    * 1c1. HireBase displays an error message.
+
+      Use case ends.
+
+**Use case: UC9 - Shortlist candidates for a job opening**
+
+**MSS**
+
+1.  User <ins>lists job openings (UC6)</ins>
+2.  User finds target job opening skills
+3.  User <ins>filters candidates by the skills (UC7)</ins>
+4.  User <ins>updates candidates' status (UC8)</ins> to shortlisted
+
+    Use case ends.
+
+**Extensions**
 
 *{More to be added}*
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
 
-*{More to be added}*
+**Compatibility:** HireBase should run on Windows, Linux, and macOS with Java `25` installed, without requiring another Java version.
+
+**Portability:** HireBase should be distributed as a single JAR file and run without an installer or additional software installation beyond Java.
+
+**Performance and capacity:** HireBase should support at least 1000 candidate records without noticeable sluggishness during typical use, including adding, editing, deleting, listing, and searching candidates. These operations should display their results within one second under normal operating conditions.
+
+**Keyboard-first operation:** Every core feature of HireBase should be usable through a typed command, without requiring the mouse. The GUI is used mainly to display results and feedback.
+
+**Single-user operation:** HireBase should support one recruiter managing their own local data, without requiring shared data access or multiple user accounts.
+
+**Local storage and offline availability:** Application data should be stored locally in human-editable text files. Core candidate-management operations should work without an Internet connection or a remote server.
+
+**Data integrity:** Successful changes should be saved automatically and retained after a normal restart. Invalid commands should produce an explanatory error message without changing existing records. If saving fails, HireBase should clearly inform the user that the changes could not be saved.
+
+**Display usability:** The GUI should work without resolution-related inconvenience at resolutions of 1920 × 1080 and above with 100% or 125% scaling. All functions should remain usable at resolutions of 1280 × 720 and above, including at 150% scaling.
+
+**Privacy:** Candidate data should be stored only on the recruiter's local machine and should not be transmitted over a network.
+
+**Data file robustness:** If the data file is missing or edited into an invalid format, HireBase should start without crashing and inform the user of the problem, rather than silently discarding the data. If a linked resume file has been moved or deleted, HireBase should show an error message instead of crashing.
+
+**Distribution size:** The distributed JAR file should not exceed 100 MB.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+**API (Application Programming Interface):** The operations a software component exposes so that other components can interact with it without depending on its internal implementation.
 
+**Archived candidate:** A candidate whom the recruiter no longer actively manages. Their record is kept for use in future vacancies.
+
+**Available period:** A time period in the recruiter's calendar during which no event is scheduled.
+
+**Awaiting follow-up:** The state of a candidate for whom the recruiter has a pending action, such as replying to them or confirming an interview.
+
+**Calendar event:** An entry in HireBase's local calendar with a date and time, such as an interview.
+
+**Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
+
+**Candidate pipeline:** The set of candidates a recruiter manages and their progress through the recruitment process.
+
+**CLI (Command Line Interface):** A way of interacting with an application by typing text commands. In HireBase, commands are entered in the application's command box.
+
+**GUI (Graphical User Interface):** The application's visual interface, including its windows, candidate lists, and command feedback.
+
+**Interview stage:** A candidate's current position in the recruitment process: screening, shortlisted, rejected, or hired.
+
+**JAR (Java Archive):** A file that packages Java application code and resources for distribution. HireBase is distributed as a runnable JAR file.
+
+**Job opening (vacancy):** A position that a recruiter is seeking to fill.
+
+**JSON (JavaScript Object Notation):** A text format that represents structured data using named fields, values, and lists. The Storage component uses it to save application data and user preferences.
+
+**Mainstream OS (Operating System):** For HireBase's compatibility requirements, Windows, Linux, or macOS.
+
+**Priority score:** A value used to indicate the relative attention a recruiter intends to give a candidate.
+
+**Private contact detail:** Contact information that is not intended to be shared with other people.
+
+**Recruiter:** The HireBase user who maintains candidate records and manages recruitment activities.
+
+**Reminder:** A notification attached to a calendar event to remind the recruiter of it.
+
+**Resume:** A candidate's CV, stored as a file on the recruiter's computer. HireBase keeps a reference to the file rather than a copy.
+
+**Scheduling conflict:** A situation where two or more calendar events overlap in time.
+
+**Screening notes:** A recruiter's observations from an initial assessment of a candidate's suitability for a role.
+
+**Source:** The channel through which a recruiter found a candidate, such as a referral or a job board.
+
+**Target role:** The type of position a candidate is being considered for, such as a software engineering role.
+
+**Technical skill:** A job-relevant skill, such as Java or SQL, that is recorded for a candidate or required by a job opening.
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**

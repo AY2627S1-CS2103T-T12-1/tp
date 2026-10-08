@@ -140,6 +140,9 @@ public class EditCandidateTest {
         assertEquals(Set.of(new Skill("Java")), copy.getSkills().orElseThrow());
         assertThrows(UnsupportedOperationException.class, () -> copy.getSkills().orElseThrow().clear());
         assertEquals(descriptor, copy);
+        descriptor.setSkills(Set.of(new Skill("SQL")));
+        assertNotEquals(descriptor, copy);
+        descriptor.setSkills(copy.getSkills().orElseThrow());
         descriptor.setRole(new Role("Developer"));
         assertNotEquals(descriptor, copy);
     }

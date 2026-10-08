@@ -6,6 +6,7 @@ import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -136,6 +137,24 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, null, "", VALID_TAGS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidSkills_rejectsCorruptStoredData() {
+        for (String skill : Arrays.asList(null, "", " ", "Java!", "a".repeat(31))) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_ADDRESS, "", VALID_TAGS, Arrays.asList(skill), "Engineer");
+            assertThrows(IllegalValueException.class, person::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_invalidRole_rejectsCorruptStoredData() {
+        for (String role : List.of("", " ", "Engineer!", "a".repeat(101))) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_ADDRESS, "", VALID_TAGS, List.of("Java"), role);
+            assertThrows(IllegalValueException.class, person::toModelType);
+        }
     }
 
     @Test

@@ -96,6 +96,15 @@ public class PersonTest {
     }
 
     @Test
+    public void equals_recruitmentDetails_distinguishesSkillsAndRole() {
+        Person candidate = new PersonBuilder(ALICE).withSkills("Java").withRole("Engineer").build();
+        assertTrue(candidate.equals(new PersonBuilder(candidate).withSkills("java").withRole("engineer").build()));
+        assertFalse(candidate.equals(new PersonBuilder(candidate).withSkills("SQL").build()));
+        assertFalse(candidate.equals(new PersonBuilder(candidate).withRole("Developer").build()));
+        assertEquals(candidate.hashCode(), new PersonBuilder(candidate).build().hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", remark=" + ALICE.getRemark()

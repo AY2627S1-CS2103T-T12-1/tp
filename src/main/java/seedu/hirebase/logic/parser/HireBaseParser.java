@@ -17,6 +17,7 @@ import seedu.hirebase.logic.commands.ExitCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
+import seedu.hirebase.logic.commands.RemarkCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 
 /**
@@ -54,6 +55,7 @@ public class HireBaseParser {
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
+            case RemarkCommand.COMMAND_WORD -> new RemarkCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);

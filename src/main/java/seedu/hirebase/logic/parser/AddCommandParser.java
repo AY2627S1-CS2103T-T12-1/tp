@@ -17,6 +17,7 @@ import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.model.tag.Tag;
 
 /**
@@ -47,7 +48,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 
-        Person person = new Person(name, phone, email, address, tagList);
+        Person person = new Person(name, phone, email, address, new Remark(""), tagList);
 
         return new AddCommand(person);
     }

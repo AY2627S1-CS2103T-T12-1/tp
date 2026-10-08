@@ -21,9 +21,11 @@ import seedu.hirebase.logic.commands.ExitCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
+import seedu.hirebase.logic.commands.RemarkCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.NameContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.testutil.EditPersonDescriptorBuilder;
 import seedu.hirebase.testutil.PersonBuilder;
 import seedu.hirebase.testutil.PersonUtil;
@@ -31,6 +33,13 @@ import seedu.hirebase.testutil.PersonUtil;
 public class HireBaseParserTest {
 
     private final HireBaseParser parser = new HireBaseParser();
+
+    @Test
+    public void parseCommand_remark() throws Exception {
+        assertEquals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Likes baseball")),
+                parser.parseCommand("remark 1 r/Likes baseball"));
+        assertEquals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")), parser.parseCommand("remark 1 r/"));
+    }
 
     @Test
     public void parseCommand_add() throws Exception {

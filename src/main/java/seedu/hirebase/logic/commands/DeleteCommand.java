@@ -6,7 +6,6 @@ import java.util.List;
 
 import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.ToStringBuilder;
-import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.Person;
@@ -27,6 +26,9 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_CANDIDATE_SUCCESS = "Deleted candidate %1$d: %2$s (%3$s)";
 
+    public static final String MESSAGE_CANDIDATE_ID_NOT_FOUND =
+            "Candidate ID \"%1$d\" does not exist. Use list to view available candidate IDs.";
+
     private final Index targetIndex;
 
     public DeleteCommand(Index targetIndex) {
@@ -39,7 +41,7 @@ public class DeleteCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(String.format(MESSAGE_CANDIDATE_ID_NOT_FOUND, targetIndex.getOneBased()));
         }
 
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());

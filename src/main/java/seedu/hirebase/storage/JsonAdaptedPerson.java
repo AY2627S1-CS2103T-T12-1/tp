@@ -38,11 +38,10 @@ class JsonAdaptedPerson {
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Only the full constructor has JSON annotations so deserialization has one unambiguous creator.
      */
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("remark") String remark,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
+            List<JsonAdaptedTag> tags) {
         this(name, phone, email, address, remark, tags, null, null);
     }
 
@@ -52,7 +51,8 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("remark") String remark, @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("skills") List<String> skills,
+            @JsonProperty("remark") String remark, @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("skills") List<String> skills,
             @JsonProperty("role") String role) {
         this.skills = skills == null ? new ArrayList<>() : new ArrayList<>(skills);
         this.role = role;

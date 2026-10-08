@@ -16,6 +16,7 @@ import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
+import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
 import seedu.hirebase.testutil.PersonBuilder;
 
@@ -33,6 +34,25 @@ public class JsonAdaptedPersonTest {
     private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
             .map(JsonAdaptedTag::new)
             .collect(Collectors.toList());
+
+    @Test
+    public void fromJson_nullRecruitmentDetails_returnsPersonWithoutSkillsOrRole() throws Exception {
+        String json = """
+                {
+                  "name": "Benson Meier",
+                  "phone": "98765432",
+                  "email": "benson@example.com",
+                  "address": "311, Clementi Ave 2, #02-25",
+                  "tags": [],
+                  "skills": null,
+                  "role": null
+                }
+                """;
+        Person person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertEquals("Benson Meier", person.getName().fullName);
+        assertEquals(java.util.Collections.emptySet(), person.getSkills());
+        assertEquals(java.util.Optional.empty(), person.getRole());
+    }
 
     @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {

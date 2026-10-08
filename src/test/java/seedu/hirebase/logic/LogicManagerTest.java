@@ -181,8 +181,8 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
 
         // Triggers the saveHireBase method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-            + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + TAG_DESC_FRIEND;
+        String addCommand = AddCommand.COMMAND_WORD + " " + AddCommand.RECORD_TYPE_CANDIDATE + NAME_DESC_AMY
+            + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + TAG_DESC_FRIEND;
         Person expectedPerson = AMY;
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);

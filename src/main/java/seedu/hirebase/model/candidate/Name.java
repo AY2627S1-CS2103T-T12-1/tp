@@ -10,13 +10,9 @@ import static seedu.hirebase.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names should be 1-100 characters, contain only letters, spaces, hyphens and apostrophes, and not be blank";
 
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{L} '-]{1,100}";
 
     public final String fullName;
 
@@ -35,7 +31,7 @@ public class Name {
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return !test.isBlank() && test.matches(VALIDATION_REGEX);
     }
 
 

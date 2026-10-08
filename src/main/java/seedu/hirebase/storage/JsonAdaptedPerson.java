@@ -16,6 +16,8 @@ import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
 import seedu.hirebase.model.candidate.Remark;
+import seedu.hirebase.model.candidate.Role;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
 
 /**
@@ -30,16 +32,30 @@ class JsonAdaptedPerson {
     private final String email;
     private final String address;
     private final String remark;
+    private final List<String> skills;
+    private final String role;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Only the full constructor has JSON annotations so deserialization has one unambiguous creator.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
+            List<JsonAdaptedTag> tags) {
+        this(name, phone, email, address, remark, tags, null, null);
+    }
+
+    /**
+     * Reads recruitment details while accepting older files without those fields.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("remark") String remark,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("remark") String remark, @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("skills") List<String> skills,
+            @JsonProperty("role") String role) {
+        this.skills = skills == null ? new ArrayList<>() : new ArrayList<>(skills);
+        this.role = role;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -54,6 +70,8 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        skills = source.getSkills().stream().map(skill -> skill.value).sorted().collect(Collectors.toList());
+        role = source.getRole().map(value -> value.value).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -112,7 +130,18 @@ class JsonAdaptedPerson {
         // Older address books have no remark field; retain those people with an empty remark.
         final Remark modelRemark = new Remark(remark == null ? "" : remark);
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRemark, modelTags);
+        Set<Skill> modelSkills = new HashSet<>();
+        for (String skill : skills) {
+            if (skill == null || !Skill.isValidSkill(skill)) {
+                throw new IllegalValueException(Skill.MESSAGE_CONSTRAINTS);
+            }
+            modelSkills.add(new Skill(skill));
+        }
+        if (role != null && !Role.isValidRole(role)) {
+            throw new IllegalValueException(Role.MESSAGE_CONSTRAINTS);
+        }
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRemark, modelTags,
+                modelSkills, role == null ? null : new Role(role));
     }
 
 }

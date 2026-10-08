@@ -29,7 +29,8 @@ public class RemarkIntegrationTest {
     @Test
     public void execute_remarkAndEdit_persistsAcrossReloads() throws Exception {
         HireBase addressBook = new HireBase();
-        addressBook.addPerson(ALICE);
+        Person candidate = new PersonBuilder(ALICE).withSkills("Java", "SQL").withRole("Engineer").build();
+        addressBook.addPerson(candidate);
         Model model = new ModelManager(addressBook, new UserPrefs());
         Path file = testFolder.resolve("addressbook.json");
         Storage storage = new StorageManager(new JsonHireBaseStorage(file),
@@ -37,15 +38,16 @@ public class RemarkIntegrationTest {
         Logic logic = new LogicManager(model, storage);
 
         logic.execute("remark 1 r/Likes baseball");
-        Person expected = new PersonBuilder(ALICE).withRemark("Likes baseball").build();
+        Person expected = new PersonBuilder(candidate).withRemark("Likes baseball").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
         assertTrue(Files.readString(file).contains("\"remark\" : \"Likes baseball\""));
 
         // Simulate restarting the app by rebuilding its model and logic from saved data.
         model = new ModelManager(storage.readHireBase().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, storage);
-        logic.execute("edit 1 p/91234567");
-        expected = new PersonBuilder(expected).withPhone("91234567").build();
+        logic.execute("edit candidate 1 p/91234567 s/C++ r/Backend Engineer");
+        expected = new PersonBuilder(expected).withPhone("91234567").withSkills("C++")
+                .withRole("Backend Engineer").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
 
         logic.execute("remark 1 r/");

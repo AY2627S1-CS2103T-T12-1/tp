@@ -92,21 +92,24 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
-### Editing a candidate: `edit`
+### Editing a candidate: `edit candidate`
 
 Updates the candidate at the positive `INDEX` shown in the current list, including a list narrowed by `find`.
 After a successful edit, the full list is displayed again.
 
-Format: `edit INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
+Format: `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
+
+`candidate` is a required, case-sensitive keyword. The old `edit INDEX ...` syntax is rejected.
+Multiple spaces between command words are accepted.
 
 Supply at least one field. Omitted fields retain their existing values. Supplying `s/` replaces the entire skill set;
-repeat it to supply multiple skills. Skills are optional: use `edit INDEX s/` to clear them.
+repeat it to supply multiple skills. Skills are optional: use `edit candidate INDEX s/` to clear them.
 When supplying multiple skills, each value must be non-blank.
 Repeated skills are combined without regard to case. A repeated single-value prefix such as `r/` is rejected.
 
-For example, `edit 1 s/` removes all skills from the first displayed candidate. Mixing an empty skill with a
-non-empty skill, as in `edit 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
-To replace all existing skills with just "new skill", use `edit 1 s/new skill`.
+For example, `edit candidate 1 s/` removes all skills from the first displayed candidate. Mixing an empty skill with a
+non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
+To replace all existing skills with just "new skill", use `edit candidate 1 s/new skill`.
 Omitting `s/` entirely preserves the candidate's existing skills.
 
 Names accept 1–100 characters consisting of letters, spaces, hyphens and apostrophes. Phone numbers accept 3–15 digits,
@@ -118,8 +121,8 @@ Target roles accept 1–100 characters consisting of letters, digits, spaces, hy
 Leading and trailing whitespace is trimmed, and consecutive whitespace in names, skills and roles is collapsed.
 Invalid input leaves the records unchanged.
 
-For example, `edit 1 p/+6591234567 e/johndoe@example.com` updates only the first displayed candidate's contact details.
-`edit 2 s/Java s/SQL r/Backend Engineer` replaces the second displayed candidate's skills and target role,
+For example, `edit candidate 1 p/+6591234567 e/johndoe@example.com` updates only the first displayed candidate's contact details.
+`edit candidate 2 s/Java s/SQL r/Backend Engineer` replaces the second displayed candidate's skills and target role,
 preserving their contact details. Edited recruitment details appear on the candidate card and are saved locally.
 Older records without skills or a target role can still be loaded and edited.
 
@@ -212,7 +215,7 @@ _Details coming soon ..._
 | **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague` |
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
-| **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`                                          |
+| **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
 | **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`                                                                                                            |
 | **List**   | `list`                                                                                                                                                                |
 | **Help**   | `help`                                                                                                                                                                |

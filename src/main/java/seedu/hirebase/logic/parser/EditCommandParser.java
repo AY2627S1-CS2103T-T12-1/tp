@@ -36,7 +36,11 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
+        String[] parts = args.trim().split("\\s+", 2);
+        if (!parts[0].equals(EditCommand.RECORD_TYPE_CANDIDATE) || parts.length < 2) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE));
+        }
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(parts[1], PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS, PREFIX_TAG, PREFIX_SKILL, PREFIX_ROLE);
 
         Index index;

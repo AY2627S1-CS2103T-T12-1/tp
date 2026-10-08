@@ -38,11 +38,13 @@ import seedu.hirebase.model.tag.Tag;
 public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
+    public static final String RECORD_TYPE_CANDIDATE = "candidate";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the candidate identified "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE
+            + ": Edits the details of the candidate identified "
             + "by the index number used in the displayed candidate list. "
             + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: INDEX (must be a positive integer) "
+            + "Parameters: candidate INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
@@ -50,7 +52,7 @@ public class EditCommand extends Command {
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_SKILL + "SKILL]... "
             + "[" + PREFIX_ROLE + "ROLE]\n"
-            + "Example: " + COMMAND_WORD + " 1 "
+            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
 

@@ -1,9 +1,11 @@
 ---
 name: tp-gradle-validation
-description: Build and validate the HireBase tp repository after code changes or when asked to test, check, or package it. Always run Java tests through the repository Gradle wrapper.
+description: Build and validate the HireBase tp repository after feature additions or code changes, including reviewing User Guide coverage, or when asked to test, check, or package it. Always run Java tests through the repository Gradle wrapper.
 ---
 
 Run commands from the repository root containing `gradlew` and `build.gradle`. Use `./gradlew` for all builds, checks, tests and app launches (or `gradlew.bat` on Windows), rather than a globally installed Gradle or a direct Java/JUnit invocation. This project currently requires JDK 25; consult `build.gradle` if that requirement changes.
+
+Whenever adding a feature or changing user-visible behaviour, review `docs/UserGuide.md` and update it where needed before completing the work. Check command syntax, examples, validation rules, edge cases and the command summary for consistency with the implementation. If no User Guide change is needed, briefly explain why in the completion report.
 
 For completed code changes or a request to build and check, run:
 

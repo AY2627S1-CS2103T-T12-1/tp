@@ -1,6 +1,7 @@
 package seedu.hirebase.ui;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -44,6 +45,10 @@ public class PersonCard extends UiPart<Region> {
     private Label remark;
     @FXML
     private FlowPane tags;
+    @FXML
+    private Label skills;
+    @FXML
+    private Label role;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to
@@ -58,6 +63,13 @@ public class PersonCard extends UiPart<Region> {
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
         remark.setText(person.getRemark().value);
+        skills.setText("Skills: " + person.getSkills().stream().map(skill -> skill.value).sorted()
+                .collect(Collectors.joining(", ")));
+        skills.setVisible(!person.getSkills().isEmpty());
+        skills.setManaged(skills.isVisible());
+        role.setText("Target role: " + person.getRole().map(value -> value.value).orElse(""));
+        role.setVisible(person.getRole().isPresent());
+        role.setManaged(role.isVisible());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

@@ -44,6 +44,15 @@ public class PersonTest {
         // email differs only in case, all other attributes same -> returns true
         editedAlice = new PersonBuilder(ALICE).withEmail(ALICE.getEmail().value.toUpperCase()).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
+
+        // name casing does not change identity
+        Person editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
+        assertTrue(BOB.isSamePerson(editedBob));
+
+        // name whitespace does not change identity
+        String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
+        editedBob = new PersonBuilder(BOB).withName(nameWithTrailingSpaces).build();
+        assertTrue(BOB.isSamePerson(editedBob));
     }
 
     @Test
@@ -91,10 +100,19 @@ public class PersonTest {
     }
 
     @Test
+    public void equals_recruitmentDetails_distinguishesSkillsAndRole() {
+        Person candidate = new PersonBuilder(ALICE).withSkills("Java").withRole("Engineer").build();
+        assertTrue(candidate.equals(new PersonBuilder(candidate).withSkills("java").withRole("engineer").build()));
+        assertFalse(candidate.equals(new PersonBuilder(candidate).withSkills("SQL").build()));
+        assertFalse(candidate.equals(new PersonBuilder(candidate).withRole("Developer").build()));
+        assertEquals(candidate.hashCode(), new PersonBuilder(candidate).build().hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", remark=" + ALICE.getRemark()
-                + ", tags=" + ALICE.getTags() + "}";
+                + ", tags=" + ALICE.getTags() + ", skills=[], role=null}";
         assertEquals(expected, ALICE.toString());
     }
 }

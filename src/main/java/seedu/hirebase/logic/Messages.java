@@ -45,6 +45,11 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
+        if (!person.getSkills().isEmpty()) {
+            builder.append("; Skills: ").append(person.getSkills().stream().map(Object::toString).sorted()
+                    .collect(Collectors.joining(", ")));
+        }
+        person.getRole().ifPresent(role -> builder.append("; Target role: ").append(role));
         return builder.toString();
     }
 

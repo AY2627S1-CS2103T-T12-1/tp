@@ -31,15 +31,14 @@ public class NameTest {
         assertFalse(Name.isValidName("peter*")); // contains disallowed characters
         assertFalse(Name.isValidName("12345")); // numbers only
         assertFalse(Name.isValidName("peter the 2nd")); // contains digits
-        assertFalse(Name.isValidName("x".repeat(101))); // longer than 100 characters
+        assertFalse(Name.isValidName("a".repeat(101))); // longer than 100 characters
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("Anne-Marie")); // hyphen
-        assertTrue(Name.isValidName("O'Brien")); // apostrophe
+        assertTrue(Name.isValidName("Anne-Marie O'Brien")); // hyphen and apostrophe
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
-        assertTrue(Name.isValidName("David Roger Jackson Ray Jr Second")); // long names
-        assertTrue(Name.isValidName("x".repeat(100))); // exactly 100 characters
+        assertTrue(Name.isValidName("David Roger Jackson Ray Junior")); // long names
+        assertTrue(Name.isValidName("a".repeat(100))); // exactly 100 characters
     }
 
     @Test

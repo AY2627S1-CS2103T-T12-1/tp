@@ -9,6 +9,8 @@ import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
 import seedu.hirebase.model.candidate.Remark;
+import seedu.hirebase.model.candidate.Role;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
 import seedu.hirebase.model.util.SampleDataUtil;
 
@@ -29,6 +31,8 @@ public class PersonBuilder {
     private Address address;
     private Remark remark;
     private Set<Tag> tags;
+    private Set<Skill> skills = new HashSet<>();
+    private Role role;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -46,6 +50,8 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
+        skills = new HashSet<>(personToCopy.getSkills());
+        role = personToCopy.getRole().orElse(null);
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
@@ -95,8 +101,27 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the replacement technical skills.
+     */
+    public PersonBuilder withSkills(String... values) {
+        skills = new HashSet<>();
+        for (String value : values) {
+            skills.add(new Skill(value));
+        }
+        return this;
+    }
+
+    /**
+     * Sets the target role.
+     */
+    public PersonBuilder withRole(String value) {
+        role = new Role(value);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, address, remark, tags);
+        return new Person(name, phone, email, address, remark, tags, skills, role);
     }
 
     /**

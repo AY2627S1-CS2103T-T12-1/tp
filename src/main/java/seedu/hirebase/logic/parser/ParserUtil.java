@@ -13,6 +13,8 @@ import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.Role;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
 
 /**
@@ -22,6 +24,34 @@ import seedu.hirebase.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    /**
+     * Parses a replacement skill set. Every supplied skill must be non-blank.
+     */
+    public static Set<Skill> parseSkills(Collection<String> skills) throws ParseException {
+        requireNonNull(skills);
+        Set<Skill> result = new HashSet<>();
+        for (String value : skills) {
+            String normalized = value.trim().replaceAll("\\s+", " ");
+            if (!Skill.isValidSkill(normalized)) {
+                throw new ParseException(Skill.MESSAGE_CONSTRAINTS);
+            }
+            result.add(new Skill(normalized));
+        }
+        return result;
+    }
+
+    /**
+     * Parses a non-blank target role, normalising whitespace.
+     */
+    public static Role parseRole(String role) throws ParseException {
+        requireNonNull(role);
+        String normalized = role.trim().replaceAll("\\s+", " ");
+        if (!Role.isValidRole(normalized)) {
+            throw new ParseException(Role.MESSAGE_CONSTRAINTS);
+        }
+        return new Role(normalized);
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading

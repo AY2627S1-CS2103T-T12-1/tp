@@ -1,7 +1,6 @@
 package seedu.hirebase.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.hirebase.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.hirebase.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.hirebase.logic.commands.AddCommand;
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -60,8 +60,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        String deleteCommand = "delete candidate 9";
+        assertCommandException(deleteCommand, String.format(DeleteCommand.MESSAGE_CANDIDATE_ID_NOT_FOUND, 9));
     }
 
     @Test

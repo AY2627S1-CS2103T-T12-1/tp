@@ -123,7 +123,8 @@ Invalid input leaves the records unchanged.
 
 For example, `edit candidate 1 p/+6591234567 e/johndoe@example.com` updates only the first displayed candidate's contact details.
 `edit candidate 2 s/Java s/SQL r/Backend Engineer` replaces the second displayed candidate's skills and target role,
-preserving their contact details. Edited recruitment details appear on the candidate card and are saved locally.
+preserving their contact details and remark. Editing a remark also preserves skills and target role.
+Edited recruitment details appear on the candidate card and are saved locally.
 Older records without skills or a target role can still be loaded and edited.
 
 The existing address and tag fields remain supported. Supplying tags replaces the entire tag set;

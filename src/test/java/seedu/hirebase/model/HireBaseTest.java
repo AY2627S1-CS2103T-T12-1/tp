@@ -89,6 +89,29 @@ public class HireBaseTest {
         assertEquals(expected, addressBook.toString());
     }
 
+    @Test
+    public void equals() {
+        HireBase typicalHireBase = getTypicalHireBase();
+        HireBase sameHireBase = getTypicalHireBase();
+        HireBase emptyHireBase = new HireBase();
+
+        // same object -> returns true
+        assertTrue(typicalHireBase.equals(typicalHireBase));
+
+        // same persons -> returns true, and hash codes match
+        assertTrue(typicalHireBase.equals(sameHireBase));
+        assertEquals(typicalHireBase.hashCode(), sameHireBase.hashCode());
+
+        // null -> returns false
+        assertFalse(typicalHireBase.equals(null));
+
+        // different type -> returns false
+        assertFalse(typicalHireBase.equals(5));
+
+        // different persons -> returns false
+        assertFalse(typicalHireBase.equals(emptyHireBase));
+    }
+
     /**
      * A stub ReadOnlyHireBase whose persons list can violate interface
      * constraints.

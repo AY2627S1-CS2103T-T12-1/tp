@@ -6,6 +6,7 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.hirebase.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalPersons.AMY;
 
@@ -31,7 +32,6 @@ import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.StorageManager;
-import seedu.hirebase.testutil.PersonBuilder;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -181,9 +181,9 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
 
         // Triggers the saveHireBase method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+        String addCommand = AddCommand.COMMAND_WORD + " " + AddCommand.RECORD_TYPE_CANDIDATE + NAME_DESC_AMY
+            + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + TAG_DESC_FRIEND;
+        Person expectedPerson = AMY;
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);

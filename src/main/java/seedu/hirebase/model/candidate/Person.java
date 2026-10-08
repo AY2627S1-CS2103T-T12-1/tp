@@ -106,7 +106,7 @@ public class Person {
     }
 
     /**
-     * Returns true if both candidates have the same email, ignoring case.
+     * Returns true if both persons have the same email (case-insensitive).
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -115,7 +115,7 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getEmail().value.equalsIgnoreCase(getEmail().value);
+            && otherPerson.getEmail().value.equalsIgnoreCase(getEmail().value);
     }
 
     /**

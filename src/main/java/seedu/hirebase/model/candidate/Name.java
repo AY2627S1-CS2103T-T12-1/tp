@@ -10,9 +10,12 @@ import static seedu.hirebase.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should be 1-100 characters, contain only letters, spaces, hyphens and apostrophes, and not be blank";
-
-    public static final String VALIDATION_REGEX = "[\\p{L} '-]{1,100}";
+        "Names should only contain letters, spaces, hyphens and apostrophes, and should not be blank.";
+    /*
+     * The regular expression for a valid name.
+     * It should start with a letter, and can contain letters, spaces, hyphens and apostrophes.
+     */
+    public static final String VALIDATION_REGEX = "[\\p{L}][\\p{L} '\\-]{0,99}";
 
     public final String fullName;
 

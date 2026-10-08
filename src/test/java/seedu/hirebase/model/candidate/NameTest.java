@@ -30,12 +30,16 @@ public class NameTest {
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
 
+        assertFalse(Name.isValidName("a".repeat(101)));
+
         // valid name
+        assertTrue(Name.isValidName("Anne-Marie O'Brien"));
+        assertTrue(Name.isValidName("a".repeat(100)));
         assertTrue(Name.isValidName("peter jack")); // alphabets only
-        assertTrue(Name.isValidName("12345")); // numbers only
-        assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
+        assertFalse(Name.isValidName("12345")); // numbers are not accepted
+        assertFalse(Name.isValidName("peter the 2nd")); // digits are not accepted
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
-        assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("David Roger Jackson Ray Junior")); // long names
     }
 
     @Test

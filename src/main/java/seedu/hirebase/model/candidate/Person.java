@@ -5,6 +5,7 @@ import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
@@ -21,6 +22,9 @@ public class Person {
     private final Phone phone;
     private final Email email;
 
+    private final Set<Skill> skills;
+    private final Role role;
+
     // Data fields
     private final Address address;
     private final Remark remark;
@@ -34,16 +38,42 @@ public class Person {
     }
 
     /**
-     * Every field must be present and not null.
+     * Creates a person with a remark and no recruitment details.
      */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, remark, tags);
+        this(name, phone, email, address, remark, tags, Collections.emptySet(), null);
+    }
+
+    /**
+     * Creates a candidate with recruitment details and an empty remark.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Set<Skill> skills, Role role) {
+        this(name, phone, email, address, new Remark(""), tags, skills, role);
+    }
+
+    /**
+     * Creates a candidate with recruitment details. Legacy records may have no role or skills.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+            Set<Skill> skills, Role role) {
+        requireAllNonNull(name, phone, email, address, remark, tags, skills);
+        this.skills = Set.copyOf(skills);
+        this.role = role;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.remark = remark;
         this.tags.addAll(tags);
+    }
+
+    public Set<Skill> getSkills() {
+        return skills;
+    }
+
+    public Optional<Role> getRole() {
+        return Optional.ofNullable(role);
     }
 
     public Name getName() {
@@ -75,7 +105,7 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both candidates have the same email, ignoring case.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -84,7 +114,7 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && otherPerson.getEmail().value.equalsIgnoreCase(getEmail().value);
     }
 
     /**
@@ -107,13 +137,15 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && remark.equals(otherPerson.remark)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && skills.equals(otherPerson.skills)
+                && Objects.equals(role, otherPerson.role);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, remark, tags);
+        return Objects.hash(name, phone, email, address, remark, tags, skills, role);
     }
 
     @Override
@@ -125,6 +157,8 @@ public class Person {
                 .add("address", address)
                 .add("remark", remark)
                 .add("tags", tags)
+                .add("skills", skills)
+                .add("role", role)
                 .toString();
     }
 

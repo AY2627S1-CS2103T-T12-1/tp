@@ -5,6 +5,8 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.hirebase.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
@@ -26,31 +28,35 @@ import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.Role;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
 
 /**
- * Edits the details of an existing person in the address book.
+ * Edits the details of an existing candidate in HireBase.
  */
 public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
-            + "by the index number used in the displayed person list. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the candidate identified "
+            + "by the index number used in the displayed candidate list. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
-            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "[" + PREFIX_TAG + "TAG]... "
+            + "[" + PREFIX_SKILL + "SKILL]... "
+            + "[" + PREFIX_ROLE + "ROLE]\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
 
-    public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited candidate: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists (matching email).";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -101,8 +107,10 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress,
-                personToEdit.getRemark(), updatedTags);
+        Set<Skill> updatedSkills = editPersonDescriptor.getSkills().orElse(personToEdit.getSkills());
+        Role updatedRole = editPersonDescriptor.getRole().orElse(personToEdit.getRole().orElse(null));
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getRemark(), updatedTags,
+                updatedSkills, updatedRole);
     }
 
     @Override
@@ -139,6 +147,8 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
+        private Set<Skill> skills;
+        private Role role;
 
         public EditPersonDescriptor() {
         }
@@ -153,13 +163,31 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            setSkills(toCopy.skills);
+            setRole(toCopy.role);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, skills, role);
+        }
+
+        public void setSkills(Set<Skill> skills) {
+            this.skills = skills == null ? null : Set.copyOf(skills);
+        }
+
+        public Optional<Set<Skill>> getSkills() {
+            return Optional.ofNullable(skills);
+        }
+
+        public void setRole(Role role) {
+            this.role = role;
+        }
+
+        public Optional<Role> getRole() {
+            return Optional.ofNullable(role);
         }
 
         public void setName(Name name) {
@@ -227,7 +255,9 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
-                    && Objects.equals(tags, otherEditPersonDescriptor.tags);
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(skills, otherEditPersonDescriptor.skills)
+                    && Objects.equals(role, otherEditPersonDescriptor.role);
         }
 
         @Override
@@ -238,6 +268,8 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
+                    .add("skills", skills)
+                    .add("role", role)
                     .toString();
         }
     }

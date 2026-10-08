@@ -6,7 +6,6 @@ import java.util.List;
 
 import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.ToStringBuilder;
-import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.Person;
@@ -18,12 +17,17 @@ public class DeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+    public static final String RECORD_TYPE_CANDIDATE = "candidate";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Deletes the candidate identified by the index number used in the displayed candidate list.\n"
+            + "Parameters: " + RECORD_TYPE_CANDIDATE + " INDEX (INDEX must be a positive integer)\n"
+            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1";
+
+    public static final String MESSAGE_DELETE_CANDIDATE_SUCCESS = "Deleted candidate %1$d: %2$s (%3$s)";
+
+    public static final String MESSAGE_CANDIDATE_ID_NOT_FOUND =
+            "Candidate ID \"%1$d\" does not exist. Use list to view available candidate IDs.";
 
     private final Index targetIndex;
 
@@ -37,12 +41,13 @@ public class DeleteCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(String.format(MESSAGE_CANDIDATE_ID_NOT_FOUND, targetIndex.getOneBased()));
         }
 
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
         model.deletePerson(personToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        return new CommandResult(String.format(MESSAGE_DELETE_CANDIDATE_SUCCESS,
+                targetIndex.getOneBased(), personToDelete.getName(), personToDelete.getEmail()));
     }
 
     @Override

@@ -9,6 +9,7 @@ import static seedu.hirebase.testutil.TypicalPersons.IDA;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -48,6 +49,15 @@ public class JsonHireBaseStorageTest {
     @Test
     public void read_notJsonFormat_exceptionThrown() {
         assertThrows(DataLoadingException.class, () -> readHireBase("notJsonFormatHireBase.json"));
+    }
+
+    @Test
+    public void readHireBase_nullJson_throwDataLoadingException() throws IOException {
+        Path filePath = testFolder.resolve("nullHireBase.json");
+        Files.writeString(filePath, "null");
+        JsonHireBaseStorage jsonHireBaseStorage = new JsonHireBaseStorage(filePath);
+
+        assertThrows(DataLoadingException.class, jsonHireBaseStorage::readHireBase);
     }
 
     @Test

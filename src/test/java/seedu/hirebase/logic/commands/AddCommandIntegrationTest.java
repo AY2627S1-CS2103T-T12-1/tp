@@ -7,7 +7,6 @@ import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
@@ -34,16 +33,23 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
         expectedModel.addPerson(validPerson);
 
-        assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
-                expectedModel);
+        assertCommandSuccess(
+            new AddCommand(validPerson),
+            model,
+            String.format(AddCommand.MESSAGE_SUCCESS,
+            validPerson.getName(),
+            validPerson.getEmail()),
+            expectedModel);
     }
 
     @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person personInList = model.getHireBase().getPersonList().get(0);
-        assertCommandFailure(new AddCommand(personInList), model,
-                AddCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(
+            new AddCommand(personInList),
+            model,
+            String.format(AddCommand.MESSAGE_DUPLICATE_PERSON,
+            personInList.getEmail()));
     }
 
 }

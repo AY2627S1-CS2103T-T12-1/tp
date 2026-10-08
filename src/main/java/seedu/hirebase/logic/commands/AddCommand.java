@@ -34,7 +34,7 @@ public class AddCommand extends Command {
             + PREFIX_TAG + "friends "
             + PREFIX_TAG + "owesMoney";
 
-    public static final String MESSAGE_SUCCESS = "New candidate added: %1$s; Email: %3$s.";
+    public static final String MESSAGE_SUCCESS = "New candidate added: %1$s; Email: %2$s.";
     public static final String MESSAGE_DUPLICATE_PERSON =
         "This candidate already exists (matching email: %1$s). Use 'edit' instead.";
 

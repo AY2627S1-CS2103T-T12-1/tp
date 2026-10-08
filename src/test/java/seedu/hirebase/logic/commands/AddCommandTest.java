@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
-import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
@@ -38,8 +37,11 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
-                commandResult.getFeedbackToUser());
+        assertEquals(String.format(
+            AddCommand.MESSAGE_SUCCESS,
+            validPerson.getName(),
+            validPerson.getEmail()),
+            commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
 
@@ -49,7 +51,9 @@ public class AddCommandTest {
         AddCommand addCommand = new AddCommand(validPerson);
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        assertThrows(CommandException.class,
+            String.format(AddCommand.MESSAGE_DUPLICATE_PERSON, validPerson.getEmail()), () ->
+            addCommand.execute(modelStub));
     }
 
     @Test

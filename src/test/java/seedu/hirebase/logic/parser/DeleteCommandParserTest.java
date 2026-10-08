@@ -22,13 +22,44 @@ public class DeleteCommandParserTest {
 
     private DeleteCommandParser parser = new DeleteCommandParser();
 
+    private final String expectedUsageFailure =
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE);
+
     @Test
     public void parse_validArgs_returnsDeleteCommand() {
-        assertParseSuccess(parser, "1", new DeleteCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "candidate 1", new DeleteCommand(INDEX_FIRST_PERSON));
     }
 
     @Test
-    public void parse_invalidArgs_throwsParseException() {
-        assertParseFailure(parser, "a", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+    public void parse_extraWhitespace_returnsDeleteCommand() {
+        assertParseSuccess(parser, "  candidate   1  ", new DeleteCommand(INDEX_FIRST_PERSON));
+    }
+
+    @Test
+    public void parse_invalidIndex_throwsParseException() {
+        assertParseFailure(parser, "candidate a", expectedUsageFailure);
+    }
+
+    @Test
+    public void parse_missingIndex_throwsParseException() {
+        assertParseFailure(parser, "candidate", expectedUsageFailure);
+    }
+
+    @Test
+    public void parse_multipleIndexes_throwsParseException() {
+        assertParseFailure(parser, "candidate 1 2", expectedUsageFailure);
+    }
+
+    @Test
+    public void parse_missingRecordType_throwsParseException() {
+        assertParseFailure(parser, "1", expectedUsageFailure);
+    }
+
+    @Test
+    public void parse_invalidRecordType_throwsParseException() {
+        assertParseFailure(parser, "person 1", expectedUsageFailure);
+        assertParseFailure(parser, "job 1", expectedUsageFailure);
+        // record-type keyword is case-sensitive
+        assertParseFailure(parser, "Candidate 1", expectedUsageFailure);
     }
 }

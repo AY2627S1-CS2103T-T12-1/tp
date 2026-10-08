@@ -18,10 +18,12 @@ public class DeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
 
+    public static final String RECORD_TYPE_CANDIDATE = "candidate";
+
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+            + ": Deletes the candidate identified by the index number used in the displayed candidate list.\n"
+            + "Parameters: " + RECORD_TYPE_CANDIDATE + " INDEX (INDEX must be a positive integer)\n"
+            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1";
 
     public static final String MESSAGE_DELETE_CANDIDATE_SUCCESS = "Deleted candidate %1$d: %2$s (%3$s)";
 

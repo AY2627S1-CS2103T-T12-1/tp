@@ -56,6 +56,29 @@ public class EditCandidateTest {
     }
 
     @Test
+    public void execute_emptySkillPrefix_clearsSkillsAndPersists() throws Exception {
+        ModelManager model = modelWith(candidate);
+        JsonHireBaseStorage data = new JsonHireBaseStorage(temporaryFolder.resolve("hirebase.json"));
+        StorageManager storage = new StorageManager(data,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+        LogicManager logic = new LogicManager(model, storage);
+        logic.execute("edit 1 s/   ");
+        Person expected = new PersonBuilder(candidate).withSkills().build();
+        assertEquals(expected, model.getFilteredPersonList().get(0));
+        assertEquals(expected, data.readHireBase().orElseThrow().getPersonList().get(0));
+        logic.execute("edit 1 s/");
+        assertEquals(expected, model.getFilteredPersonList().get(0));
+    }
+
+    @Test
+    public void constructor_nullSkills_acceptsAbsentSkills() {
+        Person withoutSkills = new Person(candidate.getName(), candidate.getPhone(), candidate.getEmail(),
+                candidate.getAddress(), candidate.getTags(), null, candidate.getRole().orElseThrow());
+        assertEquals(new PersonBuilder(candidate).withSkills().build(), withoutSkills);
+        assertEquals(Set.of(), withoutSkills.getSkills());
+    }
+
+    @Test
     public void execute_filteredIndex_updatesDisplayedCandidateOnly() throws Exception {
         Person other = new PersonBuilder().withName("Other Candidate").withEmail("other@example.com").build();
         ModelManager model = modelWith(candidate, other);
@@ -88,7 +111,7 @@ public class EditCandidateTest {
 
     @Test
     public void parse_invalidRecruitmentFields_rejects() {
-        for (String args : new String[] {" 1 s/", " 1 s/ s/Java", " 1 s/Java s/", " 1 r/",
+        for (String args : new String[] {" 1 s/ s/Java", " 1 s/Java s/", " 1 r/",
             " 1 s/Java!", " 1 r/Engineer!", " 1 s/" + "a".repeat(31), " 1 r/" + "a".repeat(101),
             " 1 r/Engineer r/Developer", " 0 s/Java", " 1"}) {
             assertThrows(ParseException.class, () -> parser.parse(args), args);

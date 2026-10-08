@@ -100,7 +100,8 @@ After a successful edit, the full list is displayed again.
 Format: `edit INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
 
 Supply at least one field. Omitted fields retain their existing values. Supplying `s/` replaces the entire skill set;
-repeat it to supply multiple skills. Every supplied skill must be non-blank, so `s/` cannot clear skills.
+repeat it to supply multiple skills. Skills are optional: use `edit INDEX s/` to clear them.
+When supplying multiple skills, each value must be non-blank.
 Repeated skills are combined without regard to case. A repeated single-value prefix such as `r/` is rejected.
 
 Names accept 1–100 characters consisting of letters, spaces, hyphens and apostrophes. Phone numbers accept 3–15 digits,

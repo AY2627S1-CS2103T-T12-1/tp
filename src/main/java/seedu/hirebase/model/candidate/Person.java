@@ -53,12 +53,13 @@ public class Person {
     }
 
     /**
-     * Creates a candidate with recruitment details. Legacy records may have no role or skills.
+     * Creates a candidate with optional recruitment details.
+     * Null skills are stored as an empty set.
      */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
             Set<Skill> skills, Role role) {
-        requireAllNonNull(name, phone, email, address, remark, tags, skills);
-        this.skills = Set.copyOf(skills);
+        requireAllNonNull(name, phone, email, address, remark, tags);
+        this.skills = skills == null ? Collections.emptySet() : Set.copyOf(skills);
         this.role = role;
         this.name = name;
         this.phone = phone;

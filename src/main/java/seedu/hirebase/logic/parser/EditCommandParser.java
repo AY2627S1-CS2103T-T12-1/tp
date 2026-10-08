@@ -65,8 +65,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 
-        if (!argMultimap.getAllValues(PREFIX_SKILL).isEmpty()) {
-            editPersonDescriptor.setSkills(ParserUtil.parseSkills(argMultimap.getAllValues(PREFIX_SKILL)));
+        Collection<String> skills = argMultimap.getAllValues(PREFIX_SKILL);
+        if (!skills.isEmpty()) {
+            // A single empty prefix explicitly clears skills; an omitted prefix preserves them.
+            editPersonDescriptor.setSkills(skills.size() == 1 && skills.contains("")
+                    ? Collections.emptySet() : ParserUtil.parseSkills(skills));
         }
         if (argMultimap.getValue(PREFIX_ROLE).isPresent()) {
             editPersonDescriptor.setRole(ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get()));

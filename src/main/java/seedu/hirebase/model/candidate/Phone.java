@@ -11,8 +11,12 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+        "Phone numbers should only contain digits (3-15 of them), with an optional leading +.";
+    /*
+     * The regular expression for a valid phone number.
+     * It can have an optional leading + followed by 3 to 15 digits.
+     */
+    public static final String VALIDATION_REGEX = "\\+?\\d{3,15}";
     public final String value;
 
     /**

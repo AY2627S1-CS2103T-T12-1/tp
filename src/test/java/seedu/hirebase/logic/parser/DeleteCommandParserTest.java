@@ -46,6 +46,11 @@ public class DeleteCommandParserTest {
     }
 
     @Test
+    public void parse_zeroIndex_throwsParseException() {
+        assertParseFailure(parser, "candidate 0", expectedUsageFailure);
+    }
+
+    @Test
     public void parse_multipleIndexes_throwsParseException() {
         assertParseFailure(parser, "candidate 1 2", expectedUsageFailure);
     }

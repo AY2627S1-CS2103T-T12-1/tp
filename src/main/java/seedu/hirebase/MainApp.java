@@ -36,7 +36,7 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path HIRE_BASE_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path HIRE_BASE_FILE_PATH = Paths.get("data", "hirebase.json");
 
     protected Ui ui;
     protected Logic logic;

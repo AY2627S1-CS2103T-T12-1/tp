@@ -16,7 +16,7 @@ import seedu.hirebase.model.candidate.Person;
 /**
  * An Immutable HireBase that is serializable to JSON format.
  */
-@JsonRootName(value = "addressbook")
+@JsonRootName(value = "hirebase")
 class JsonSerializableHireBase {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";

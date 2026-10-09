@@ -18,7 +18,7 @@ public class ListCommandParser implements Parser<ListCommand> {
     public ListCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args);
 
-        if (!argMultimap.getPreamble().matches("candidates(\\s+.*)?")) {
+        if (!argMultimap.getPreamble().matches(ListCommand.RECORD_TYPE_CANDIDATE + "(\\s+.*)?")) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE));
         }
 

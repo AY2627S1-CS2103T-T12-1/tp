@@ -31,7 +31,8 @@ public class ListCommandTest {
 
     @Test
     public void execute_emptyList_showsEmptyResult() {
-        model = expectedModel = new ModelManager();
+        model = new ModelManager();
+        expectedModel = new ModelManager();
         assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_NO_CANDIDATES, expectedModel);
     }
 

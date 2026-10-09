@@ -6,7 +6,7 @@ import static seedu.hirebase.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import seedu.hirebase.model.Model;
 
 /**
- * Lists all persons in the address book to the user.
+ * Lists all persons in HireBase to the user.
  */
 public class ListCommand extends Command {
 
@@ -19,12 +19,6 @@ public class ListCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Listed %d candidate%s.";
     public static final String MESSAGE_NO_CANDIDATES = "No candidates found.";
-
-    private final String recordType;
-
-    public ListCommand() {
-        recordType = RECORD_TYPE_CANDIDATE;
-    }
 
     @Override
     public CommandResult execute(Model model) {

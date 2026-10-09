@@ -93,8 +93,9 @@ public class HireBaseParserTest {
 
     @Test
     public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+        ListCommand command = (ListCommand) parser.parseCommand(ListCommand.COMMAND_WORD + " "
+                + ListCommand.RECORD_TYPE_CANDIDATE);
+        assertEquals(new ListCommand(), command);
     }
 
     @Test

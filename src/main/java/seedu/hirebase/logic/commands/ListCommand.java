@@ -20,6 +20,11 @@ public class ListCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Listed %d candidate%s.";
     public static final String MESSAGE_NO_CANDIDATES = "No candidates found.";
 
+    private final String recordType;
+
+    public ListCommand() {
+        recordType = RECORD_TYPE_CANDIDATE;
+    }
 
     @Override
     public CommandResult execute(Model model) {
@@ -31,5 +36,10 @@ public class ListCommand extends Command {
         } else {
             return new CommandResult(String.format(MESSAGE_SUCCESS, sz, sz == 1 ? "" : "s"));
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof ListCommand;
     }
 }

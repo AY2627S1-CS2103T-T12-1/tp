@@ -3,24 +3,27 @@ package seedu.hirebase.model;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.UniquePersonList;
+import seedu.hirebase.model.job.JobOpening;
+import seedu.hirebase.model.job.UniqueJobOpeningList;
 
 /**
- * Wraps all data at the address-book level.
- * Duplicates are not allowed (by .isSamePerson comparison).
+ * Stores candidates and job openings. Each list enforces its own identity-based uniqueness.
  */
 public class HireBase implements ReadOnlyHireBase {
 
     private final UniquePersonList persons = new UniquePersonList();
+    private final UniqueJobOpeningList jobOpenings = new UniqueJobOpeningList();
 
     public HireBase() {}
 
     /**
-     * Creates an HireBase using the Persons in the {@code toBeCopied}
+     * Creates a HireBase by copying the candidates and job openings in {@code toBeCopied}.
      */
     public HireBase(ReadOnlyHireBase toBeCopied) {
         this();
@@ -43,7 +46,13 @@ public class HireBase implements ReadOnlyHireBase {
     public void resetData(ReadOnlyHireBase newData) {
         requireNonNull(newData);
 
-        setPersons(newData.getPersonList());
+        // Validate both lists before replacing either, including when newData is this instance.
+        UniquePersonList newPersons = new UniquePersonList();
+        newPersons.setPersons(newData.getPersonList());
+        UniqueJobOpeningList newJobOpenings = new UniqueJobOpeningList();
+        newJobOpenings.setJobOpenings(newData.getJobOpeningList());
+        persons.setPersons(newPersons);
+        jobOpenings.setJobOpenings(newJobOpenings);
     }
 
     //// person-level operations
@@ -83,12 +92,48 @@ public class HireBase implements ReadOnlyHireBase {
         persons.remove(key);
     }
 
+    //// job-opening operations
+
+    /**
+     * Replaces all job openings. Rejects null or duplicate entries without changing existing data.
+     */
+    public void setJobOpenings(List<JobOpening> jobOpenings) {
+        this.jobOpenings.setJobOpenings(jobOpenings);
+    }
+
+    /**
+     * Returns whether an opening with the same title and department exists, ignoring case.
+     */
+    public boolean hasJobOpening(JobOpening jobOpening) {
+        return jobOpenings.contains(jobOpening);
+    }
+
+    /**
+     * Adds a non-null job opening that must not already exist.
+     */
+    public void addJobOpening(JobOpening jobOpening) {
+        jobOpenings.add(jobOpening);
+    }
+
+    /**
+     * Removes the exact opening, which must exist. Candidate records remain unchanged.
+     */
+    public void removeJobOpening(JobOpening jobOpening) {
+        jobOpenings.remove(jobOpening);
+    }
+
+    @Override
+    public ObservableList<JobOpening> getJobOpeningList() {
+        return jobOpenings.asUnmodifiableObservableList();
+    }
+
     //// util methods
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("persons", persons)
+                .add("jobOpenings", jobOpenings)
                 .toString();
     }
 
@@ -108,11 +153,11 @@ public class HireBase implements ReadOnlyHireBase {
             return false;
         }
 
-        return persons.equals(otherHireBase.persons);
+        return persons.equals(otherHireBase.persons) && jobOpenings.equals(otherHireBase.jobOpenings);
     }
 
     @Override
     public int hashCode() {
-        return persons.hashCode();
+        return Objects.hash(persons, jobOpenings);
     }
 }

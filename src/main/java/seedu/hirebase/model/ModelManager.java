@@ -11,6 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -91,6 +92,26 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+    }
+
+    @Override
+    public boolean hasJobOpening(JobOpening jobOpening) {
+        return addressBook.hasJobOpening(jobOpening);
+    }
+
+    @Override
+    public void addJobOpening(JobOpening jobOpening) {
+        addressBook.addJobOpening(jobOpening);
+    }
+
+    @Override
+    public void deleteJobOpening(JobOpening target) {
+        addressBook.removeJobOpening(target);
+    }
+
+    @Override
+    public ObservableList<JobOpening> getJobOpeningList() {
+        return addressBook.getJobOpeningList();
     }
 
     //=========== Filtered Person List Accessors =============================================================

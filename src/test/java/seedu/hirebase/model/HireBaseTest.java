@@ -18,6 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.exceptions.DuplicatePersonException;
+import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.testutil.PersonBuilder;
 
 
@@ -85,7 +86,8 @@ public class HireBaseTest {
 
     @Test
     public void toStringMethod() {
-        String expected = HireBase.class.getCanonicalName() + "{persons=" + addressBook.getPersonList() + "}";
+        String expected = HireBase.class.getCanonicalName() + "{persons=" + addressBook.getPersonList()
+                + ", jobOpenings=" + addressBook.getJobOpeningList() + "}";
         assertEquals(expected, addressBook.toString());
     }
 
@@ -121,6 +123,11 @@ public class HireBaseTest {
 
         public HireBaseStub(Collection<Person> persons) {
             this.persons.setAll(persons);
+        }
+
+        @Override
+        public ObservableList<JobOpening> getJobOpeningList() {
+            return FXCollections.emptyObservableList();
         }
 
         @Override

@@ -21,6 +21,7 @@ import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.ReadOnlyUserPrefs;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -91,6 +92,26 @@ public class AddCommandTest {
      * A default model stub that has all of the methods failing.
      */
     private class ModelStub implements Model {
+        @Override
+        public boolean hasJobOpening(JobOpening jobOpening) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addJobOpening(JobOpening jobOpening) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void deleteJobOpening(JobOpening target) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<JobOpening> getJobOpeningList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
         @Override
         public ReadOnlyUserPrefs getUserPrefs() {
             throw new AssertionError("This method should not be called.");

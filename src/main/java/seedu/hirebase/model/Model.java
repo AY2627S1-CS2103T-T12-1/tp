@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 
 /**
  * The API of the Model component.
@@ -59,6 +60,26 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Returns whether a job opening with the same title and department exists, ignoring case.
+     */
+    boolean hasJobOpening(JobOpening jobOpening);
+
+    /**
+     * Adds a non-null job opening that must not already exist. Does not change candidate filters.
+     */
+    void addJobOpening(JobOpening jobOpening);
+
+    /**
+     * Deletes the exact job opening, which must exist. Does not change candidate records or filters.
+     */
+    void deleteJobOpening(JobOpening target);
+
+    /**
+     * Returns a live, unmodifiable view of all job openings in creation order.
+     */
+    ObservableList<JobOpening> getJobOpeningList();
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

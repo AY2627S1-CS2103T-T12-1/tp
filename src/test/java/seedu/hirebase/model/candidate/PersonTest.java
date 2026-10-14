@@ -109,10 +109,22 @@ public class PersonTest {
     }
 
     @Test
+    public void equals_interviewStage_distinguishesStagesWithoutChangingIdentity() {
+        Person candidate = new PersonBuilder(ALICE).withInterviewStage(InterviewStage.ACCEPTED).build();
+        Person sameStage = new PersonBuilder(candidate).build();
+        Person differentStage = new PersonBuilder(candidate).withInterviewStage(InterviewStage.REJECTED).build();
+
+        assertTrue(candidate.equals(sameStage));
+        assertFalse(candidate.equals(differentStage));
+        assertFalse(differentStage.equals(candidate));
+        assertTrue(candidate.isSamePerson(differentStage));
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", remark=" + ALICE.getRemark()
-                + ", tags=" + ALICE.getTags() + ", skills=[], role=null}";
+                + ", tags=" + ALICE.getTags() + ", skills=[], role=null, interviewStage=SCREENING}";
         assertEquals(expected, ALICE.toString());
     }
 }

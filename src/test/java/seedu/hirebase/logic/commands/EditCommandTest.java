@@ -24,6 +24,7 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.testutil.EditPersonDescriptorBuilder;
 import seedu.hirebase.testutil.PersonBuilder;
@@ -69,6 +70,24 @@ public class EditCommandTest {
         expectedModel.setPerson(lastPerson, editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_editCandidate_preservesInterviewStage() {
+        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person candidate = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
+        model.setPerson(original, candidate);
+
+        Person editedPerson = new PersonBuilder(candidate).withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        Model expectedModel = new ModelManager(new HireBase(model.getHireBase()), new UserPrefs());
+        expectedModel.setPerson(candidate, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertEquals(InterviewStage.ACCEPTED,
+                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
     }
 
     @Test

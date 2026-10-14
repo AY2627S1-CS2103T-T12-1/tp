@@ -5,6 +5,7 @@ import java.util.Set;
 
 import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
@@ -33,6 +34,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
     private Set<Skill> skills = new HashSet<>();
     private Role role;
+    private InterviewStage interviewStage;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -44,6 +46,7 @@ public class PersonBuilder {
         address = new Address(DEFAULT_ADDRESS);
         remark = new Remark(DEFAULT_REMARK);
         tags = new HashSet<>();
+        interviewStage = InterviewStage.SCREENING;
     }
 
     /**
@@ -58,6 +61,7 @@ public class PersonBuilder {
         address = personToCopy.getAddress();
         remark = personToCopy.getRemark();
         tags = new HashSet<>(personToCopy.getTags());
+        interviewStage = personToCopy.getInterviewStage();
     }
 
     /**
@@ -121,7 +125,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, remark, tags, skills, role);
+        return new Person(name, phone, email, address, remark, tags, skills, role, interviewStage);
     }
 
     /**
@@ -132,4 +136,11 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code InterviewStage} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withInterviewStage(InterviewStage interviewStage) {
+        this.interviewStage = interviewStage;
+        return this;
+    }
 }

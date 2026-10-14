@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+HireBase is a **keyboard-driven CLI application** that helps you manage your candidates and their recruitment details. It is designed to be simple, fast, and efficient, by streamlining the management of high-volume candidate tracking for tech recruiters through an optimized, keyboard-first interface.
 
 - Table of Contents
   {:toc}
@@ -25,13 +25,13 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
-   - `list` : Lists all contacts.
+   - `list` : Lists all candidates.
 
-   - `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   - `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer` : Adds a contact named `John Doe` to HireBase.
 
    - `delete candidate 3` : Deletes the 3rd candidate shown in the current list.
 
-   - `clear` : Deletes all contacts.
+   - `clear` : Deletes all candidates.
 
    - `exit` : Exits the app.
 
@@ -71,24 +71,29 @@ Shows a message explaining how to access the help page.
 
 Format: `help`
 
-### Adding a person: `add`
+### Adding a candidate: `add candidate`
 
-Adds a person to the address book.
+Adds a candidate to HireBase.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
+Format: `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`
 
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
+* A candidate must have at least one skill (`s/`) and exactly one target role (`r/`).
+* A skill is 1 to 30 characters long and may contain letters, digits, spaces and `+ # . /`. Repeating `s/` adds more skills; duplicates that differ only in letter case are merged.
+* A role is 1 to 100 characters long and may contain letters, digits, spaces, hyphens and slashes.
+* Candidates are identified by email. A candidate whose email matches an existing one (ignoring case) cannot be added.
+
+<div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
+Tags (`t/`) are not accepted by `add candidate`. Including one shows the usage message.
 </div>
 
 Examples:
 
-- `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-- `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer`
+* `add candidate n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567 s/C++ s/Python r/Full-Stack Developer`
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows a list of all candidates in HireBase.
 
 Format: `list`
 
@@ -150,7 +155,7 @@ Examples:
 
 ### Deleting a candidate: `delete candidate`
 
-Deletes the specified candidate from the address book.
+Deletes the specified candidate from HireBase.
 
 Format: `delete candidate INDEX`
 
@@ -161,12 +166,12 @@ Format: `delete candidate INDEX`
 
 Examples:
 
-- `list` followed by `delete candidate 2` deletes the 2nd candidate in the address book.
+- `list` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all entries from HireBase.
 
 Format: `clear`
 
@@ -182,10 +187,10 @@ HireBase automatically saves data after every command. You do not need to save m
 
 ### Editing the data file
 
-HireBase data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+HireBase data is saved automatically as a JSON file `[JAR file location]/data/hirebase.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with an empty address book at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with an empty list at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -213,7 +218,7 @@ _Details coming soon ..._
 
 | Action     | Format, Examples                                                                                                                                                      |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague` |
+| **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
 | **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |

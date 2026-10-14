@@ -10,6 +10,7 @@ import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.logic.commands.AddJobCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -53,6 +54,9 @@ public class LogicManager implements Logic {
             return executeAddJob(addJobCommand);
         }
         commandResult = command.execute(model);
+        if (command instanceof ListJobsCommand) {
+            return commandResult;
+        }
 
         try {
             storage.saveHireBase(model.getHireBase());

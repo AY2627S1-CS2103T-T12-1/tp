@@ -5,24 +5,30 @@ import static java.util.Objects.requireNonNull;
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
-import seedu.hirebase.model.candidate.NameContainsKeywordsPredicate;
+import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
- * Keyword matching is case insensitive.
+ * Finds and lists candidates whose name or email matches any search keyword, ignoring case.
+ * Names match whole words, while emails match substrings.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Finds candidates whose names or emails match any "
+            + "keyword (case-insensitive) and displays them as a list with index numbers. "
+            + "Names match whole words; emails match substrings.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+            + "Example: " + COMMAND_WORD + " alice bob@example.com";
 
-    private final NameContainsKeywordsPredicate predicate;
+    private final NameOrEmailContainsKeywordsPredicate predicate;
 
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
+    /**
+     * Creates a command that lists candidates matching {@code predicate}.
+     */
+    public FindCommand(NameOrEmailContainsKeywordsPredicate predicate) {
+        requireNonNull(predicate);
         this.predicate = predicate;
     }
 

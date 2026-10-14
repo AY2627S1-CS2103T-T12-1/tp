@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.hirebase.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.hirebase.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.hirebase.testutil.TypicalPersons.ALICE;
+import static seedu.hirebase.testutil.TypicalPersons.BENSON;
 import static seedu.hirebase.testutil.TypicalPersons.CARL;
 import static seedu.hirebase.testutil.TypicalPersons.ELLE;
 import static seedu.hirebase.testutil.TypicalPersons.FIONA;
@@ -17,7 +19,7 @@ import org.junit.jupiter.api.Test;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
-import seedu.hirebase.model.candidate.NameContainsKeywordsPredicate;
+import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 
 /**
  * Contains integration tests (interaction with the Model) for
@@ -29,8 +31,10 @@ public class FindCommandTest {
 
     @Test
     public void equals() {
-        NameContainsKeywordsPredicate firstPredicate = new NameContainsKeywordsPredicate(List.of("first"));
-        NameContainsKeywordsPredicate secondPredicate = new NameContainsKeywordsPredicate(List.of("second"));
+        NameOrEmailContainsKeywordsPredicate firstPredicate =
+                new NameOrEmailContainsKeywordsPredicate(List.of("first"));
+        NameOrEmailContainsKeywordsPredicate secondPredicate =
+                new NameOrEmailContainsKeywordsPredicate(List.of("second"));
 
         FindCommand findFirstCommand = new FindCommand(firstPredicate);
         FindCommand findSecondCommand = new FindCommand(secondPredicate);
@@ -55,7 +59,7 @@ public class FindCommandTest {
     @Test
     public void execute_zeroKeywords_noPersonFound() {
         String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0);
-        NameContainsKeywordsPredicate predicate = preparePredicate(" ");
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
@@ -65,7 +69,7 @@ public class FindCommandTest {
     @Test
     public void execute_multipleKeywords_multiplePersonsFound() {
         String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
-        NameContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
@@ -73,17 +77,69 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_emailKeyword_personFound() {
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("JOHND@EXAMPLE.COM");
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(new FindCommand(predicate), model,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
+        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_mixedNameAndEmailKeywords_multiplePersonsFound() {
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("Kurz JOHND@");
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(new FindCommand(predicate), model,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), expectedModel);
+        assertEquals(List.of(BENSON, CARL), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_nameAndEmailMatchSamePerson_personListedOnce() {
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("Alice alice@example.com Alice");
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(new FindCommand(predicate), model,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_nonMatchingKeywords_noPersonFound() {
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("Nobody unknown@company.com");
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(new FindCommand(predicate), model,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), expectedModel);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_newSearch_searchesAllCandidates() throws Exception {
+        new FindCommand(preparePredicate("Alice")).execute(model);
+        NameOrEmailContainsKeywordsPredicate predicate = preparePredicate("JOHND@");
+        expectedModel.updateFilteredPersonList(predicate);
+
+        assertCommandSuccess(new FindCommand(predicate), model,
+                String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), expectedModel);
+        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    @Test
     public void toStringMethod() {
-        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("keyword"));
+        NameOrEmailContainsKeywordsPredicate predicate =
+                new NameOrEmailContainsKeywordsPredicate(List.of("keyword"));
         FindCommand findCommand = new FindCommand(predicate);
         String expected = FindCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";
         assertEquals(expected, findCommand.toString());
     }
 
     /**
-     * Parses {@code userInput} into a {@code NameContainsKeywordsPredicate}.
+     * Parses {@code userInput} into a {@code NameOrEmailContainsKeywordsPredicate}.
      */
-    private NameContainsKeywordsPredicate preparePredicate(String userInput) {
-        return new NameContainsKeywordsPredicate(List.of(userInput.split("\\s+")));
+    private NameOrEmailContainsKeywordsPredicate preparePredicate(String userInput) {
+        return new NameOrEmailContainsKeywordsPredicate(List.of(userInput.split("\\s+")));
     }
 }

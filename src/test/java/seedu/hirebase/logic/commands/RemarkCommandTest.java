@@ -18,6 +18,7 @@ import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.testutil.PersonBuilder;
@@ -37,6 +38,22 @@ public class RemarkCommandTest {
         assertRemarkSuccess("Likes baseball");
         assertRemarkSuccess("");
         assertRemarkSuccess("");
+    }
+
+    @Test
+    public void execute_replaceAndClearRemark_preservesInterviewStage() {
+        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person candidate = new PersonBuilder(original).withRemark("Original remark")
+                .withInterviewStage(InterviewStage.ACCEPTED).build();
+        model.setPerson(original, candidate);
+
+        assertRemarkSuccess("Updated remark");
+        assertEquals(InterviewStage.ACCEPTED,
+                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
+
+        assertRemarkSuccess("");
+        assertEquals(InterviewStage.ACCEPTED,
+                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
     }
 
     @Test

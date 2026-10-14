@@ -29,6 +29,7 @@ public class Person {
     private final Address address;
     private final Remark remark;
     private final Set<Tag> tags = new HashSet<>();
+    private final InterviewStage interviewStage;
 
     /**
      * Creates a person with an empty remark. Every field must be present and not null.
@@ -57,8 +58,19 @@ public class Person {
      * Null skills are stored as an empty set.
      */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
-            Set<Skill> skills, Role role) {
+                  Set<Skill> skills, Role role) {
         requireAllNonNull(name, phone, email, address, remark, tags);
+        this(name, phone, email, address, remark, tags, skills, role,
+                InterviewStage.SCREENING);
+    }
+
+    /**
+     * Creates a candidate with optional recruitment details.
+     * Null skills are stored as an empty set.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+            Set<Skill> skills, Role role, InterviewStage interviewStage) {
+        requireAllNonNull(name, phone, email, address, remark, tags, interviewStage);
         this.skills = skills == null ? Collections.emptySet() : Set.copyOf(skills);
         this.role = role;
         this.name = name;
@@ -67,6 +79,7 @@ public class Person {
         this.address = address;
         this.remark = remark;
         this.tags.addAll(tags);
+        this.interviewStage = interviewStage;
     }
 
     public Set<Skill> getSkills() {
@@ -105,6 +118,10 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    public InterviewStage getInterviewStage() {
+        return interviewStage;
+    }
+
     /**
      * Returns true if both persons have the same email (case-insensitive).
      * This defines a weaker notion of equality between two persons.
@@ -140,7 +157,8 @@ public class Person {
                 && remark.equals(otherPerson.remark)
                 && tags.equals(otherPerson.tags)
                 && skills.equals(otherPerson.skills)
-                && Objects.equals(role, otherPerson.role);
+                && Objects.equals(role, otherPerson.role)
+                && interviewStage.equals(otherPerson.interviewStage);
     }
 
     @Override
@@ -160,6 +178,7 @@ public class Person {
                 .add("tags", tags)
                 .add("skills", skills)
                 .add("role", role)
+                .add("interviewStage", interviewStage)
                 .toString();
     }
 

@@ -6,6 +6,8 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 
@@ -52,6 +54,18 @@ public class CommandTestUtil {
     public static final String INVALID_EMAIL_DESC = " " + PREFIX_EMAIL + "bob!yahoo"; // missing '@' symbol
     public static final String INVALID_ADDRESS_DESC = " " + PREFIX_ADDRESS; // empty string not allowed for addresses
     public static final String INVALID_TAG_DESC = " " + PREFIX_TAG + "hubby*"; // '*' not allowed in tags
+
+    public static final String VALID_SKILL_JAVA = "Java";
+    public static final String VALID_SKILL_SQL = "SQL";
+    public static final String VALID_ROLE_AMY = "Backend Engineer";
+    public static final String VALID_ROLE_BOB = "Frontend Engineer";
+
+    public static final String SKILL_DESC_JAVA = " " + PREFIX_SKILL + VALID_SKILL_JAVA;
+    public static final String SKILL_DESC_SQL = " " + PREFIX_SKILL + VALID_SKILL_SQL;
+    public static final String ROLE_DESC_AMY = " " + PREFIX_ROLE + VALID_ROLE_AMY;
+    public static final String ROLE_DESC_BOB = " " + PREFIX_ROLE + VALID_ROLE_BOB;
+    public static final String INVALID_SKILL_DESC = " " + PREFIX_SKILL + "Java!"; // '!' not allowed in skills
+    public static final String INVALID_ROLE_DESC = " " + PREFIX_ROLE + "Engineer!"; // '!' not allowed in roles
 
     public static final String PREAMBLE_WHITESPACE = "\t  \r  \n";
     public static final String PREAMBLE_NON_EMPTY = "NonEmptyPreamble";

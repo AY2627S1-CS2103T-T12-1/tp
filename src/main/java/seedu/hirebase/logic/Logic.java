@@ -6,6 +6,7 @@ import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 
 /**
  * API of the Logic component
@@ -20,6 +21,9 @@ public interface Logic {
      * @throws ParseException   If an error occurs during parsing.
      */
     CommandResult execute(String commandText) throws CommandException, ParseException;
+
+    /** Returns a live, unmodifiable view of all openings in creation order. */
+    ObservableList<JobOpening> getJobOpeningList();
 
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();

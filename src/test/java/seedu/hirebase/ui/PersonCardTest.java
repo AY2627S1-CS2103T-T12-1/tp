@@ -18,10 +18,15 @@ public class PersonCardTest {
     @BeforeAll
     public static void startToolkit() throws Exception {
         CompletableFuture<Void> ready = new CompletableFuture<>();
-        Platform.startup(() -> {
+        Runnable initialize = () -> {
             Platform.setImplicitExit(false);
             ready.complete(null);
-        });
+        };
+        try {
+            Platform.startup(initialize);
+        } catch (IllegalStateException alreadyStarted) {
+            Platform.runLater(initialize);
+        }
         ready.get(10, TimeUnit.SECONDS);
     }
 

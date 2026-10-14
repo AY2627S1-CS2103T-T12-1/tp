@@ -53,11 +53,25 @@ public class CommandResultTest {
     }
 
     @Test
+    public void withListView_preservesFlagsAndDistinguishesViews() {
+        CommandResult original = new CommandResult("feedback", true, true);
+        CommandResult jobs = original.withListView(CommandResult.ListView.JOBS);
+        assertEquals(CommandResult.ListView.KEEP, original.getListView());
+        assertEquals(CommandResult.ListView.JOBS, jobs.getListView());
+        assertTrue(jobs.isShowHelp());
+        assertTrue(jobs.isExit());
+        assertEquals("feedback", jobs.getFeedbackToUser());
+        assertNotEquals(original, jobs);
+        assertEquals(jobs, original.withListView(CommandResult.ListView.JOBS));
+        assertEquals(jobs.hashCode(), original.withListView(CommandResult.ListView.JOBS).hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", listView=" + commandResult.getListView() + "}";
         assertEquals(expected, commandResult.toString());
     }
 }

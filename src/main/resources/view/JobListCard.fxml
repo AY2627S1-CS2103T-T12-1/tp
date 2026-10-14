@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      spacing="8" minWidth="0" styleClass="job-card">
+  <padding><Insets top="12" right="12" bottom="12" left="15" /></padding>
+  <Label fx:id="title" styleClass="cell_big_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+  <Label fx:id="department" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+  <Label fx:id="description" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+</VBox>

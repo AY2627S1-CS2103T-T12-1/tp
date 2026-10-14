@@ -227,6 +227,28 @@ Examples:
 - `list` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
 
+### Deleting a job opening: `delete job`
+
+Format: `delete job INDEX`
+
+Example: `delete job 2` deletes the second opening shown by `list jobs`.
+The index must be a positive integer referring to an existing opening in the current job list.
+Use `list jobs` before deleting to check the index. Indexes are list positions, not permanent IDs;
+after deletion, later openings shift down by one. Candidate filters do not affect job indexes.
+
+The command accepts exactly one index. `job` is a required, case-sensitive keyword.
+Surrounding whitespace and multiple spaces between command words are accepted. Missing, invalid or multiple
+indexes are rejected with usage guidance. A nonexistent index reports
+`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
+
+Success shows `Deleted job opening INDEX: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
+candidate records, target roles and the active candidate filter remain unchanged. An opening with the same title
+and department can then be added again and is appended to the end of the list.
+
+The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
+HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
+Use `list jobs` to see the updated openings; the dedicated job-card view is coming in a later update.
+
 ### Clearing all entries: `clear`
 
 Clears all candidates and job openings from HireBase.
@@ -288,6 +310,7 @@ _Details coming soon ..._
 | Action     | Format, Examples                                                                                                                                                      |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
+| **Delete job** | `delete job INDEX` <br> e.g., `delete job 2` |
 | **List jobs** | `list jobs` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
 | **Clear**  | `clear`                                                                                                                                                               |

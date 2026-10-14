@@ -184,13 +184,24 @@ Format: `exit`
 ### Saving the data
 
 HireBase automatically saves data after every command. You do not need to save manually.
+Candidate records and any stored job openings are saved together in the same data file and loaded on the next launch.
+Older data files without a `jobs` field still load normally, with an empty job-opening list.
 
 ### Editing the data file
 
 HireBase data is saved automatically as a JSON file `[JAR file location]/data/hirebase.json`. Advanced users are welcome to update data directly by editing that data file.
 
+The `jobs` array stores each opening's `title`, `department`, and `description`, preserving their order.
+Each opening must have all three fields and satisfy the job model's validation rules: titles and departments are
+1–100 characters using letters, digits, spaces, or `& / ( ) + # . , ' ’ -`, with at least one letter or digit;
+descriptions are 1–2000 printable characters on one line. Title and department whitespace is collapsed,
+while internal spaces in descriptions are preserved. Length limits apply after trimming and normalization.
+Openings with the same title and department, ignoring case and normalized whitespace, are duplicates even if their
+descriptions differ. Invalid or duplicate openings cause the data file to fail loading; they are not silently skipped.
+Job-opening commands and the job list interface are not available yet.
+
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with an empty list at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

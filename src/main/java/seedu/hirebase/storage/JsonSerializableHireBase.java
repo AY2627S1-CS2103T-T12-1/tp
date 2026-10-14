@@ -12,6 +12,7 @@ import seedu.hirebase.commons.exceptions.IllegalValueException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 
 /**
  * An Immutable HireBase that is serializable to JSON format.
@@ -21,14 +22,22 @@ class JsonSerializableHireBase {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
 
+    public static final String MESSAGE_DUPLICATE_JOB = "Jobs list contains duplicate job opening(s).";
+    public static final String MESSAGE_NULL_JOB = "Jobs list contains a null job opening.";
+
+    private final List<JsonAdaptedJobOpening> jobs = new ArrayList<>();
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonSerializableHireBase} with the given persons.
+     * Constructs saved data, accepting older files with no jobs field as an empty job list.
      */
     @JsonCreator
-    public JsonSerializableHireBase(@JsonProperty("persons") List<JsonAdaptedPerson> persons) {
+    public JsonSerializableHireBase(@JsonProperty("persons") List<JsonAdaptedPerson> persons,
+            @JsonProperty("jobs") List<JsonAdaptedJobOpening> jobs) {
         this.persons.addAll(persons);
+        if (jobs != null) {
+            this.jobs.addAll(jobs);
+        }
     }
 
     /**
@@ -39,6 +48,7 @@ class JsonSerializableHireBase {
      */
     public JsonSerializableHireBase(ReadOnlyHireBase source) {
         persons.addAll(source.getPersonList().stream().map(JsonAdaptedPerson::new).collect(Collectors.toList()));
+        jobs.addAll(source.getJobOpeningList().stream().map(JsonAdaptedJobOpening::new).collect(Collectors.toList()));
     }
 
     /**
@@ -54,6 +64,16 @@ class JsonSerializableHireBase {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }
             hireBase.addPerson(person);
+        }
+        for (JsonAdaptedJobOpening adaptedJob : jobs) {
+            if (adaptedJob == null) {
+                throw new IllegalValueException(MESSAGE_NULL_JOB);
+            }
+            JobOpening job = adaptedJob.toModelType();
+            if (hireBase.hasJobOpening(job)) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_JOB);
+            }
+            hireBase.addJobOpening(job);
         }
         return hireBase;
     }

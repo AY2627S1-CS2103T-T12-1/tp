@@ -1,6 +1,7 @@
 package seedu.hirebase.storage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.hirebase.commons.exceptions.IllegalValueException;
 import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
@@ -35,6 +37,7 @@ class JsonAdaptedPerson {
     private final List<String> skills;
     private final String role;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final String interviewStage;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -42,18 +45,27 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
             List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, remark, tags, null, null);
+        this(name, phone, email, address, remark, tags, null, null, null);
+    }
+
+    /**
+     * Constructs an adapted person without a stored interview stage.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
+            List<JsonAdaptedTag> tags, List<String> skills, String role) {
+        this(name, phone, email, address, remark, tags, skills, role, null);
     }
 
     /**
      * Reads recruitment details while accepting older files without those fields.
+     * Missing or null interview stages default to screening when converted to the model.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("remark") String remark, @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("skills") List<String> skills,
-            @JsonProperty("role") String role) {
+            @JsonProperty("role") String role, @JsonProperty("interviewStage") String interviewStage) {
         this.skills = skills == null ? new ArrayList<>() : new ArrayList<>(skills);
         this.role = role;
         this.name = name;
@@ -64,6 +76,7 @@ class JsonAdaptedPerson {
         if (tags != null) {
             this.tags.addAll(tags);
         }
+        this.interviewStage = interviewStage;
     }
 
     /**
@@ -80,6 +93,7 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
+        interviewStage = source.getInterviewStage().name();
     }
 
     /**
@@ -140,8 +154,17 @@ class JsonAdaptedPerson {
         if (role != null && !Role.isValidRole(role)) {
             throw new IllegalValueException(Role.MESSAGE_CONSTRAINTS);
         }
+        InterviewStage modelInterviewStage = InterviewStage.SCREENING;
+        if (interviewStage != null) {
+            try {
+                modelInterviewStage = InterviewStage.valueOf(interviewStage);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalValueException("Invalid interview stage: '" + interviewStage
+                        + "'. Expected one of " + Arrays.toString(InterviewStage.values()) + ".", e);
+            }
+        }
         return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRemark, modelTags,
-                modelSkills, role == null ? null : new Role(role));
+                modelSkills, role == null ? null : new Role(role), modelInterviewStage);
     }
 
 }

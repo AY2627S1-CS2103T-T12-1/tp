@@ -31,7 +31,7 @@ HireBase is a **keyboard-driven CLI application** that helps you manage your can
 
    - `delete candidate 3` : Deletes the 3rd candidate shown in the current list.
 
-   - `clear` : Deletes all candidates.
+   - `clear` : Deletes all candidates and job openings.
 
    - `exit` : Exits the app.
 
@@ -96,6 +96,37 @@ Examples:
 Shows a list of all candidates in HireBase.
 
 Format: `list`
+
+### Adding a job opening: `add job`
+
+Records an opening locally; it does not publish a vacancy externally or accept applications.
+
+Format: `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`
+
+Example: `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`
+
+All three prefixes are required exactly once and may appear in any order. Command words and prefixes are
+case-sensitive. Multiple spaces between command words are accepted. Missing, empty, repeated or unknown
+parameters, and unexpected text before the first parameter, are rejected without changing records.
+A prefix token such as `d/` following whitespace starts a new parameter and cannot be included literally in a value.
+
+Titles and departments accept 1–100 Unicode characters: letters, digits, spaces and `& / ( ) + # . , ' ’ -`.
+Each must contain at least one letter or digit. Surrounding whitespace is trimmed and repeated internal whitespace
+is collapsed. Descriptions accept 1–2000 printable Unicode characters on one line, with at least one non-whitespace
+character. Tabs, line breaks and control characters are rejected. Surrounding spaces are trimmed, internal spaces
+are preserved, and length limits apply after normalization. Capitalization is preserved for display.
+
+An opening is a duplicate if both its title and department match an existing opening after normalization,
+ignoring case. Descriptions do not determine uniqueness. The same title in a different department is allowed.
+
+Success shows `Added job opening INDEX: TITLE — DEPARTMENT.` The index is the opening's current position in
+creation order, starting at 1; it is not a permanent ID. A duplicate reports the existing opening's index,
+title and department and is not added. The opening is saved before success is reported. If saving fails,
+HireBase reports `Could not save changes. Job opening was not added. Check storage permissions and available disk space, then try again.`
+and leaves existing records and the candidate display unchanged.
+
+The job-list command and visual job list are coming in separate updates. For now, the confirmation identifies
+the new opening, and the opening is retained in the local data file across launches.
 
 ### Editing a candidate: `edit candidate`
 
@@ -171,7 +202,7 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from HireBase.
+Clears all candidates and job openings from HireBase.
 
 Format: `clear`
 
@@ -198,7 +229,7 @@ descriptions are 1–2000 printable characters on one line. Title and department
 while internal spaces in descriptions are preserved. Length limits apply after trimming and normalization.
 Openings with the same title and department, ignoring case and normalized whitespace, are duplicates even if their
 descriptions differ. Invalid or duplicate openings cause the data file to fail loading; they are not silently skipped.
-Job-opening commands and the job list interface are not available yet.
+Use `add job` to create openings. The job-list interface is not available yet.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
@@ -230,6 +261,7 @@ _Details coming soon ..._
 | Action     | Format, Examples                                                                                                                                                      |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
+| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
 | **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |

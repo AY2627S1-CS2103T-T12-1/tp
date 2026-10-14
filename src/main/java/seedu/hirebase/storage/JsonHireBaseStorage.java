@@ -3,14 +3,15 @@ package seedu.hirebase.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.commons.exceptions.DataLoadingException;
 import seedu.hirebase.commons.exceptions.IllegalValueException;
-import seedu.hirebase.commons.util.FileUtil;
 import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.ReadOnlyHireBase;
 
@@ -83,8 +84,16 @@ public class JsonHireBaseStorage {
         requireNonNull(hireBase);
         requireNonNull(filePath);
 
-        FileUtil.createIfMissing(filePath);
-        JsonUtil.saveJsonFile(new JsonSerializableHireBase(hireBase), filePath);
+        Path destination = filePath.toAbsolutePath();
+        Files.createDirectories(destination.getParent());
+        Path temporary = Files.createTempFile(destination.getParent(), "hirebase-", ".tmp");
+        try {
+            JsonUtil.saveJsonFile(new JsonSerializableHireBase(hireBase), temporary);
+            // A failed write must not truncate the previous data file.
+            Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
 }

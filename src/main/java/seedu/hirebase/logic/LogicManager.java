@@ -7,12 +7,14 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
+import seedu.hirebase.logic.commands.AddJobCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.Model;
+import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.storage.Storage;
 
@@ -47,6 +49,9 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = hireBaseParser.parseCommand(commandText);
+        if (command instanceof AddJobCommand addJobCommand) {
+            return executeAddJob(addJobCommand);
+        }
         commandResult = command.execute(model);
 
         try {
@@ -58,6 +63,19 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    private CommandResult executeAddJob(AddJobCommand command) throws CommandException {
+        // Save a detached copy first: failed persistence must not publish a new opening to observers.
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (IOException e) {
+            throw new CommandException(AddJobCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        model.addJobOpening(command.getJobOpening());
+        return result;
     }
 
     @Override

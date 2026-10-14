@@ -6,6 +6,10 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.hirebase.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
+import static seedu.hirebase.logic.commands.CommandTestUtil.SKILL_DESC_JAVA;
+import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_ROLE_AMY;
+import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_SKILL_JAVA;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalPersons.AMY;
 
@@ -182,8 +186,9 @@ public class LogicManagerTest {
 
         // Triggers the saveHireBase method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + " " + AddCommand.RECORD_TYPE_CANDIDATE + NAME_DESC_AMY
-            + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+            + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + SKILL_DESC_JAVA + ROLE_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withTags().withSkills(VALID_SKILL_JAVA)
+                .withRole(VALID_ROLE_AMY).build();
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);

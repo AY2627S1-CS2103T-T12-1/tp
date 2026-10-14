@@ -4,6 +4,8 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Set;
@@ -34,6 +36,8 @@ public class PersonUtil {
         sb.append(PREFIX_PHONE + person.getPhone().value + " ");
         sb.append(PREFIX_EMAIL + person.getEmail().value + " ");
         sb.append(PREFIX_ADDRESS + person.getAddress().value + " ");
+        person.getSkills().forEach(skill -> sb.append(PREFIX_SKILL + skill.value + " "));
+        person.getRole().ifPresent(role -> sb.append(PREFIX_ROLE + role.value + " "));
         return sb.toString();
     }
 

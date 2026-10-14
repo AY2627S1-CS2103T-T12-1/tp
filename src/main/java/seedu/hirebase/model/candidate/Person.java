@@ -32,20 +32,6 @@ public class Person {
     private final InterviewStage interviewStage;
 
     /**
-     * Creates a person with an empty remark. Every field must be present and not null.
-     */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, new Remark(""), tags);
-    }
-
-    /**
-     * Creates a person with a remark and no recruitment details.
-     */
-    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags) {
-        this(name, phone, email, address, remark, tags, Collections.emptySet(), null);
-    }
-
-    /**
      * Creates a candidate with recruitment details and an empty remark.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,

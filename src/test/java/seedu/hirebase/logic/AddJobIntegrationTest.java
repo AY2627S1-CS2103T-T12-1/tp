@@ -138,6 +138,9 @@ public class AddJobIntegrationTest {
         AddJobCommand command = new AddJobCommand(opening);
         assertThrows(NullPointerException.class, () -> command.execute(null));
         assertEquals(command, new AddJobCommand(opening));
+        JobOpening differentOpening = new JobOpening(opening.getTitle(), opening.getDepartment(),
+                new Description("Different responsibilities"));
+        assertNotEquals(command, new AddJobCommand(differentOpening));
         assertEquals(command, command);
         assertNotEquals(command, null);
         assertNotEquals(command, "add job");

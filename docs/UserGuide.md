@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-HireBase is a **keyboard-driven CLI application** that helps you manage your candidates and their recruitment details. It is designed to be simple, fast, and efficient, by streamlining the management of high-volume candidate tracking for tech recruiters through an optimized, keyboard-first interface.
+HireBase is a **keyboard-driven CLI application** that helps you manage candidates, their recruitment details, and local job openings. It is designed to be simple, fast, and efficient, by streamlining the management of high-volume candidate tracking for tech recruiters through an optimized, keyboard-first interface.
 
 - Table of Contents
   {:toc}
@@ -25,7 +25,11 @@ HireBase is a **keyboard-driven CLI application** that helps you manage your can
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
-   - `list` : Lists all candidates.
+   - `list candidates` : Lists all candidates.
+
+   - `add job t/Software Engineer d/Engineering desc/Build backend services using Java.` : Records a local job opening.
+
+   - `list jobs` : Shows all job openings and their current indexes.
 
    - `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer` : Adds a contact named `John Doe` to HireBase.
 
@@ -57,8 +61,8 @@ HireBase is a **keyboard-driven CLI application** that helps you manage your can
 - Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-- Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+- `help`, `exit`, `clear`, and `list candidates` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
+  `list jobs` rejects extra arguments; `list jobs 2` is not valid.
 
 - If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -91,11 +95,24 @@ Examples:
 * `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer`
 * `add candidate n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567 s/C++ s/Python r/Full-Stack Developer`
 
-### Listing all persons: `list`
+### Listing all candidates: `list candidates`
 
-Shows a list of all candidates in HireBase.
+Selects the Candidates tab and shows all candidates in HireBase, clearing any active candidate search.
 
-Format: `list`
+Format: `list candidates`
+
+Use `list jobs` to view openings instead. The bare command `list` is not accepted.
+
+### Managing job openings
+
+Use job openings to keep a local record of roles you are recruiting for. Each opening has a title, department,
+and description. The supported commands are [`add job`](#adding-a-job-opening-add-job),
+[`list jobs`](#listing-job-openings-list-jobs), and [`delete job`](#deleting-a-job-opening-delete-job).
+They do not publish vacancies or accept applications.
+
+Job openings and candidate profiles are separate records. Adding or deleting an opening does not assign candidates
+to it or change their target roles. There is no `edit job` command: to correct an opening, check its index with
+`list jobs`, delete it, and add the replacement. The replacement appears at the end of the job list.
 
 ### Switching between candidates and job openings
 
@@ -123,6 +140,9 @@ All three prefixes are required exactly once and may appear in any order. Comman
 case-sensitive. Multiple spaces between command words are accepted. Missing, empty, repeated or unknown
 parameters, and unexpected text before the first parameter, are rejected without changing records.
 A prefix token such as `d/` following whitespace starts a new parameter and cannot be included literally in a value.
+This also applies to unknown prefixes: `desc/Build CI/CD pipelines` is rejected as `Unknown parameter: CI/.`.
+Use `desc/Build continuous integration and delivery pipelines` instead, or start the value with `desc/CI/CD pipelines`.
+Slashes within a value without a preceding space, such as `t/Data/ML Engineer`, are accepted.
 
 Titles and departments accept 1–100 Unicode characters: letters, digits, spaces and `& / ( ) + # . , ' ’ -`.
 Each must contain at least one letter or digit. Surrounding whitespace is trimmed and repeated internal whitespace
@@ -132,6 +152,9 @@ are preserved, and length limits apply after normalization. Capitalization is pr
 
 An opening is a duplicate if both its title and department match an existing opening after normalization,
 ignoring case. Descriptions do not determine uniqueness. The same title in a different department is allowed.
+For example, after adding `Software Engineer` in `Engineering`, adding `software engineer` in `ENGINEERING`
+is rejected even with a different description. Adding `Software Engineer` in `Research` is accepted.
+Multiple vacancies with the same title and department share one opening under this rule.
 
 Success shows `Added job opening INDEX: TITLE — DEPARTMENT.` The index is the opening's current position in
 creation order, starting at 1; it is not a permanent ID. A duplicate reports the existing opening's index,
@@ -141,6 +164,20 @@ and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
 Successful job commands select the Job openings tab automatically.
+
+Common input errors (none adds an opening):
+
+| Input problem | Example | Feedback |
+| --- | --- | --- |
+| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| Empty title | `add job t/ d/Engineering desc/Build services` | `Parameter t/ cannot be empty.` |
+| Repeated department | `add job t/Engineer d/Engineering d/Research desc/Build services` | `Parameter d/ must be specified only once.` |
+| Unknown prefix | `add job t/Engineer d/Engineering desc/Build services salary/5000` | `Unknown parameter: salary/.` |
+| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+
+Invalid title, department or description values produce a field-specific validation message. Correct the input
+and submit the command again. For a duplicate at index 1, feedback is
+`Job opening already exists (1): Software Engineer — Engineering. Job opening was not added.`
 
 ### Listing job openings: `list jobs`
 
@@ -169,6 +206,56 @@ The command is case-sensitive and accepts no parameters. Surrounding whitespace 
 
 Listing jobs does not change records, their order, the candidate list or its active filter, and does not rewrite
 the data file.
+
+### Deleting a job opening: `delete job`
+
+Format: `delete job INDEX`
+
+Example: `delete job 2` deletes the second opening shown by `list jobs`.
+The index must be a positive integer referring to an existing opening in the current job list.
+Use `list jobs` before deleting to check the index. Indexes are list positions, not permanent IDs;
+after deletion, later openings shift down by one. Candidate filters do not affect job indexes.
+
+The command accepts exactly one index. `job` is a required, case-sensitive keyword.
+Surrounding whitespace and multiple spaces between command words are accepted. Missing, invalid or multiple
+indexes are rejected with usage guidance. A nonexistent index reports
+`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
+
+Success shows `Deleted job opening INDEX: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
+candidate records, target roles and the active candidate filter remain unchanged. An opening with the same title
+and department can then be added again and is appended to the end of the list.
+
+The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
+HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
+Successful deletion selects the Job openings tab and refreshes its cards and indexes.
+
+Common deletion errors:
+
+| Command | Feedback |
+| --- | --- |
+| `delete job` | `Missing job index. Usage: delete job INDEX` |
+| `delete job 1 2` | `Expected exactly one job index. Usage: delete job INDEX` |
+| `delete job 0` | `Job index must be a positive integer. Usage: delete job INDEX` |
+| `delete job 1.5` | `Job index must be a positive integer. Usage: delete job INDEX` |
+
+Negative indexes, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid index
+must still refer to an existing opening; use `list jobs` to check the current list after an error.
+
+### Example: create, review and close an opening
+
+The following example assumes the job list is initially empty. If it already contains openings, use the indexes
+reported by your own `list jobs` result instead of the example indexes. Do not use `clear` to prepare this example:
+it deletes candidate records as well as openings.
+
+Run `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`. HireBase reports
+`Added job opening 1: Software Engineer — Engineering.` and selects the Job openings tab.
+Then run `add job t/Data Analyst d/Analytics desc/Analyse business data using SQL.`. This opening receives index 2.
+`list jobs` now shows both cards and reports `Listed 2 job openings.`
+
+When the Software Engineer opening closes, run `delete job 1`. HireBase reports
+`Deleted job opening 1: Software Engineer — Engineering.`. Run `list jobs` again: Data Analyst is now index 1,
+not index 2. Candidate records and their target roles are unchanged. Restarting HireBase retains the remaining
+opening; click Job openings or run `list jobs` to see it again.
 
 ### Editing a candidate: `edit candidate`
 
@@ -247,30 +334,8 @@ Format: `delete candidate INDEX`
 
 Examples:
 
-- `list` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
+- `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
-
-### Deleting a job opening: `delete job`
-
-Format: `delete job INDEX`
-
-Example: `delete job 2` deletes the second opening shown by `list jobs`.
-The index must be a positive integer referring to an existing opening in the current job list.
-Use `list jobs` before deleting to check the index. Indexes are list positions, not permanent IDs;
-after deletion, later openings shift down by one. Candidate filters do not affect job indexes.
-
-The command accepts exactly one index. `job` is a required, case-sensitive keyword.
-Surrounding whitespace and multiple spaces between command words are accepted. Missing, invalid or multiple
-indexes are rejected with usage guidance. A nonexistent index reports
-`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
-
-Success shows `Deleted job opening INDEX: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
-candidate records, target roles and the active candidate filter remain unchanged. An opening with the same title
-and department can then be added again and is appended to the end of the list.
-
-The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
-HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
-Successful deletion selects the Job openings tab and refreshes its cards and indexes.
 
 ### Clearing all entries: `clear`
 
@@ -301,7 +366,7 @@ descriptions are 1–2000 printable characters on one line. Title and department
 while internal spaces in descriptions are preserved. Length limits apply after trimming and normalization.
 Openings with the same title and department, ignoring case and normalized whitespace, are duplicates even if their
 descriptions differ. Invalid or duplicate openings cause the data file to fail loading; they are not silently skipped.
-Use `add job` to create openings and `list jobs` to view them in the command result area.
+Use `add job` to create openings and `list jobs` to view their cards and full details.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
@@ -335,10 +400,10 @@ _Details coming soon ..._
 | **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
 | **Delete job** | `delete job INDEX` <br> e.g., `delete job 2` |
 | **List jobs** | `list jobs` |
-| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` <br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
 | **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
 | **Find**   | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
-| **List**   | `list`                                                                                                                                                                |
+| **List candidates** | `list candidates`                                                                                                                                                                |
 | **Help**   | `help`                                                                                                                                                                |

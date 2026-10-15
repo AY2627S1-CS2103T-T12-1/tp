@@ -125,8 +125,35 @@ title and department and is not added. The opening is saved before success is re
 HireBase reports `Could not save changes. Job opening was not added. Check storage permissions and available disk space, then try again.`
 and leaves existing records and the candidate display unchanged.
 
-The job-list command and visual job list are coming in separate updates. For now, the confirmation identifies
-the new opening, and the opening is retained in the local data file across launches.
+Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
+The separate visual job-card list is coming in a later update.
+
+### Listing job openings: `list jobs`
+
+Format: `list jobs`
+
+Displays all stored job openings in the command result area, in creation order (earliest first).
+Each entry shows its current 1-based index, title, department, and full description. Openings with the same title
+in different departments are displayed separately. Indexes are list positions, not permanent IDs.
+
+The result starts with `Listed N job openings.` (or `Listed 1 job opening.` for a single opening).
+An empty list is a successful result: `No job openings found.`
+
+Example result after adding a Software Engineer opening:
+
+```text
+Listed 1 job opening.
+
+1. Software Engineer — Engineering
+Description: Build backend services using Java.
+```
+
+The command is case-sensitive and accepts no parameters. Surrounding whitespace and multiple spaces between
+`list` and `jobs` are accepted. Extra arguments, such as `list jobs 2`, are rejected with
+`The list jobs command does not accept parameters. Usage: list jobs`. Use the plural `jobs`; `list job` is not valid.
+
+Listing jobs does not change records, their order, the candidate list or its active filter, and does not rewrite
+the data file. The separate job-card view and switching between candidate and job lists are coming in a later update.
 
 ### Editing a candidate: `edit candidate`
 
@@ -222,7 +249,7 @@ Format: `exit`
 
 ### Saving the data
 
-HireBase automatically saves data after every command. You do not need to save manually.
+HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
 Candidate records and any stored job openings are saved together in the same data file and loaded on the next launch.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 
@@ -237,10 +264,10 @@ descriptions are 1–2000 printable characters on one line. Title and department
 while internal spaces in descriptions are preserved. Length limits apply after trimming and normalization.
 Openings with the same title and department, ignoring case and normalized whitespace, are duplicates even if their
 descriptions differ. Invalid or duplicate openings cause the data file to fail loading; they are not silently skipped.
-Use `add job` to create openings. The job-list interface is not available yet.
+Use `add job` to create openings and `list jobs` to view them in the command result area.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command (HireBase saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -269,6 +296,7 @@ _Details coming soon ..._
 | Action     | Format, Examples                                                                                                                                                      |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
+| **List jobs** | `list jobs` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |

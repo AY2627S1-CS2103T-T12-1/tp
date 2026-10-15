@@ -139,6 +139,9 @@ public class MainWindow extends UiPart<Stage> {
                 personDetailWindow.showPerson(person);
             }
         });
+        // Clearing the selection when the popup closes lets re-clicking the same
+        // candidate count as a fresh selection, so the popup reopens.
+        personDetailWindow.getRoot().setOnHidden(event -> personListPanel.clearSelection());
 
         jobListPanel = new JobListPanel(logic.getJobOpeningList());
         jobListPanelPlaceholder.getChildren().add(jobListPanel.getRoot());

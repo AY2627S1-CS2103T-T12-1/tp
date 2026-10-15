@@ -40,6 +40,13 @@ public class PersonListPanel extends UiPart<Region> {
     }
 
     /**
+     * Clears the current selection so that re-selecting the same candidate fires again.
+     */
+    public void clearSelection() {
+        personListView.getSelectionModel().clearSelection();
+    }
+
+    /**
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using
      * a {@code PersonCard}.
      */

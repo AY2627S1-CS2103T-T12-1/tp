@@ -86,6 +86,35 @@ public class PersonDetailWindowTest {
         });
     }
 
+    @Test
+    public void setPerson_eachStage_setsMatchingBadge() throws Exception {
+        runOnFxThread(() -> {
+            PersonDetailWindow window = new PersonDetailWindow(new Stage());
+
+            window.setPerson(new PersonBuilder().withInterviewStage(InterviewStage.SCREENING).build());
+            assertEquals("Screening", text(window, "#stage"));
+            assertTrue(lookup(window, "#stage").getStyleClass().contains("stage-screening"));
+
+            // Re-selecting a different stage must swap the style class, not stack it.
+            window.setPerson(new PersonBuilder().withInterviewStage(InterviewStage.REJECTED).build());
+            assertEquals("Rejected", text(window, "#stage"));
+            assertTrue(lookup(window, "#stage").getStyleClass().contains("stage-rejected"));
+            assertFalse(lookup(window, "#stage").getStyleClass().contains("stage-screening"));
+        });
+    }
+
+    @Test
+    public void noArgConstructor_createsHiddenWindowWithPlaceholder() throws Exception {
+        runOnFxThread(() -> {
+            PersonDetailWindow window = new PersonDetailWindow();
+            assertFalse(window.isShowing());
+            assertTrue(lookup(window, "#placeholder").isVisible());
+            // Hiding an already-hidden window is a safe no-op.
+            window.hide();
+            assertFalse(window.isShowing());
+        });
+    }
+
     private static Node lookup(PersonDetailWindow window, String id) {
         return window.getRoot().getScene().lookup(id);
     }

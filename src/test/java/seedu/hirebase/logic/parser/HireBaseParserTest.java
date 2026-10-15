@@ -23,7 +23,7 @@ import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.RemarkCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
-import seedu.hirebase.model.candidate.NameContainsKeywordsPredicate;
+import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.testutil.EditPersonDescriptorBuilder;
@@ -82,7 +82,7 @@ public class HireBaseParserTest {
         List<String> keywords = List.of("foo", "bar", "baz");
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+        assertEquals(new FindCommand(new NameOrEmailContainsKeywordsPredicate(keywords)), command);
     }
 
     @Test

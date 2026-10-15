@@ -135,23 +135,31 @@ Older records without skills or a target role can still be loaded and edited.
 The existing address and tag fields remain supported. Supplying tags replaces the entire tag set;
 `t/` with no value clears tags.
 
-### Locating persons by name: `find`
+### Searching candidates by name or email: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds candidates whose names or email addresses match any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
-- The search is case-insensitive; for example, `hans` matches `Hans`.
-- Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-- The search considers only names.
-- Only full words match; for example, `Han` does not match `Hans`.
-- Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+- Matching is case-insensitive for both names and email addresses.
+- Names match whole words: `Hans` matches `Hans Gruber`, but `Han` does not match his name.
+- Email addresses match any substring: `hans`, `hans@example.com`, and `@example.com` all match `hans@example.com`.
+  A partial name keyword can still find a candidate if it matches their email address.
+- Keywords are separated by whitespace. Supply at least one keyword; an empty search is rejected.
+- A candidate is returned if any keyword matches their name or email address (an `OR` search).
+  Keyword order does not matter, and a candidate matching several keywords appears only once.
+- Results retain the candidate list's order and use the displayed indexes for subsequent edit or delete commands.
+- Each search considers all candidates, including those hidden by a previous search.
+  Use `list candidates` to display all candidates again.
+- The search considers only names and email addresses; it does not search skills, roles, remarks, or other fields.
 
 Examples:
 
-- `find John` returns `john` and `John Doe`
-- `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+- `find John` finds candidates with the whole name word `John` or `john` anywhere in their email address.
+- `find JOHND@EXAMPLE.COM` finds candidates whose email address contains `johnd@example.com`, ignoring case.
+- `find @example.com` finds candidates with `@example.com` anywhere in their email address.
+- `find Alex johnd@example.com` finds candidates matching either the name word `Alex` or the email substring
+  `johnd@example.com`.
 
 ### Deleting a candidate: `delete candidate`
 
@@ -222,6 +230,6 @@ _Details coming soon ..._
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
 | **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
-| **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`                                                                                                            |
+| **Find**   | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
 | **List**   | `list`                                                                                                                                                                |
 | **Help**   | `help`                                                                                                                                                                |

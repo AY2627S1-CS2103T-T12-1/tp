@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.testutil.PersonBuilder;
 
@@ -48,9 +50,14 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().withSkills("SQL", "C++", "Java")
                     .withRole("Backend Engineer").build(), 2);
-            Label skills = (Label) card.getRoot().lookup("#skills");
+            FlowPane skills = (FlowPane) card.getRoot().lookup("#skills");
             Label role = (Label) card.getRoot().lookup("#role");
-            assertEquals("Skills: C++, Java, SQL", skills.getText());
+            List<String> skillPills = skills.getChildren().stream()
+                    .map(node -> ((Label) node).getText())
+                    .toList();
+            assertEquals(List.of("C++", "Java", "SQL"), skillPills);
+            assertTrue(skills.getChildren().stream()
+                    .allMatch(node -> node.getStyleClass().contains("skill-pill")));
             assertEquals("Target role: Backend Engineer", role.getText());
             assertTrue(skills.isVisible());
             assertTrue(skills.isManaged());
@@ -64,8 +71,9 @@ public class PersonCardTest {
     public void constructor_absentRecruitmentDetails_hidesLabelsAndTheirLayoutSpace() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
-            Label skills = (Label) card.getRoot().lookup("#skills");
+            FlowPane skills = (FlowPane) card.getRoot().lookup("#skills");
             Label role = (Label) card.getRoot().lookup("#role");
+            assertTrue(skills.getChildren().isEmpty());
             assertFalse(skills.isVisible());
             assertFalse(skills.isManaged());
             assertFalse(role.isVisible());

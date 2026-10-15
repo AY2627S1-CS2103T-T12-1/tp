@@ -141,6 +141,15 @@
     -fx-border-width: 1;
 }
 
+.skill-pill {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11px;
+    -fx-text-fill: #eaf4f7;
+    -fx-background-color: #4f7d92;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 5;
+}
+
 /* Scoped with .list-cell + two classes so the per-stage text colour beats
    `.list-cell .label { -fx-text-fill: white }` on specificity. */
 .list-cell .stage-badge.stage-screening {

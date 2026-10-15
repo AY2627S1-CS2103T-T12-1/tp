@@ -1,5 +1,6 @@
 package seedu.hirebase.ui;
 
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -27,6 +28,22 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+    }
+
+    /**
+     * Registers a callback invoked with the candidate selected in the list
+     * (or {@code null} when the selection is cleared).
+     */
+    public void setSelectionListener(Consumer<Person> onSelect) {
+        personListView.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldValue, newValue) -> onSelect.accept(newValue));
+    }
+
+    /**
+     * Clears the current selection so that re-selecting the same candidate fires again.
+     */
+    public void clearSelection() {
+        personListView.getSelectionModel().clearSelection();
     }
 
     /**

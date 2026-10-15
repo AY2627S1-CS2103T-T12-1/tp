@@ -58,8 +58,9 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 - Items followed by `…`​ can appear zero or more times.<br>
   For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-- Parameters can be in any order.<br>
+- Prefixed parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+  Positional arguments, such as `INDEX STAGE` in `stage candidate INDEX STAGE`, must follow the order shown.
 
 - `help`, `exit`, `clear`, and `list candidates` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
   `list jobs` rejects extra arguments; `list jobs 2` is not valid.
@@ -337,6 +338,73 @@ Examples:
 - `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
 
+### Changing a candidate's interview stage: `stage candidate`
+
+Changes the interview stage of the specified candidate. New candidates start at `SCREENING`.
+The candidate card shows the current stage as **Screening**, **Accepted**, or **Rejected**.
+
+Format: `stage candidate INDEX STAGE`
+
+- `stage` and the required `candidate` keyword are case-sensitive.
+- `INDEX` must be a positive integer referring to a candidate in the currently displayed list,
+  including results narrowed by `find`. Indexes are list positions, not permanent IDs.
+- `STAGE` must be `SCREENING`, `ACCEPTED`, or `REJECTED`. Stage names are case-insensitive;
+  for example, `accepted` and `ACCEPTED` have the same effect.
+- Supply exactly one index followed by one stage. Missing arguments, extra arguments, invalid indexes,
+  and unknown stages are rejected without changing candidate records.
+- Surrounding whitespace and multiple spaces between arguments are accepted.
+- You can move a candidate from any stage to any other stage, including back to `SCREENING`.
+  Setting the current stage again is also allowed.
+
+Successful `stage`, `accept`, and `reject` commands change only the interview stage, preserving all other candidate
+information. They select the Candidates tab, show the full candidate list again, and update the stage on the card.
+Recheck the displayed indexes before another command, as a search filter is cleared after success.
+The stage is saved automatically and restored when you reopen HireBase. Editing a candidate or their remark
+preserves the stage.
+
+Success shows `Updated interview stage for candidate INDEX: NAME (EMAIL) to STAGE`.
+An index beyond the displayed list reports `The person index provided is invalid.`
+An unknown stage reports `Interview stage must be one of [SCREENING, ACCEPTED, REJECTED] (case-insensitive).`
+
+Examples:
+
+- `stage candidate 1 ACCEPTED` sets the first displayed candidate's stage to `ACCEPTED`.
+- `stage candidate 2 screening` returns the second displayed candidate to `SCREENING`.
+- `find Betsy` followed by `stage candidate 1 rejected` rejects the first candidate in the search results,
+  then shows the full candidate list.
+
+### Accepting a candidate: `accept candidate`
+
+Marks the specified candidate as accepted by setting their stage to `ACCEPTED`.
+This is a shortcut for `stage candidate INDEX ACCEPTED`.
+
+Format: `accept candidate INDEX`
+
+`accept` and the required `candidate` keyword are case-sensitive. Supply exactly one positive index from the
+currently displayed candidate list, including search results. Do not add a stage argument: `accept candidate 1 ACCEPTED`
+is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
+Missing arguments, extra arguments, invalid indexes, and nonexistent displayed indexes leave records unchanged.
+
+Example: `accept candidate 1` accepts the first displayed candidate. It shows the full candidate list again
+and uses the same success message as `stage candidate`, ending in `to ACCEPTED`.
+The candidate stays in HireBase; accepting an already accepted candidate is allowed, and the stage can be changed later.
+
+### Rejecting a candidate: `reject candidate`
+
+Marks the specified candidate as rejected by setting their stage to `REJECTED`.
+This is a shortcut for `stage candidate INDEX REJECTED`.
+
+Format: `reject candidate INDEX`
+
+`reject` and the required `candidate` keyword are case-sensitive. Supply exactly one positive index from the
+currently displayed candidate list, including search results. Do not add a stage argument: `reject candidate 1 REJECTED`
+is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
+Missing arguments, extra arguments, invalid indexes, and nonexistent displayed indexes leave records unchanged.
+
+Example: `reject candidate 1` rejects the first displayed candidate. It shows the full candidate list again
+and uses the same success message as `stage candidate`, ending in `to REJECTED`.
+The candidate stays in HireBase; rejecting an already rejected candidate is allowed, and the stage can be changed later.
+
 ### Clearing all entries: `clear`
 
 Clears all candidates and job openings from HireBase.
@@ -352,12 +420,17 @@ Format: `exit`
 ### Saving the data
 
 HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
-Candidate records and any stored job openings are saved together in the same data file and loaded on the next launch.
+Candidate records, including their interview stages, and any stored job openings are saved together in the same data
+file and loaded on the next launch.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 
 ### Editing the data file
 
 HireBase data is saved automatically as a JSON file `[JAR file location]/data/hirebase.json`. Advanced users are welcome to update data directly by editing that data file.
+
+Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED` in the JSON file (case-sensitive).
+Older records without this field, or with a `null` value, load as `SCREENING`.
+Blank strings, unknown stage names, or incorrect capitalization make the data file invalid.
 
 The `jobs` array stores each opening's `title`, `department`, and `description`, preserving their order.
 Each opening must have all three fields and satisfy the job model's validation rules: titles and departments are
@@ -404,6 +477,9 @@ _Details coming soon ..._
 | **Clear**  | `clear`                                                                                                                                                               |
 | **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
 | **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
+| **Stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
+| **Accept** | `accept candidate INDEX` sets `ACCEPTED`<br> e.g., `accept candidate 1` |
+| **Reject** | `reject candidate INDEX` sets `REJECTED`<br> e.g., `reject candidate 2` |
 | **Find**   | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
 | **List candidates** | `list candidates`                                                                                                                                                                |
 | **Help**   | `help`                                                                                                                                                                |

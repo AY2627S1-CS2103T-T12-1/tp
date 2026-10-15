@@ -3,6 +3,7 @@ package seedu.hirebase.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.BooleanBinding;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
@@ -137,7 +138,9 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
+        BooleanBinding showingJobs = recordTabs.getSelectionModel().selectedItemProperty().isEqualTo(jobsTab);
+        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath,
+                logic.getFilteredPersonList(), logic.getJobOpeningList(), showingJobs);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
@@ -198,6 +201,7 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            resultDisplay.setStyleToIndicateSuccess();
 
             switch (commandResult.getListView()) {
                 case JOBS:
@@ -222,6 +226,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
+            resultDisplay.setStyleToIndicateError();
             throw e;
         }
     }

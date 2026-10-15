@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import seedu.hirebase.commons.exceptions.IllegalValueException;
 import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
@@ -77,6 +80,54 @@ public class JsonAdaptedPersonTest {
         var expected = new PersonBuilder(BENSON).withRemark("Likes baseball").build();
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));
         assertEquals(expected, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
+    }
+
+    @Test
+    public void fromJson_allInterviewStages_preservesStageAndCandidateDetails() throws Exception {
+        for (InterviewStage stage : InterviewStage.values()) {
+            Person expected = new PersonBuilder(BENSON).withInterviewStage(stage)
+                    .withSkills("Java", "SQL").withRole("Backend Engineer").withRemark("Follow up").build();
+            String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));
+            ObjectNode stored = JsonUtil.fromJsonString(json, ObjectNode.class);
+            assertEquals(stage.name(), stored.get("interviewStage").asText());
+
+            Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+            assertEquals(stage, loaded.getInterviewStage());
+            assertEquals(expected, loaded);
+        }
+    }
+
+    @Test
+    public void fromJson_missingInterviewStage_defaultsToScreening() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        json.remove("interviewStage");
+
+        Person loaded = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class).toModelType();
+        assertEquals(InterviewStage.SCREENING, loaded.getInterviewStage());
+        assertEquals(BENSON, loaded);
+    }
+
+    @Test
+    public void fromJson_nullInterviewStage_defaultsToScreening() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        json.putNull("interviewStage");
+
+        Person loaded = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class).toModelType();
+        assertEquals(InterviewStage.SCREENING, loaded.getInterviewStage());
+        assertEquals(BENSON, loaded);
+    }
+
+    @Test
+    public void fromJson_invalidInterviewStage_throwsIllegalValueException() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        for (String stage : List.of("UNKNOWN", "", " ", "accepted", " SCREENING ")) {
+            json.put("interviewStage", stage);
+            JsonAdaptedPerson person = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class);
+            assertThrows(IllegalValueException.class, person::toModelType);
+        }
     }
 
     @Test

@@ -16,9 +16,15 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import seedu.hirebase.commons.exceptions.DataLoadingException;
+import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.candidate.InterviewStage;
+import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.testutil.PersonBuilder;
 
 public class JsonHireBaseStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonHireBaseStorageTest");
@@ -94,6 +100,50 @@ public class JsonHireBaseStorageTest {
         readBack = jsonHireBaseStorage.readHireBase().get(); // file path not specified
         assertEquals(original, new HireBase(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveHireBase_allInterviewStages_preservesStage() throws Exception {
+        Path filePath = testFolder.resolve("stages.json");
+        for (InterviewStage stage : InterviewStage.values()) {
+            Person candidate = new PersonBuilder(ALICE).withInterviewStage(stage).build();
+            HireBase original = new HireBase();
+            original.addPerson(candidate);
+            new JsonHireBaseStorage(filePath).saveHireBase(original);
+
+            ReadOnlyHireBase loaded = new JsonHireBaseStorage(filePath).readHireBase().orElseThrow();
+            assertEquals(stage, loaded.getPersonList().get(0).getInterviewStage());
+            assertEquals(original, new HireBase(loaded));
+        }
+    }
+
+    @Test
+    public void readHireBase_legacyFileWithoutInterviewStage_defaultsToScreening() throws Exception {
+        Path filePath = testFolder.resolve("legacy.json");
+        HireBase original = new HireBase();
+        original.addPerson(ALICE);
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonSerializableHireBase(original)), ObjectNode.class);
+        ObjectNode candidate = (ObjectNode) json.get("persons").get(0);
+        candidate.remove("interviewStage");
+        JsonUtil.saveJsonFile(json, filePath);
+
+        ReadOnlyHireBase loaded = new JsonHireBaseStorage(filePath).readHireBase().orElseThrow();
+        assertEquals(InterviewStage.SCREENING, loaded.getPersonList().get(0).getInterviewStage());
+        assertEquals(original, new HireBase(loaded));
+    }
+
+    @Test
+    public void readHireBase_invalidInterviewStage_throwsDataLoadingException() throws Exception {
+        Path filePath = testFolder.resolve("invalidStage.json");
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonSerializableHireBase(getTypicalHireBase())), ObjectNode.class);
+        ObjectNode candidate = (ObjectNode) json.get("persons").get(1);
+        candidate.put("interviewStage", "UNKNOWN");
+        JsonUtil.saveJsonFile(json, filePath);
+
+        JsonHireBaseStorage storage = new JsonHireBaseStorage(filePath);
+        assertThrows(DataLoadingException.class, storage::readHireBase);
     }
 
     @Test

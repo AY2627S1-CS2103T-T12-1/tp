@@ -167,21 +167,54 @@
     -fx-background-color: transparent;
 }
 
-/* Scoped with .list-cell + two classes so the per-stage text colour beats
-   `.list-cell .label { -fx-text-fill: white }` on specificity. */
-.list-cell .stage-badge.stage-screening {
+.detail-panel {
+    -fx-background-color: #34383c;
+    -fx-background-radius: 8;
+    -fx-border-color: #565b61;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.detail-name {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+}
+
+.detail-key {
+    -fx-text-fill: #8f8a81;
+    -fx-font-size: 11.5px;
+}
+
+.detail-value {
+    -fx-text-fill: #e9ebe5;
+    -fx-font-size: 12.5px;
+}
+
+.detail-placeholder {
+    -fx-text-fill: #8f8a81;
+    -fx-font-style: italic;
+}
+
+/* Scoped with an ancestor + two classes so the per-stage text colour beats
+   `.list-cell .label { -fx-text-fill: white }` on specificity. Covers both the
+   list cards (.list-cell) and the details popup (.detail-panel). */
+.list-cell .stage-badge.stage-screening,
+.detail-panel .stage-badge.stage-screening {
     -fx-text-fill: #e8c98d;
     -fx-background-color: rgba(200, 121, 31, 0.16);
     -fx-border-color: #7a6435;
 }
 
-.list-cell .stage-badge.stage-accepted {
+.list-cell .stage-badge.stage-accepted,
+.detail-panel .stage-badge.stage-accepted {
     -fx-text-fill: #7fd6a9;
     -fx-background-color: rgba(15, 122, 99, 0.18);
     -fx-border-color: #2f7a63;
 }
 
-.list-cell .stage-badge.stage-rejected {
+.list-cell .stage-badge.stage-rejected,
+.detail-panel .stage-badge.stage-rejected {
     -fx-text-fill: #f0938a;
     -fx-background-color: rgba(178, 59, 48, 0.18);
     -fx-border-color: #8a3b33;

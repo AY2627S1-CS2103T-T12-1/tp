@@ -37,6 +37,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private PersonDetailWindow personDetailWindow;
     private JobListPanel jobListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
@@ -83,6 +84,7 @@ public class MainWindow extends UiPart<Stage> {
         setAccelerators();
 
         helpWindow = new HelpWindow();
+        personDetailWindow = new PersonDetailWindow();
     }
 
     public Stage getPrimaryStage() {
@@ -131,6 +133,12 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+
+        personListPanel.setSelectionListener(person -> {
+            if (person != null) {
+                personDetailWindow.showPerson(person);
+            }
+        });
 
         jobListPanel = new JobListPanel(logic.getJobOpeningList());
         jobListPanelPlaceholder.getChildren().add(jobListPanel.getRoot());
@@ -184,6 +192,7 @@ public class MainWindow extends UiPart<Stage> {
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
+        personDetailWindow.hide();
         primaryStage.hide();
     }
 

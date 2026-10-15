@@ -420,7 +420,7 @@ Format: `exit`
 ### Saving the data
 
 HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
-Candidate records, including their interview stages, and any stored job openings are saved together in the same data
+Candidate records and any stored job openings are saved together in the same data
 file and loaded on the next launch.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 
@@ -468,18 +468,18 @@ _Details coming soon ..._
 
 ## Command summary
 
-| Action     | Format, Examples                                                                                                                                                      |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Add**    | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
-| **Delete job** | `delete job INDEX` <br> e.g., `delete job 2` |
-| **List jobs** | `list jobs` |
-| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` <br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
-| **Clear**  | `clear`                                                                                                                                                               |
-| **Delete** | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
-| **Edit**   | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
-| **Stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
-| **Accept** | `accept candidate INDEX` sets `ACCEPTED`<br> e.g., `accept candidate 1` |
-| **Reject** | `reject candidate INDEX` sets `REJECTED`<br> e.g., `reject candidate 2` |
-| **Find**   | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
-| **List candidates** | `list candidates`                                                                                                                                                                |
-| **Help**   | `help`                                                                                                                                                                |
+| Action                   | Format, Examples                                                                                                                                                      |
+|--------------------------| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Add candidate**        | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
+| **Delete job**           | `delete job INDEX` <br> e.g., `delete job 2` |
+| **List jobs**            | `list jobs` |
+| **Add job**              | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` <br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
+| **Clear**                | `clear`                                                                                                                                                               |
+| **Delete candidate**     | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
+| **Edit candidate**       | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
+| **Edit candidate stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
+| **Accept candidate**     | `accept candidate INDEX` sets `ACCEPTED`<br> e.g., `accept candidate 1` |
+| **Reject candidate**     | `reject candidate INDEX` sets `REJECTED`<br> e.g., `reject candidate 2` |
+| **Find**                 | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
+| **List candidates**      | `list candidates`                                                                                                                                                                |
+| **Help**                 | `help`                                                                                                                                                                |

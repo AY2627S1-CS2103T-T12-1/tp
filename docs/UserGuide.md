@@ -468,18 +468,19 @@ _Details coming soon ..._
 
 ## Command summary
 
-| Action                   | Format, Examples                                                                                                                                                      |
-|--------------------------| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Add candidate**        | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE` <br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
-| **Delete job**           | `delete job INDEX` <br> e.g., `delete job 2` |
-| **List jobs**            | `list jobs` |
-| **Add job**              | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` <br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
-| **Clear**                | `clear`                                                                                                                                                               |
-| **Delete candidate**     | `delete candidate INDEX`<br> e.g., `delete candidate 3`                                                                                                               |
-| **Edit candidate**       | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com`                                          |
-| **Edit candidate stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
-| **Accept candidate**     | `accept candidate INDEX` sets `ACCEPTED`<br> e.g., `accept candidate 1` |
-| **Reject candidate**     | `reject candidate INDEX` sets `REJECTED`<br> e.g., `reject candidate 2` |
-| **Find**                 | `find KEYWORD [MORE_KEYWORDS]` searches names or emails<br> e.g., `find James james@example.com` |
-| **List candidates**      | `list candidates`                                                                                                                                                                |
-| **Help**                 | `help`                                                                                                                                                                |
+| Action | Format, Examples |
+|--------|------------------|
+| **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
+| **List candidates** | `list candidates` |
+| **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
+| **Edit candidate** | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
+| **Change interview stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
+| **Accept candidate** | `accept candidate INDEX`<br> e.g., `accept candidate 1` |
+| **Reject candidate** | `reject candidate INDEX`<br> e.g., `reject candidate 2` |
+| **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
+| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
+| **List jobs** | `list jobs` |
+| **Delete job** | `delete job INDEX`<br> e.g., `delete job 2` |
+| **Clear** | `clear` |
+| **Help** | `help` |
+| **Exit** | `exit` |

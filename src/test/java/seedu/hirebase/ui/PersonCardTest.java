@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.testutil.PersonBuilder;
 
 public class PersonCardTest {
@@ -63,6 +65,34 @@ public class PersonCardTest {
             assertFalse(skills.isManaged());
             assertFalse(role.isVisible());
             assertFalse(role.isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_defaultInterviewStage_displaysScreeningWithoutRecruitmentDetails() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            Label stage = (Label) card.getRoot().lookup("#interviewStage");
+            assertEquals("Interview stage: Screening", stage.getText());
+            assertTrue(stage.isVisible());
+            assertTrue(stage.isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_nonDefaultInterviewStage_displaysCandidateStage() throws Exception {
+        runOnFxThread(() -> {
+            Map<InterviewStage, String> expectedLabels = Map.of(
+                    InterviewStage.ACCEPTED, "Interview stage: Accepted",
+                    InterviewStage.REJECTED, "Interview stage: Rejected");
+            expectedLabels.forEach((value, expectedText) -> {
+                PersonCard card = new PersonCard(new PersonBuilder().withInterviewStage(value)
+                        .withSkills("Java").withRole("Backend Engineer").build(), 1);
+                Label stage = (Label) card.getRoot().lookup("#interviewStage");
+                assertEquals(expectedText, stage.getText());
+                assertTrue(stage.isVisible());
+                assertTrue(stage.isManaged());
+            });
         });
     }
 

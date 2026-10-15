@@ -49,6 +49,8 @@ public class PersonCard extends UiPart<Region> {
     private Label skills;
     @FXML
     private Label role;
+    @FXML
+    private Label interviewStage;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to
@@ -70,6 +72,11 @@ public class PersonCard extends UiPart<Region> {
         role.setText("Target role: " + person.getRole().map(value -> value.value).orElse(""));
         role.setVisible(person.getRole().isPresent());
         role.setManaged(role.isVisible());
+        interviewStage.setText("Interview stage: " + switch (person.getInterviewStage()) {
+            case SCREENING -> "Screening";
+            case ACCEPTED -> "Accepted";
+            case REJECTED -> "Rejected";
+        });
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

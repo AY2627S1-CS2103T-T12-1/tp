@@ -72,11 +72,12 @@ public class PersonCard extends UiPart<Region> {
         role.setText("Target role: " + person.getRole().map(value -> value.value).orElse(""));
         role.setVisible(person.getRole().isPresent());
         role.setManaged(role.isVisible());
-        interviewStage.setText("Interview stage: " + switch (person.getInterviewStage()) {
+        interviewStage.setText(switch (person.getInterviewStage()) {
             case SCREENING -> "Screening";
             case ACCEPTED -> "Accepted";
             case REJECTED -> "Rejected";
         });
+        interviewStage.getStyleClass().add("stage-" + person.getInterviewStage().name().toLowerCase());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

@@ -132,6 +132,35 @@
     -fx-text-fill: #010504;
 }
 
+.stage-badge {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 10.5px;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 100;
+    -fx-border-radius: 100;
+    -fx-border-width: 1;
+}
+
+/* Scoped with .list-cell + two classes so the per-stage text colour beats
+   `.list-cell .label { -fx-text-fill: white }` on specificity. */
+.list-cell .stage-badge.stage-screening {
+    -fx-text-fill: #e8c98d;
+    -fx-background-color: rgba(200, 121, 31, 0.16);
+    -fx-border-color: #7a6435;
+}
+
+.list-cell .stage-badge.stage-accepted {
+    -fx-text-fill: #7fd6a9;
+    -fx-background-color: rgba(15, 122, 99, 0.18);
+    -fx-border-color: #2f7a63;
+}
+
+.list-cell .stage-badge.stage-rejected {
+    -fx-text-fill: #f0938a;
+    -fx-background-color: rgba(178, 59, 48, 0.18);
+    -fx-border-color: #8a3b33;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }

@@ -63,7 +63,7 @@ public class DeleteCommandParserTest {
     @Test
     public void parse_invalidRecordType_throwsParseException() {
         assertParseFailure(parser, "person 1", expectedUsageFailure);
-        assertParseFailure(parser, "job 1", expectedUsageFailure);
+        assertParseFailure(parser, "jobs 1", expectedUsageFailure);
         // record-type keyword is case-sensitive
         assertParseFailure(parser, "Candidate 1", expectedUsageFailure);
     }

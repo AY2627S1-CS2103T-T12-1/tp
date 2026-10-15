@@ -150,6 +150,19 @@
     -fx-background-radius: 5;
 }
 
+.dept-pill {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 11px;
+    -fx-text-fill: #e8ead9;
+    -fx-background-color: #5f6f4f;
+    -fx-padding: 3 9 3 9;
+    -fx-background-radius: 5;
+}
+
+.job-card {
+    -fx-background-color: transparent;
+}
+
 /* Scoped with .list-cell + two classes so the per-stage text colour beats
    `.list-cell .label { -fx-text-fill: white }` on specificity. */
 .list-cell .stage-badge.stage-screening {

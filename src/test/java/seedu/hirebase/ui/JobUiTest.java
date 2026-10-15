@@ -59,8 +59,10 @@ public class JobUiTest {
             Label title = (Label) card.getRoot().lookup("#title");
             Label description = (Label) card.getRoot().lookup("#description");
             assertEquals("3. Developer", title.getText());
-            assertEquals("Department: Engineering", ((Label) card.getRoot().lookup("#department")).getText());
-            assertEquals("Description: " + job.getDescription(), description.getText());
+            Label department = (Label) card.getRoot().lookup("#department");
+            assertEquals("Engineering", department.getText());
+            assertTrue(department.getStyleClass().contains("dept-pill"));
+            assertEquals(job.getDescription().value, description.getText());
             assertTrue(description.isWrapText());
             assertTrue(description.getHeight() > title.getHeight());
         });

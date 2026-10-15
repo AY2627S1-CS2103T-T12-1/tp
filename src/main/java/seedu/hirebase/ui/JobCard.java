@@ -24,7 +24,7 @@ public class JobCard extends UiPart<Region> {
     public JobCard(JobOpening job, int index) {
         super(FXML);
         title.setText(index + ". " + job.getTitle());
-        department.setText("Department: " + job.getDepartment());
-        description.setText("Description: " + job.getDescription());
+        department.setText(job.getDepartment().value);
+        description.setText(job.getDescription().value);
     }
 }

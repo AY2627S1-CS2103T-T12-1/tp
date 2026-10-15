@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.hirebase.commons.core.LogsCenter;
+import seedu.hirebase.logic.commands.AcceptCommand;
 import seedu.hirebase.logic.commands.AddCommand;
 import seedu.hirebase.logic.commands.ClearCommand;
 import seedu.hirebase.logic.commands.Command;
@@ -17,6 +18,7 @@ import seedu.hirebase.logic.commands.ExitCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
+import seedu.hirebase.logic.commands.RejectCommand;
 import seedu.hirebase.logic.commands.RemarkCommand;
 import seedu.hirebase.logic.commands.StageCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -65,6 +67,8 @@ public class HireBaseParser {
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case RemarkCommand.COMMAND_WORD -> new RemarkCommandParser().parse(arguments);
             case StageCommand.COMMAND_WORD -> new StageCommandParser().parse(arguments);
+            case AcceptCommand.COMMAND_WORD -> new AcceptCommandParser().parse(arguments);
+            case RejectCommand.COMMAND_WORD -> new RejectCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);

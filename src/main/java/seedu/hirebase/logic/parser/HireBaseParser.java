@@ -28,7 +28,8 @@ public class HireBaseParser {
     /**
      * Used for initial separation of command word and args.
      */
-    private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
+    private static final Pattern BASIC_COMMAND_FORMAT =
+            Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)", Pattern.DOTALL);
     private static final Logger logger = LogsCenter.getLogger(HireBaseParser.class);
 
     /**
@@ -39,7 +40,7 @@ public class HireBaseParser {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public Command parseCommand(String userInput) throws ParseException {
-        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.trim());
+        final Matcher matcher = BASIC_COMMAND_FORMAT.matcher(userInput.stripLeading());
         if (!matcher.matches()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));
         }
@@ -53,7 +54,13 @@ public class HireBaseParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
-            case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
+            case AddCommand.COMMAND_WORD -> {
+                Matcher jobArguments = Pattern.compile("(?s)^\\s+job(?=\\s|$)(.*)$").matcher(arguments);
+                if (jobArguments.matches()) {
+                    yield new AddJobCommandParser().parse(jobArguments.group(1));
+                }
+                yield new AddCommandParser().parse(arguments);
+            }
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case RemarkCommand.COMMAND_WORD -> new RemarkCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);

@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -34,8 +36,18 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private JobListPanel jobListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+
+    @FXML
+    private TabPane recordTabs;
+    @FXML
+    private Tab candidatesTab;
+    @FXML
+    private Tab jobsTab;
+    @FXML
+    private StackPane jobListPanelPlaceholder;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -119,6 +131,9 @@ public class MainWindow extends UiPart<Stage> {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
+        jobListPanel = new JobListPanel(logic.getJobOpeningList());
+        jobListPanelPlaceholder.getChildren().add(jobListPanel.getRoot());
+
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
@@ -183,6 +198,17 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+
+            switch (commandResult.getListView()) {
+                case JOBS:
+                    recordTabs.getSelectionModel().select(jobsTab);
+                    break;
+                case CANDIDATES:
+                    recordTabs.getSelectionModel().select(candidatesTab);
+                    break;
+                default:
+                    break;
+            }
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

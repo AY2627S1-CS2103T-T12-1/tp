@@ -10,6 +10,12 @@ import seedu.hirebase.commons.util.ToStringBuilder;
  * Represents the result of a command execution.
  */
 public class CommandResult {
+    /**
+     * The list to display after a successful command; KEEP preserves the current tab.
+     */
+    public enum ListView { KEEP, CANDIDATES, JOBS }
+
+    private final ListView listView;
 
     private final String feedbackToUser;
 
@@ -23,6 +29,11 @@ public class CommandResult {
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, ListView.KEEP);
+    }
+
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, ListView listView) {
+        this.listView = requireNonNull(listView);
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
@@ -34,6 +45,17 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    public ListView getListView() {
+        return listView;
+    }
+
+    /**
+     * Returns a result with the same feedback and flags, requesting the specified list.
+     */
+    public CommandResult withListView(ListView listView) {
+        return new CommandResult(feedbackToUser, showHelp, exit, listView);
     }
 
     public String getFeedbackToUser() {
@@ -61,12 +83,13 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && listView == otherCommandResult.listView;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, listView);
     }
 
     @Override
@@ -75,6 +98,7 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("listView", listView)
                 .toString();
     }
 

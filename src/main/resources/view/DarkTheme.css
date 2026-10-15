@@ -350,3 +350,15 @@
     -fx-background-radius: 2;
     -fx-font-size: 11;
 }
+
+.tab-pane .tab-header-background, .tab-pane .tab {
+    -fx-background-color: #383838;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #515658;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: white;
+}

@@ -97,6 +97,20 @@ Shows a list of all candidates in HireBase.
 
 Format: `list`
 
+### Switching between candidates and job openings
+
+Click **Candidates** or **Job openings** above the list to switch views. Switching tabs does not change records
+or reset a candidate search. You can also use `list jobs` or `list candidates` from the command box;
+`list candidates` resets the candidate filter to show all candidates.
+
+Each job card displays its current 1-based index, title, department, and full description. Long details wrap
+across lines; scroll the list to read additional content. An empty jobs tab shows `No job openings found.`
+Cards update after adding, deleting or clearing records. After a deletion, later job indexes shift down by one.
+
+Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
+the Candidates tab. Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active
+tab and empties both lists. On launch, the Candidates tab is selected; saved openings are available in Job openings.
+
 ### Adding a job opening: `add job`
 
 Records an opening locally; it does not publish a vacancy externally or accept applications.
@@ -126,13 +140,14 @@ HireBase reports `Could not save changes. Job opening was not added. Check stora
 and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
-The separate visual job-card list is coming in a later update.
+Successful job commands select the Job openings tab automatically.
 
 ### Listing job openings: `list jobs`
 
 Format: `list jobs`
 
-Displays all stored job openings in the command result area, in creation order (earliest first).
+Selects the Job openings tab and displays all stored openings as cards in creation order (earliest first).
+The command result area also includes their full details.
 Each entry shows its current 1-based index, title, department, and full description. Openings with the same title
 in different departments are displayed separately. Indexes are list positions, not permanent IDs.
 
@@ -153,7 +168,7 @@ The command is case-sensitive and accepts no parameters. Surrounding whitespace 
 `The list jobs command does not accept parameters. Usage: list jobs`. Use the plural `jobs`; `list job` is not valid.
 
 Listing jobs does not change records, their order, the candidate list or its active filter, and does not rewrite
-the data file. The separate job-card view and switching between candidate and job lists are coming in a later update.
+the data file.
 
 ### Editing a candidate: `edit candidate`
 
@@ -255,7 +270,7 @@ and department can then be added again and is appended to the end of the list.
 
 The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
 HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
-Use `list jobs` to see the updated openings; the dedicated job-card view is coming in a later update.
+Successful deletion selects the Job openings tab and refreshes its cards and indexes.
 
 ### Clearing all entries: `clear`
 

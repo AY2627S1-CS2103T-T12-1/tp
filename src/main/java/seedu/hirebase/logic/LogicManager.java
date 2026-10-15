@@ -7,17 +7,24 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
+import seedu.hirebase.logic.commands.AddCommand;
 import seedu.hirebase.logic.commands.AddJobCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
+import seedu.hirebase.logic.commands.EditCommand;
+import seedu.hirebase.logic.commands.FindCommand;
+import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
+import seedu.hirebase.logic.commands.RemarkCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.storage.Storage;
 
 /**
@@ -59,7 +66,7 @@ public class LogicManager implements Logic {
         }
         commandResult = command.execute(model);
         if (command instanceof ListJobsCommand) {
-            return commandResult;
+            return commandResult.withListView(CommandResult.ListView.JOBS);
         }
 
         try {
@@ -70,6 +77,11 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
+        if (command instanceof AddCommand || command instanceof DeleteCommand || command instanceof EditCommand
+                || command instanceof FindCommand || command instanceof ListCommand
+                || command instanceof RemarkCommand) {
+            return commandResult.withListView(CommandResult.ListView.CANDIDATES);
+        }
         return commandResult;
     }
 
@@ -83,7 +95,7 @@ public class LogicManager implements Logic {
             throw new CommandException(AddJobCommand.MESSAGE_SAVE_FAILURE, e);
         }
         model.addJobOpening(command.getJobOpening());
-        return result;
+        return result.withListView(CommandResult.ListView.JOBS);
     }
 
     private CommandResult executeDeleteJob(DeleteJobCommand command) throws CommandException {
@@ -96,7 +108,12 @@ public class LogicManager implements Logic {
         }
         // Publish the deletion only after persistence succeeds, preserving candidate filters and job observers.
         command.execute(model);
-        return result;
+        return result.withListView(CommandResult.ListView.JOBS);
+    }
+
+    @Override
+    public ObservableList<JobOpening> getJobOpeningList() {
+        return model.getJobOpeningList();
     }
 
     @Override

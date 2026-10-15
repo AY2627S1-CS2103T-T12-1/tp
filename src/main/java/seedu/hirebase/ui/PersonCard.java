@@ -1,7 +1,6 @@
 package seedu.hirebase.ui;
 
 import java.util.Comparator;
-import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -46,7 +45,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
-    private Label skills;
+    private FlowPane skills;
     @FXML
     private Label role;
     @FXML
@@ -65,8 +64,16 @@ public class PersonCard extends UiPart<Region> {
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
         remark.setText(person.getRemark().value);
-        skills.setText("Skills: " + person.getSkills().stream().map(skill -> skill.value).sorted()
-                .collect(Collectors.joining(", ")));
+        remark.setVisible(!person.getRemark().value.isEmpty());
+        remark.setManaged(remark.isVisible());
+        person.getSkills().stream()
+                .map(skill -> skill.value)
+                .sorted()
+                .forEach(skill -> {
+                    Label pill = new Label(skill);
+                    pill.getStyleClass().add("skill-pill");
+                    skills.getChildren().add(pill);
+                });
         skills.setVisible(!person.getSkills().isEmpty());
         skills.setManaged(skills.isVisible());
         role.setText("Target role: " + person.getRole().map(value -> value.value).orElse(""));
@@ -81,5 +88,7 @@ public class PersonCard extends UiPart<Region> {
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        tags.setVisible(!person.getTags().isEmpty());
+        tags.setManaged(tags.isVisible());
     }
 }

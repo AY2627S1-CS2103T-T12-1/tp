@@ -78,7 +78,9 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
             Label stage = (Label) card.getRoot().lookup("#interviewStage");
-            assertEquals("Interview stage: Screening", stage.getText());
+            assertEquals("Screening", stage.getText());
+            assertTrue(stage.getStyleClass().contains("stage-badge"));
+            assertTrue(stage.getStyleClass().contains("stage-screening"));
             assertTrue(stage.isVisible());
             assertTrue(stage.isManaged());
         });
@@ -88,13 +90,15 @@ public class PersonCardTest {
     public void constructor_nonDefaultInterviewStage_displaysCandidateStage() throws Exception {
         runOnFxThread(() -> {
             Map<InterviewStage, String> expectedLabels = Map.of(
-                    InterviewStage.ACCEPTED, "Interview stage: Accepted",
-                    InterviewStage.REJECTED, "Interview stage: Rejected");
+                    InterviewStage.ACCEPTED, "Accepted",
+                    InterviewStage.REJECTED, "Rejected");
             expectedLabels.forEach((value, expectedText) -> {
                 PersonCard card = new PersonCard(new PersonBuilder().withInterviewStage(value)
                         .withSkills("Java").withRole("Backend Engineer").build(), 1);
                 Label stage = (Label) card.getRoot().lookup("#interviewStage");
                 assertEquals(expectedText, stage.getText());
+                assertTrue(stage.getStyleClass().contains("stage-badge"));
+                assertTrue(stage.getStyleClass().contains("stage-" + value.name().toLowerCase()));
                 assertTrue(stage.isVisible());
                 assertTrue(stage.isManaged());
             });

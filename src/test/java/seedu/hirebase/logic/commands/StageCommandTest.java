@@ -30,7 +30,7 @@ public class StageCommandTest {
     public void execute_allStages_preservesOtherCandidateDetails() {
         Person original = model.getFilteredPersonList().get(0);
         Person candidate = new PersonBuilder(original).withSkills("Java", "SQL")
-                .withRole("Backend Engineer").withRemark("Follow up").withTags("priority").build();
+                .withRole("Backend Engineer").withNote("Follow up").withTags("priority").build();
         model.setPerson(original, candidate);
 
         for (InterviewStage stage : InterviewStage.values()) {

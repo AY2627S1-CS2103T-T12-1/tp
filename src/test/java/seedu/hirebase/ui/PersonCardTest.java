@@ -35,12 +35,12 @@ public class PersonCardTest {
     }
 
     @Test
-    public void constructor_remark_isDisplayed() throws Exception {
+    public void constructor_note_isDisplayed() throws Exception {
         runOnFxThread(() -> {
             for (String value : new String[] {"Likes baseball", ""}) {
-                PersonCard card = new PersonCard(new PersonBuilder().withRemark(value).build(), 1);
-                Label remark = (Label) card.getRoot().lookup("#remark");
-                assertEquals(value, remark.getText());
+                PersonCard card = new PersonCard(new PersonBuilder().withNote(value).build(), 1);
+                Label note = (Label) card.getRoot().lookup("#note");
+                assertEquals(value, note.getText());
             }
         });
     }

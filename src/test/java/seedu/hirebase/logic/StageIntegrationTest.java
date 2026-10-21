@@ -31,7 +31,7 @@ public class StageIntegrationTest {
     @Test
     public void execute_stageAndSubsequentEdits_preservesStageAndOtherDetails() throws Exception {
         Person candidate = new PersonBuilder(ALICE).withSkills("Java", "SQL")
-                .withRole("Backend Engineer").withRemark("Follow up").withTags("priority").build();
+                .withRole("Backend Engineer").withNote("Follow up").withTags("priority").build();
         HireBase hireBase = new HireBase();
         hireBase.addPerson(candidate);
         Model model = new ModelManager(hireBase, new UserPrefs());
@@ -44,8 +44,8 @@ public class StageIntegrationTest {
 
 
         logic.execute("edit candidate 1 p/91234567");
-        logic.execute("remark 1 r/Updated note");
-        expected = new PersonBuilder(expected).withPhone("91234567").withRemark("Updated note").build();
+        logic.execute("note 1 Updated note");
+        expected = new PersonBuilder(expected).withPhone("91234567").withNote("Updated note").build();
         assertEquals(expected, model.getFilteredPersonList().get(0));
 
         logic.execute("stage candidate 1 REJECTED");

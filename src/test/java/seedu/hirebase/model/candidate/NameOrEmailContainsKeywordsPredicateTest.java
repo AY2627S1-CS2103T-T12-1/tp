@@ -95,7 +95,7 @@ public class NameOrEmailContainsKeywordsPredicateTest {
     public void test_keywordsMatchOtherFields_returnsFalse() {
         Person person = new PersonBuilder().withName("Alice Pauline").withEmail("recruit@example.com")
                 .withPhone("91234567").withAddress("Orchard Road").withTags("friends")
-                .withSkills("Java").withRole("Backend Engineer").withRemark("Shortlisted").build();
+                .withSkills("Java").withRole("Backend Engineer").withNote("Shortlisted").build();
         NameOrEmailContainsKeywordsPredicate predicate = new NameOrEmailContainsKeywordsPredicate(
                 List.of("91234567", "Orchard", "friends", "Java", "Backend", "Shortlisted"));
 

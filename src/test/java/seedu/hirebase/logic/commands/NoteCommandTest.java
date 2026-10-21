@@ -19,39 +19,39 @@ import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.candidate.InterviewStage;
+import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
-import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.testutil.PersonBuilder;
 
-public class RemarkCommandTest {
+public class NoteCommandTest {
 
     private final Model model = new ModelManager(getTypicalHireBase(), new UserPrefs());
 
     @Test
-    public void execute_addAndReplaceRemark_success() {
-        assertRemarkSuccess("Likes baseball");
-        assertRemarkSuccess("Prefers email");
+    public void execute_addAndReplaceNote_success() {
+        assertNoteSuccess("Likes baseball");
+        assertNoteSuccess("Prefers email");
     }
 
     @Test
-    public void execute_clearRemark_success() {
-        assertRemarkSuccess("Likes baseball");
-        assertRemarkSuccess("");
-        assertRemarkSuccess("");
+    public void execute_clearNote_success() {
+        assertNoteSuccess("Likes baseball");
+        assertNoteSuccess("");
+        assertNoteSuccess("");
     }
 
     @Test
-    public void execute_replaceAndClearRemark_preservesInterviewStage() {
+    public void execute_replaceAndClearNote_preservesInterviewStage() {
         Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person candidate = new PersonBuilder(original).withRemark("Original remark")
+        Person candidate = new PersonBuilder(original).withNote("Original note")
                 .withInterviewStage(InterviewStage.ACCEPTED).build();
         model.setPerson(original, candidate);
 
-        assertRemarkSuccess("Updated remark");
+        assertNoteSuccess("Updated note");
         assertEquals(InterviewStage.ACCEPTED,
                 model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
 
-        assertRemarkSuccess("");
+        assertNoteSuccess("");
         assertEquals(InterviewStage.ACCEPTED,
                 model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
     }
@@ -60,44 +60,44 @@ public class RemarkCommandTest {
     public void execute_filteredList_editsDisplayedPersonAndShowsAll() {
         // The second person in the address book becomes the first person in the filtered list.
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
-        assertRemarkSuccess("Filtered person");
+        assertNoteSuccess("Filtered person");
         assertEquals(getTypicalHireBase().getPersonList().size(), model.getFilteredPersonList().size());
     }
 
     @Test
     public void execute_invalidIndex_failure() {
-        RemarkCommand command = new RemarkCommand(Index.fromOneBased(999), new Remark("Test"));
+        NoteCommand command = new NoteCommand(Index.fromOneBased(999), new Note("Test"));
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        command = new RemarkCommand(INDEX_SECOND_PERSON, new Remark("Test"));
+        command = new NoteCommand(INDEX_SECOND_PERSON, new Note("Test"));
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new RemarkCommand(null, new Remark("")));
-        assertThrows(NullPointerException.class, () -> new RemarkCommand(INDEX_FIRST_PERSON, null));
+        assertThrows(NullPointerException.class, () -> new NoteCommand(null, new Note("")));
+        assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, null));
     }
 
     @Test
     public void equals() {
-        RemarkCommand command = new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Test"));
+        NoteCommand command = new NoteCommand(INDEX_FIRST_PERSON, new Note("Test"));
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Test"))));
-        assertFalse(command.equals(new RemarkCommand(INDEX_SECOND_PERSON, new Remark("Test"))));
-        assertFalse(command.equals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark(""))));
+        assertTrue(command.equals(new NoteCommand(INDEX_FIRST_PERSON, new Note("Test"))));
+        assertFalse(command.equals(new NoteCommand(INDEX_SECOND_PERSON, new Note("Test"))));
+        assertFalse(command.equals(new NoteCommand(INDEX_FIRST_PERSON, new Note(""))));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
     }
 
-    private void assertRemarkSuccess(String value) {
+    private void assertNoteSuccess(String value) {
         Person original = model.getFilteredPersonList().get(0);
-        Person edited = new PersonBuilder(original).withRemark(value).build();
+        Person edited = new PersonBuilder(original).withNote(value).build();
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
         expectedModel.setPerson(original, edited);
-        String message = value.isEmpty() ? RemarkCommand.MESSAGE_DELETE_REMARK_SUCCESS
-                : RemarkCommand.MESSAGE_ADD_REMARK_SUCCESS;
-        assertCommandSuccess(new RemarkCommand(INDEX_FIRST_PERSON, new Remark(value)), model,
+        String message = value.isEmpty() ? NoteCommand.MESSAGE_DELETE_NOTE_SUCCESS
+                : NoteCommand.MESSAGE_ADD_NOTE_SUCCESS;
+        assertCommandSuccess(new NoteCommand(INDEX_FIRST_PERSON, new Note(value)), model,
                 String.format(message, Messages.format(edited)), expectedModel);
     }
 }

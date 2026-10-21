@@ -54,7 +54,7 @@ public class NoteCommand extends Command {
         List<Person> lastShownList = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= lastShownList.size()) {
-            logger.warning(() -> "Note command rejected: index " + index.getOneBased()
+            logger.warning("Note command rejected: index " + index.getOneBased()
                     + " out of bounds for displayed list of size " + lastShownList.size());
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
@@ -72,7 +72,7 @@ public class NoteCommand extends Command {
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 
         boolean isCleared = note.value.isEmpty();
-        logger.info(() -> (isCleared ? "Cleared" : "Set") + " note for candidate at index "
+        logger.info((isCleared ? "Cleared" : "Set") + " note for candidate at index "
                 + index.getOneBased());
 
         String message = isCleared ? MESSAGE_DELETE_NOTE_SUCCESS : MESSAGE_ADD_NOTE_SUCCESS;

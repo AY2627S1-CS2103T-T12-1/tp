@@ -42,8 +42,8 @@ public class NoteCommandParser implements Parser<NoteCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE), pe);
         }
 
-        final String noteText = parts.length > 1 ? parts[1].strip() : "";
-        logger.fine(() -> "Parsed note command for index " + index.getOneBased()
+        String noteText = parts.length > 1 ? parts[1].strip() : "";
+        logger.fine("Parsed note command for index " + index.getOneBased()
                 + " (" + (noteText.isEmpty() ? "clear" : "set") + ")");
         return new NoteCommand(index, new Note(noteText));
     }

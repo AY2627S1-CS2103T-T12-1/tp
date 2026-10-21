@@ -90,6 +90,14 @@ public class NoteCommandTest {
         assertFalse(command.equals(1));
     }
 
+    @Test
+    public void toStringMethod() {
+        NoteCommand command = new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball"));
+        String expected = NoteCommand.class.getCanonicalName()
+                + "{index=" + INDEX_FIRST_PERSON + ", note=" + new Note("Likes baseball") + "}";
+        assertEquals(expected, command.toString());
+    }
+
     private void assertNoteSuccess(String value) {
         Person original = model.getFilteredPersonList().get(0);
         Person edited = new PersonBuilder(original).withNote(value).build();

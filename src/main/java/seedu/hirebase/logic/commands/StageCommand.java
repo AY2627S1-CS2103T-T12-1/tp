@@ -55,7 +55,8 @@ public class StageCommand extends Command {
         Person candidate = lastShownList.get(index.getZeroBased());
         Person updatedCandidate = new Person(candidate.getName(), candidate.getPhone(), candidate.getEmail(),
                 candidate.getAddress(), candidate.getRemark(), candidate.getTags(),
-                candidate.getSkills(), candidate.getRole().orElse(null), interviewStage);
+                candidate.getSkills(), candidate.getRole().orElse(null), interviewStage,
+                candidate.getCandidateId().orElse(null));
         model.setPerson(candidate, updatedCandidate);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 

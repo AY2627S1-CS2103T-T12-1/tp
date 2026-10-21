@@ -30,6 +30,8 @@ public class Person {
     private final Remark remark;
     private final Set<Tag> tags = new HashSet<>();
     private final InterviewStage interviewStage;
+    // Assigned by the model when the candidate is added; null until then. Not part of equals/hashCode.
+    private final CandidateId candidateId;
 
     /**
      * Creates a candidate with recruitment details and an empty remark.
@@ -56,6 +58,15 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
             Set<Skill> skills, Role role, InterviewStage interviewStage) {
+        this(name, phone, email, address, remark, tags, skills, role, interviewStage, null);
+    }
+
+    /**
+     * Creates a candidate that may already have a {@code candidateId}.
+     * A null {@code candidateId} means that the model has not assigned one yet.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+            Set<Skill> skills, Role role, InterviewStage interviewStage, CandidateId candidateId) {
         requireAllNonNull(name, phone, email, address, remark, tags, interviewStage);
         this.skills = skills == null ? Collections.emptySet() : Set.copyOf(skills);
         this.role = role;
@@ -66,6 +77,21 @@ public class Person {
         this.remark = remark;
         this.tags.addAll(tags);
         this.interviewStage = interviewStage;
+        this.candidateId = candidateId;
+    }
+
+    /**
+     * Returns the permanent candidate ID, or empty if the model has not assigned one yet.
+     */
+    public Optional<CandidateId> getCandidateId() {
+        return Optional.ofNullable(candidateId);
+    }
+
+    /**
+     * Returns a copy of this candidate with the given {@code candidateId}.
+     */
+    public Person withCandidateId(CandidateId candidateId) {
+        return new Person(name, phone, email, address, remark, tags, skills, role, interviewStage, candidateId);
     }
 
     public Set<Skill> getSkills() {
@@ -165,6 +191,7 @@ public class Person {
                 .add("skills", skills)
                 .add("role", role)
                 .add("interviewStage", interviewStage)
+                .add("candidateId", candidateId)
                 .toString();
     }
 

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.exceptions.DuplicatePersonException;
 import seedu.hirebase.model.job.JobOpening;
@@ -30,6 +31,70 @@ public class HireBaseTest {
     @Test
     public void constructor() {
         assertEquals(List.of(), addressBook.getPersonList());
+    }
+
+    @Test
+    public void addPerson_withoutId_assignsIncreasingIds() {
+        addressBook.addPerson(ALICE);
+        addressBook.addPerson(new PersonBuilder(ALICE).withEmail("second@example.com").build());
+
+        assertEquals(new CandidateId(1), addressBook.getPersonList().get(0).getCandidateId().get());
+        assertEquals(new CandidateId(2), addressBook.getPersonList().get(1).getCandidateId().get());
+        assertEquals(3, addressBook.getNextCandidateId());
+    }
+
+    @Test
+    public void addPerson_afterDeletingLatestCandidate_doesNotReuseId() {
+        addressBook.addPerson(ALICE);
+        Person second = new PersonBuilder(ALICE).withEmail("second@example.com").build();
+        addressBook.addPerson(second);
+        addressBook.removePerson(addressBook.getPersonList().get(1));
+
+        Person third = new PersonBuilder(ALICE).withEmail("third@example.com").build();
+        addressBook.addPerson(third);
+
+        assertEquals(new CandidateId(3), addressBook.getPersonList().get(1).getCandidateId().get());
+    }
+
+    @Test
+    public void addPerson_withExistingId_keepsIdAndAdvancesCounter() {
+        addressBook.addPerson(ALICE.withCandidateId(new CandidateId(7)));
+
+        assertEquals(new CandidateId(7), addressBook.getPersonList().get(0).getCandidateId().get());
+        assertEquals(8, addressBook.getNextCandidateId());
+    }
+
+    @Test
+    public void setPerson_editedPersonWithoutId_keepsTargetId() {
+        addressBook.addPerson(ALICE);
+        Person target = addressBook.getPersonList().get(0);
+        Person edited = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
+
+        addressBook.setPerson(target, edited);
+
+        assertEquals(target.getCandidateId(), addressBook.getPersonList().get(0).getCandidateId());
+        assertEquals(VALID_ADDRESS_BOB, addressBook.getPersonList().get(0).getAddress().value);
+    }
+
+    @Test
+    public void resetData_personsWithoutIds_assignsIdsInOrder() {
+        addressBook.resetData(getTypicalHireBase());
+
+        List<Person> persons = addressBook.getPersonList();
+        for (int i = 0; i < persons.size(); i++) {
+            assertEquals(new CandidateId(i + 1), persons.get(i).getCandidateId().get());
+        }
+        assertEquals(persons.size() + 1, addressBook.getNextCandidateId());
+    }
+
+    @Test
+    public void resetData_doesNotMoveCounterBackwards() {
+        addressBook.addPerson(ALICE);
+        addressBook.addPerson(new PersonBuilder(ALICE).withEmail("second@example.com").build());
+
+        addressBook.resetData(new HireBase());
+
+        assertEquals(3, addressBook.getNextCandidateId());
     }
 
     @Test

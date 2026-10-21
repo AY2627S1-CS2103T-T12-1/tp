@@ -2,11 +2,13 @@ package seedu.hirebase.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.util.ToStringBuilder;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.UniquePersonList;
 import seedu.hirebase.model.job.JobOpening;
@@ -19,6 +21,8 @@ public class HireBase implements ReadOnlyHireBase {
 
     private final UniquePersonList persons = new UniquePersonList();
     private final UniqueJobOpeningList jobOpenings = new UniqueJobOpeningList();
+    // Only ever increases, so the ID of a deleted candidate is never given to another candidate.
+    private int nextCandidateId = 1;
 
     public HireBase() {}
 
@@ -37,7 +41,7 @@ public class HireBase implements ReadOnlyHireBase {
      * {@code persons} must not contain duplicate persons.
      */
     public void setPersons(List<Person> persons) {
-        this.persons.setPersons(persons);
+        this.persons.setPersons(withAssignedIds(persons));
     }
 
     /**
@@ -48,11 +52,13 @@ public class HireBase implements ReadOnlyHireBase {
 
         // Validate both lists before replacing either, including when newData is this instance.
         UniquePersonList newPersons = new UniquePersonList();
-        newPersons.setPersons(newData.getPersonList());
+        newPersons.setPersons(withAssignedIds(newData.getPersonList()));
         UniqueJobOpeningList newJobOpenings = new UniqueJobOpeningList();
         newJobOpenings.setJobOpenings(newData.getJobOpeningList());
         persons.setPersons(newPersons);
         jobOpenings.setJobOpenings(newJobOpenings);
+        // Never move the counter backwards, so IDs of removed candidates stay retired.
+        nextCandidateId = Math.max(nextCandidateId, newData.getNextCandidateId());
     }
 
     //// person-level operations
@@ -70,7 +76,14 @@ public class HireBase implements ReadOnlyHireBase {
      * The person must not already exist in the address book.
      */
     public void addPerson(Person p) {
-        persons.add(p);
+        requireNonNull(p);
+        if (p.getCandidateId().isPresent()) {
+            persons.add(p);
+            nextCandidateId = Math.max(nextCandidateId, p.getCandidateId().get().getValue() + 1);
+        } else {
+            persons.add(p.withCandidateId(new CandidateId(nextCandidateId)));
+            nextCandidateId++;
+        }
     }
 
     /**
@@ -81,7 +94,11 @@ public class HireBase implements ReadOnlyHireBase {
     public void setPerson(Person target, Person editedPerson) {
         requireNonNull(editedPerson);
 
-        persons.setPerson(target, editedPerson);
+        // An edit never changes who the candidate is, so keep the original ID if the edit has none.
+        Person personToStore = editedPerson.getCandidateId().isPresent()
+                ? editedPerson
+                : editedPerson.withCandidateId(target.getCandidateId().orElse(null));
+        persons.setPerson(target, personToStore);
     }
 
     /**
@@ -90,6 +107,45 @@ public class HireBase implements ReadOnlyHireBase {
      */
     public void removePerson(Person key) {
         persons.remove(key);
+    }
+
+    //// candidate ID operations
+
+    /**
+     * Ensures that the next candidate ID is at least {@code minimum}.
+     * Used when loading saved data so that IDs of previously deleted candidates are not reused.
+     */
+    public void reserveCandidateIdsUpTo(int minimum) {
+        nextCandidateId = Math.max(nextCandidateId, minimum);
+    }
+
+    @Override
+    public int getNextCandidateId() {
+        return nextCandidateId;
+    }
+
+    /**
+     * Returns {@code newPersons} with an ID given, in list order, to every candidate that does not have one.
+     * New IDs start above both the counter and every ID already present.
+     */
+    private List<Person> withAssignedIds(List<Person> newPersons) {
+        int next = Math.max(nextCandidateId, 1);
+        for (Person person : newPersons) {
+            if (person.getCandidateId().isPresent()) {
+                next = Math.max(next, person.getCandidateId().get().getValue() + 1);
+            }
+        }
+        List<Person> result = new ArrayList<>();
+        for (Person person : newPersons) {
+            if (person.getCandidateId().isPresent()) {
+                result.add(person);
+            } else {
+                result.add(person.withCandidateId(new CandidateId(next)));
+                next++;
+            }
+        }
+        nextCandidateId = Math.max(nextCandidateId, next);
+        return result;
     }
 
     //// job-opening operations

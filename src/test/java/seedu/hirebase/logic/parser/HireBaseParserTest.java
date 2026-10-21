@@ -22,6 +22,7 @@ import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
+import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Note;
@@ -39,6 +40,11 @@ public class HireBaseParserTest {
         assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball")),
                 parser.parseCommand("note 1 Likes baseball"));
         assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("")), parser.parseCommand("note 1"));
+    }
+
+    @Test
+    public void parseCommand_view() throws Exception {
+        assertEquals(new ViewCommand(INDEX_FIRST_PERSON), parser.parseCommand("view candidate 1"));
     }
 
     @Test

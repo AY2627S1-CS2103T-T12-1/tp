@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 
 /**
@@ -35,6 +36,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
+    private Label candidateId;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
@@ -60,6 +63,7 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        candidateId.setText("ID: " + person.getCandidateId().map(CandidateId::toString).orElse("-"));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);

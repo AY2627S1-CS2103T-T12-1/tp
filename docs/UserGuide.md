@@ -382,17 +382,18 @@ Examples:
 
 Deletes the specified candidate from HireBase.
 
-Format: `delete candidate INDEX`
+Format: `delete candidate CANDIDATE_ID`
 
 - The `candidate` record-type keyword is required and case-sensitive.
-- Deletes the candidate at the specified `INDEX`.
-- The index refers to the index number shown in the displayed candidate list.
-- The index **must be a positive integer** 1, 2, 3, …​
+- Deletes the candidate with the specified `CANDIDATE_ID`.
+- The `CANDIDATE_ID` is the candidate's permanent ID, shown as `#N` on each card, not their position in the list.
+- The `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​
 
 Examples:
 
-- `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
-- `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
+- `delete candidate 2` deletes the candidate whose ID is `2`, regardless of their position in the list.
+- `find Betsy` followed by `delete candidate 1` deletes the candidate with ID `1`, even while the search filter is
+  active — the filter does not affect which candidate is removed.
 
 ### Viewing a candidate's full details: `view candidate`
 
@@ -605,7 +606,7 @@ _Details coming soon ..._
 | **Change interview stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
 | **Accept candidate** | `accept candidate INDEX`<br> e.g., `accept candidate 1` |
 | **Reject candidate** | `reject candidate INDEX`<br> e.g., `reject candidate 2` |
-| **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
+| **Delete candidate** | `delete candidate CANDIDATE_ID`<br> e.g., `delete candidate 3` |
 | **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
 | **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |

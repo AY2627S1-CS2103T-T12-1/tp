@@ -25,6 +25,22 @@ public class PersonTest {
     }
 
     @Test
+    public void candidateId_defaultsToEmpty_andWithCandidateIdReturnsCopy() {
+        assertFalse(ALICE.getCandidateId().isPresent());
+
+        Person withId = ALICE.withCandidateId(new CandidateId(5));
+
+        assertEquals(new CandidateId(5), withId.getCandidateId().get());
+        assertFalse(ALICE.getCandidateId().isPresent());
+    }
+
+    @Test
+    public void equals_ignoresCandidateId() {
+        assertEquals(ALICE, ALICE.withCandidateId(new CandidateId(5)));
+        assertEquals(ALICE.hashCode(), ALICE.withCandidateId(new CandidateId(5)).hashCode());
+    }
+
+    @Test
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));
@@ -124,7 +140,7 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", note=" + ALICE.getNote()
-                + ", tags=" + ALICE.getTags() + ", skills=[], role=null, interviewStage=SCREENING}";
+                + ", tags=" + ALICE.getTags() + ", skills=[], role=null, interviewStage=SCREENING, candidateId=null}";
         assertEquals(expected, ALICE.toString());
     }
 }

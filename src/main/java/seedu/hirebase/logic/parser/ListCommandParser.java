@@ -4,13 +4,17 @@ import static java.util.Objects.requireNonNull;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_STAGE;
 
+import java.util.Locale;
 import java.util.Set;
 
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
+import seedu.hirebase.logic.commands.StageCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 
@@ -38,16 +42,30 @@ public class ListCommandParser implements Parser<Command> {
             throw new ParseException(ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
         }
 
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs, PREFIX_SKILL, PREFIX_ROLE);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs,
+                PREFIX_SKILL, PREFIX_ROLE, PREFIX_STAGE);
         if (!argMultimap.getPreamble().equals(ListCommand.RECORD_TYPE_CANDIDATE)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SKILL, PREFIX_ROLE);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SKILL, PREFIX_ROLE, PREFIX_STAGE);
         Set<Skill> skills = ParserUtil.parseSkills(argMultimap.getAllValues(PREFIX_SKILL));
         Skill skill = skills.isEmpty() ? null : skills.iterator().next();
         Role role = argMultimap.getValue(PREFIX_ROLE).isEmpty() ? null
                 : ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get());
-        return new ListCommand(skill, role);
+        InterviewStage interviewStage = argMultimap.getValue(PREFIX_STAGE).isEmpty() ? null
+                : parseInterviewStage(argMultimap.getValue(PREFIX_STAGE).get());
+        return new ListCommand(skill, role, interviewStage);
+    }
+
+    /**
+     * Parses an interview stage using the same accepted values as the stage command.
+     */
+    private InterviewStage parseInterviewStage(String value) throws ParseException {
+        try {
+            return InterviewStage.valueOf(value.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(StageCommand.MESSAGE_INVALID_STAGE, e);
+        }
     }
 }

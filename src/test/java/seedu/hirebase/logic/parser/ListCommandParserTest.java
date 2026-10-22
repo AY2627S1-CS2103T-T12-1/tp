@@ -4,11 +4,15 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
+import seedu.hirebase.logic.commands.StageCommand;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 
@@ -31,7 +35,6 @@ public class ListCommandParserTest {
         assertParseFailure(parser, ListCommand.RECORD_TYPE_CANDIDATE + "1", expectedUsageFailure);
         assertParseFailure(parser, "invalid preamble", expectedUsageFailure);
         assertParseFailure(parser, "candidates additional arguments", expectedUsageFailure);
-        assertParseFailure(parser, "candidates stage/SCREENING", expectedUsageFailure);
     }
 
     @Test
@@ -96,6 +99,48 @@ public class ListCommandParserTest {
         assertParseFailure(parser, "candidates s/Java s/SQL r/Backend Engineer",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_SKILL));
         assertParseFailure(parser, "jobs r/Backend Engineer", ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
+    }
+
+    @Test
+    public void parse_stageFilter_acceptsAllStagesIgnoringCase() {
+        for (InterviewStage stage : InterviewStage.values()) {
+            ListCommand expected = new ListCommand(null, null, stage);
+            assertParseSuccess(parser, "candidates stage/" + stage, expected);
+            assertParseSuccess(parser, "candidates stage/" + stage.name().toLowerCase(Locale.ROOT), expected);
+        }
+        assertParseSuccess(parser, "candidates\tstage/  aCcEpTeD  ",
+                new ListCommand(null, null, InterviewStage.ACCEPTED));
+    }
+
+    @Test
+    public void parse_combinedStageFilters_acceptsEveryOrder() {
+        ListCommand expected = new ListCommand(new Skill("Java"), new Role("Backend Engineer"),
+                InterviewStage.SCREENING);
+        for (String fields : new String[] {
+            "s/Java r/Backend Engineer stage/SCREENING", "s/Java stage/SCREENING r/Backend Engineer",
+            "r/Backend Engineer s/Java stage/SCREENING", "r/Backend Engineer stage/SCREENING s/Java",
+            "stage/SCREENING s/Java r/Backend Engineer", "stage/SCREENING r/Backend Engineer s/Java"
+        }) {
+            assertParseSuccess(parser, "candidates " + fields, expected);
+        }
+        assertParseSuccess(parser, "candidates s/Java stage/ACCEPTED",
+                new ListCommand(new Skill("Java"), null, InterviewStage.ACCEPTED));
+        assertParseSuccess(parser, "candidates stage/ACCEPTED r/QA Engineer",
+                new ListCommand(null, new Role("QA Engineer"), InterviewStage.ACCEPTED));
+    }
+
+    @Test
+    public void parse_invalidStage_rejectsInvalidNamesAndExtraText() {
+        for (String stage : new String[] {
+            "", " ", "HIRED", "SHORTLISTED", "UNKNOWN", "1", "ACCEPTED!", "ACCEPTED extra"
+        }) {
+            assertParseFailure(parser, "candidates stage/" + stage, StageCommand.MESSAGE_INVALID_STAGE);
+        }
+        assertParseFailure(parser, "candidates stage/SCREENING stage/REJECTED",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_STAGE));
+        assertParseFailure(parser, "candidates stage/SCREENING stage/SCREENING",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_STAGE));
+        assertParseFailure(parser, "jobs stage/SCREENING", ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
     }
 
 }

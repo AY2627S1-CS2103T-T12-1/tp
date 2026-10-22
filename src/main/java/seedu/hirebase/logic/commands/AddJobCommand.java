@@ -12,7 +12,7 @@ import seedu.hirebase.model.job.JobOpening;
  * Adds a job opening with a unique title and department.
  */
 public class AddJobCommand extends Command {
-    public static final String MESSAGE_USAGE = "add job t/TITLE d/DEPARTMENT desc/DESCRIPTION";
+    public static final String MESSAGE_USAGE = "add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...";
     public static final String MESSAGE_SUCCESS = "Added job opening %1$d: %2$s — %3$s.";
     public static final String MESSAGE_DUPLICATE =
             "Job opening already exists (%1$d): %2$s — %3$s. Job opening was not added.";

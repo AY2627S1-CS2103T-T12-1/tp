@@ -3,8 +3,12 @@ package seedu.hirebase.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
 import seedu.hirebase.model.job.JobId;
@@ -47,12 +51,28 @@ public class EditJobCommandTest {
     }
 
     @Test
+    public void skills_distinguishPreserveClearAndReplace_andCopyInput() {
+        EditJobCommand preserve = new EditJobCommand(id, title, null, null);
+        EditJobCommand clear = new EditJobCommand(id, title, null, null, Set.of());
+        Set<Skill> supplied = new HashSet<>(Set.of(new Skill("Java")));
+        EditJobCommand replace = new EditJobCommand(id, title, null, null, supplied);
+        supplied.clear();
+        EditJobCommand same = new EditJobCommand(id, title, null, null, Set.of(new Skill("java")));
+        assertEquals(replace, same);
+        assertEquals(replace.hashCode(), same.hashCode());
+        assertNotEquals(preserve, clear);
+        assertNotEquals(clear, replace);
+    }
+
+    @Test
     public void toString_includesTargetIdAndSuppliedOrOmittedFields() {
         EditJobCommand full = new EditJobCommand(id, title, department, description);
         assertEquals(EditJobCommand.class.getCanonicalName()
-                + "{targetId=7, title=Engineer, department=Engineering, description=Build services}", full.toString());
+                + "{targetId=7, title=Engineer, department=Engineering, description=Build services, skills=null}",
+                full.toString());
         EditJobCommand partial = new EditJobCommand(id, null, null, description);
         assertEquals(EditJobCommand.class.getCanonicalName()
-                + "{targetId=7, title=null, department=null, description=Build services}", partial.toString());
+                + "{targetId=7, title=null, department=null, description=Build services, skills=null}",
+                partial.toString());
     }
 }

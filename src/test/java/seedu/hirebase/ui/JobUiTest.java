@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.model.ModelManager;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
 import seedu.hirebase.model.job.JobId;
@@ -66,6 +68,21 @@ public class JobUiTest {
             assertEquals(job.getDescription().value, description.getText());
             assertTrue(description.isWrapText());
             assertTrue(description.getHeight() > title.getHeight());
+        });
+    }
+
+    @Test
+    public void card_requiredSkills_areSortedAndWrap() throws Exception {
+        onFxThread(() -> {
+            JobOpening base = job("Build services");
+            JobOpening tagged = new JobOpening(base.getTitle(), base.getDepartment(), base.getDescription(),
+                    new JobId(7), Set.of(new Skill("Python"), new Skill("Java")));
+            JobCard card = new JobCard(tagged);
+            Label skills = (Label) card.getRoot().lookup("#skills");
+            assertEquals("Required skills: Java, Python", skills.getText());
+            assertTrue(skills.isWrapText());
+            JobCard empty = new JobCard(base.withJobId(new JobId(8)));
+            assertEquals("Required skills: None", ((Label) empty.getRoot().lookup("#skills")).getText());
         });
     }
 

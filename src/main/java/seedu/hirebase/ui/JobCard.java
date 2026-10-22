@@ -17,6 +17,8 @@ public class JobCard extends UiPart<Region> {
     private Label department;
     @FXML
     private Label description;
+    @FXML
+    private Label skills;
 
     /**
      * Creates the job display from the supplied model data.
@@ -26,5 +28,6 @@ public class JobCard extends UiPart<Region> {
         title.setText(job.getJobId().orElseThrow() + ". " + job.getTitle());
         department.setText(job.getDepartment().value);
         description.setText(job.getDescription().value);
+        skills.setText("Required skills: " + job.getSkillsText());
     }
 }

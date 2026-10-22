@@ -34,7 +34,8 @@ public class ListJobsCommandTest {
     @Test
     public void execute_oneOpening_showsAllFieldsAndSingularCount() {
         model.addJobOpening(first);
-        assertEquals("Listed 1 job opening.\n\n1. 开发 Engineer — Engineering\nDescription: Build  services. 😀",
+        assertEquals("Listed 1 job opening.\n\n1. 开发 Engineer — Engineering\nDescription: Build  services. 😀"
+                + "\nRequired skills: None",
                 command.execute(model).getFeedbackToUser());
     }
 
@@ -47,7 +48,9 @@ public class ListJobsCommandTest {
         model.addJobOpening(second);
         HireBase before = new HireBase(model.getHireBase());
         String expected = "Listed 2 job openings.\n\n1. 开发 Engineer — Engineering\nDescription: Build  services. 😀"
-                + "\n\n2. 开发 Engineer — Research\nDescription: Research services.";
+                + "\nRequired skills: None"
+                + "\n\n2. 开发 Engineer — Research\nDescription: Research services."
+                + "\nRequired skills: None";
         assertEquals(expected, command.execute(model).getFeedbackToUser());
         assertEquals(expected, command.execute(model).getFeedbackToUser());
         assertEquals(before, model.getHireBase());
@@ -60,7 +63,8 @@ public class ListJobsCommandTest {
         model.addJobOpening(first);
         model.addJobOpening(second);
         model.deleteJobOpening(first);
-        assertEquals("Listed 1 job opening.\n\n2. 开发 Engineer — Research\nDescription: Research services.",
+        assertEquals("Listed 1 job opening.\n\n2. 开发 Engineer — Research\nDescription: Research services."
+                + "\nRequired skills: None",
                 command.execute(model).getFeedbackToUser());
     }
 

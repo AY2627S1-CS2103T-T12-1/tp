@@ -28,6 +28,7 @@ public class AddJobCommandParser implements Parser<AddJobCommand> {
         requireNonNull(args);
         Matcher matcher = PREFIX_TOKEN.matcher(args);
         Map<String, String> values = new LinkedHashMap<>();
+        List<String> skills = new ArrayList<>();
         List<String> prefixes = new ArrayList<>();
         List<Integer> starts = new ArrayList<>();
         List<Integer> ends = new ArrayList<>();
@@ -42,7 +43,7 @@ public class AddJobCommandParser implements Parser<AddJobCommand> {
         }
         for (int i = 0; i < prefixes.size(); i++) {
             String prefix = prefixes.get(i);
-            if (!REQUIRED_PREFIXES.contains(prefix)) {
+            if (!prefix.equals("s/") && !REQUIRED_PREFIXES.contains(prefix)) {
                 throw new ParseException("Unknown parameter: " + prefix + ".");
             }
             if (values.containsKey(prefix)) {
@@ -50,7 +51,12 @@ public class AddJobCommandParser implements Parser<AddJobCommand> {
             }
             int end = i + 1 < starts.size() ? starts.get(i + 1) : args.length();
             // Keep controls intact so description validation rejects tabs and line breaks at the edges too.
-            values.put(prefix, args.substring(ends.get(i), end).replaceAll("^\\p{Zs}+|\\p{Zs}+$", ""));
+            String value = args.substring(ends.get(i), end).replaceAll("^\\p{Zs}+|\\p{Zs}+$", "");
+            if (prefix.equals("s/")) {
+                skills.add(value);
+            } else {
+                values.put(prefix, value);
+            }
         }
         for (String prefix : REQUIRED_PREFIXES) {
             if (!values.containsKey(prefix)) {
@@ -63,7 +69,8 @@ public class AddJobCommandParser implements Parser<AddJobCommand> {
         }
         try {
             return new AddJobCommand(new JobOpening(new JobTitle(values.get("t/")),
-                    new Department(values.get("d/")), new Description(values.get("desc/"))));
+                    new Department(values.get("d/")), new Description(values.get("desc/")), null,
+                    ParserUtil.parseSkills(skills)));
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

@@ -14,6 +14,7 @@ import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.commands.EditCommand;
+import seedu.hirebase.logic.commands.EditJobCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
@@ -65,6 +66,9 @@ public class LogicManager implements Logic {
         if (command instanceof DeleteJobCommand deleteJobCommand) {
             return executeDeleteJob(deleteJobCommand);
         }
+        if (command instanceof EditJobCommand editJobCommand) {
+            return executeEditJob(editJobCommand);
+        }
         commandResult = command.execute(model);
         if (command instanceof ListJobsCommand) {
             return commandResult.withListView(CommandResult.ListView.JOBS);
@@ -108,6 +112,19 @@ public class LogicManager implements Logic {
             throw new CommandException(DeleteJobCommand.MESSAGE_SAVE_FAILURE, e);
         }
         // Publish the deletion only after persistence succeeds, preserving candidate filters and job observers.
+        command.execute(model);
+        return result.withListView(CommandResult.ListView.JOBS);
+    }
+
+    private CommandResult executeEditJob(EditJobCommand command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (IOException e) {
+            throw new CommandException(EditJobCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        // Publish only after saving, preserving candidate filters and job observers on failure.
         command.execute(model);
         return result.withListView(CommandResult.ListView.JOBS);
     }

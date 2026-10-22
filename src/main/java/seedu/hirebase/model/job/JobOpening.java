@@ -3,8 +3,12 @@ package seedu.hirebase.model.job;
 import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
+import seedu.hirebase.model.candidate.Skill;
 
 /**
  * An immutable job opening with validated, non-null fields.
@@ -12,18 +16,60 @@ import seedu.hirebase.commons.util.ToStringBuilder;
  * full equality includes the description and display capitalisation.
  */
 public final class JobOpening {
+    // Assigned on insertion. Like candidate IDs, this metadata is excluded from value equality.
+    private final JobId jobId;
     private final JobTitle title;
     private final Department department;
     private final Description description;
+    private final Set<Skill> skills;
 
     /**
      * Creates an opening with the supplied validated fields.
      */
     public JobOpening(JobTitle title, Department department, Description description) {
-        requireAllNonNull(title, department, description);
+        this(title, department, description, null);
+    }
+
+    /**
+     * Creates an opening with a stored ID, or null for an opening awaiting assignment.
+     */
+    public JobOpening(JobTitle title, Department department, Description description, JobId jobId) {
+        this(title, department, description, jobId, Set.of());
+    }
+
+    /**
+     * Creates an opening with an immutable snapshot of its required skills.
+     */
+    public JobOpening(JobTitle title, Department department, Description description, JobId jobId, Set<Skill> skills) {
+        requireAllNonNull(title, department, description, skills);
+        this.skills = Set.copyOf(skills);
+        this.jobId = jobId;
         this.title = title;
         this.department = department;
         this.description = description;
+    }
+
+    public Optional<JobId> getJobId() {
+        return Optional.ofNullable(jobId);
+    }
+
+    /**
+     * Copies this opening's fields with the supplied ID.
+     */
+    public JobOpening withJobId(JobId id) {
+        return new JobOpening(title, department, description, id, skills);
+    }
+
+    public Set<Skill> getSkills() {
+        return skills;
+    }
+
+    /**
+     * Formats required skills consistently for cards and command results.
+     */
+    public String getSkillsText() {
+        return skills.isEmpty() ? "None" : skills.stream().map(skill -> skill.value)
+                .sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.joining(", "));
     }
 
     public JobTitle getTitle() {
@@ -52,20 +98,23 @@ public final class JobOpening {
         return other == this || other instanceof JobOpening otherJob
                 && title.equals(otherJob.title)
                 && department.equals(otherJob.department)
-                && description.equals(otherJob.description);
+                && description.equals(otherJob.description)
+                && skills.equals(otherJob.skills);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, department, description);
+        return Objects.hash(title, department, description, skills);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .add("jobId", jobId)
                 .add("title", title)
                 .add("department", department)
                 .add("description", description)
+                .add("skills", skills)
                 .toString();
     }
 }

@@ -3,7 +3,7 @@ package seedu.hirebase.logic.parser;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,26 +17,26 @@ public class NoteCommandParserTest {
     @Test
     public void parse_validNote_success() {
         assertParseSuccess(parser, " 1 Likes baseball",
-                new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball")));
+                new NoteCommand(ID_FIRST_PERSON, new Note("Likes baseball")));
     }
 
     @Test
     public void parse_noteWithInternalSpacesAndSymbols_preservedExceptEnds() {
         // Internal spacing/punctuation is kept; only leading/trailing whitespace is stripped.
         assertParseSuccess(parser, " 1   Strong round:  follow-up @ 3pm   ",
-                new NoteCommand(INDEX_FIRST_PERSON, new Note("Strong round:  follow-up @ 3pm")));
+                new NoteCommand(ID_FIRST_PERSON, new Note("Strong round:  follow-up @ 3pm")));
     }
 
     @Test
     public void parse_noteLooksLikeLegacyPrefix_treatedAsPlainText() {
         // "r/" is no longer a prefix for notes; it is just literal note text now.
         assertParseSuccess(parser, " 1 r/legacy style",
-                new NoteCommand(INDEX_FIRST_PERSON, new Note("r/legacy style")));
+                new NoteCommand(ID_FIRST_PERSON, new Note("r/legacy style")));
     }
 
     @Test
     public void parse_emptyNote_clearsNote() {
-        NoteCommand expected = new NoteCommand(INDEX_FIRST_PERSON, new Note(""));
+        NoteCommand expected = new NoteCommand(ID_FIRST_PERSON, new Note(""));
         assertParseSuccess(parser, " 1", expected);
         assertParseSuccess(parser, " 1   ", expected);
     }

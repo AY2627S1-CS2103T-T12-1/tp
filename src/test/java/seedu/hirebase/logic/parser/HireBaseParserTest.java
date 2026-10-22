@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +24,7 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
@@ -37,14 +38,14 @@ public class HireBaseParserTest {
 
     @Test
     public void parseCommand_note() throws Exception {
-        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball")),
+        assertEquals(new NoteCommand(ID_FIRST_PERSON, new Note("Likes baseball")),
                 parser.parseCommand("note 1 Likes baseball"));
-        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("")), parser.parseCommand("note 1"));
+        assertEquals(new NoteCommand(ID_FIRST_PERSON, new Note("")), parser.parseCommand("note 1"));
     }
 
     @Test
     public void parseCommand_view() throws Exception {
-        assertEquals(new ViewCommand(INDEX_FIRST_PERSON), parser.parseCommand("view candidate 1"));
+        assertEquals(new ViewCommand(ID_FIRST_PERSON), parser.parseCommand("view candidate 1"));
     }
 
     @Test
@@ -63,9 +64,8 @@ public class HireBaseParserTest {
     @Test
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " "
-                        + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
+                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " 1");
+        assertEquals(new DeleteCommand(new CandidateId(1)), command);
     }
 
     @Test
@@ -73,8 +73,8 @@ public class HireBaseParserTest {
         Person person = new PersonBuilder().withSkills("Java", "SQL").withRole("Backend Engineer").build();
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
         EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " candidate "
-                + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
+                + ID_FIRST_PERSON.getValue() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
+        assertEquals(new EditCommand(ID_FIRST_PERSON, descriptor), command);
     }
 
     @Test

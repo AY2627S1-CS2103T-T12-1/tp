@@ -29,9 +29,10 @@ public class ListJobsCommand extends Command {
                 jobs.size(), jobs.size() == 1 ? "" : "s"));
         for (int i = 0; i < jobs.size(); i++) {
             JobOpening job = jobs.get(i);
-            feedback.append("\n\n").append(i + 1).append(". ").append(job.getTitle())
+            feedback.append("\n\n").append(job.getJobId().orElseThrow()).append(". ").append(job.getTitle())
                     .append(" — ").append(job.getDepartment())
-                    .append("\nDescription: ").append(job.getDescription());
+                    .append("\nDescription: ").append(job.getDescription())
+                    .append("\nRequired skills: ").append(job.getSkillsText());
         }
         return new CommandResult(feedback.toString());
     }

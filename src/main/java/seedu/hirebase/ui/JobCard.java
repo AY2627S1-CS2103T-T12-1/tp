@@ -6,7 +6,7 @@ import javafx.scene.layout.Region;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
- * Displays an opening's current index and full details.
+ * Displays an opening's permanent ID and full details.
  */
 public class JobCard extends UiPart<Region> {
     private static final String FXML = "JobListCard.fxml";
@@ -17,14 +17,17 @@ public class JobCard extends UiPart<Region> {
     private Label department;
     @FXML
     private Label description;
+    @FXML
+    private Label skills;
 
     /**
      * Creates the job display from the supplied model data.
      */
-    public JobCard(JobOpening job, int index) {
+    public JobCard(JobOpening job) {
         super(FXML);
-        title.setText(index + ". " + job.getTitle());
+        title.setText(job.getJobId().orElseThrow() + ". " + job.getTitle());
         department.setText(job.getDepartment().value);
         description.setText(job.getDescription().value);
+        skills.setText("Required skills: " + job.getSkillsText());
     }
 }

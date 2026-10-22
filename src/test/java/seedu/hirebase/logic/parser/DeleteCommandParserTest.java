@@ -3,11 +3,11 @@ package seedu.hirebase.logic.parser;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.logic.commands.DeleteCommand;
+import seedu.hirebase.model.candidate.CandidateId;
 
 /**
  * As we are only doing white-box testing, our test cases do not cover path
@@ -27,31 +27,41 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsDeleteCommand() {
-        assertParseSuccess(parser, "candidate 1", new DeleteCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "candidate 1", new DeleteCommand(new CandidateId(1)));
     }
 
     @Test
     public void parse_extraWhitespace_returnsDeleteCommand() {
-        assertParseSuccess(parser, "  candidate   1  ", new DeleteCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "  candidate   1  ", new DeleteCommand(new CandidateId(1)));
     }
 
     @Test
-    public void parse_invalidIndex_throwsParseException() {
+    public void parse_largeId_returnsDeleteCommand() {
+        assertParseSuccess(parser, "candidate 250", new DeleteCommand(new CandidateId(250)));
+    }
+
+    @Test
+    public void parse_invalidId_throwsParseException() {
         assertParseFailure(parser, "candidate a", expectedUsageFailure);
     }
 
     @Test
-    public void parse_missingIndex_throwsParseException() {
+    public void parse_negativeId_throwsParseException() {
+        assertParseFailure(parser, "candidate -1", expectedUsageFailure);
+    }
+
+    @Test
+    public void parse_missingId_throwsParseException() {
         assertParseFailure(parser, "candidate", expectedUsageFailure);
     }
 
     @Test
-    public void parse_zeroIndex_throwsParseException() {
+    public void parse_zeroId_throwsParseException() {
         assertParseFailure(parser, "candidate 0", expectedUsageFailure);
     }
 
     @Test
-    public void parse_multipleIndexes_throwsParseException() {
+    public void parse_multipleIds_throwsParseException() {
         assertParseFailure(parser, "candidate 1 2", expectedUsageFailure);
     }
 

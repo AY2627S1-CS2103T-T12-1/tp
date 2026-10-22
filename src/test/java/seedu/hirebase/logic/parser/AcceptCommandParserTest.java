@@ -4,9 +4,9 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_THIRD_PERSON;
 
 import java.util.List;
 
@@ -21,20 +21,20 @@ public class AcceptCommandParserTest {
 
     @Test
     public void parse_validArgsAndWhitespace_returnsCommand() {
-        assertParseSuccess(parser, "candidate 1", new AcceptCommand(List.of(INDEX_FIRST_PERSON)));
-        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new AcceptCommand(List.of(INDEX_FIRST_PERSON)));
+        assertParseSuccess(parser, "candidate 1", new AcceptCommand(List.of(ID_FIRST_PERSON)));
+        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new AcceptCommand(List.of(ID_FIRST_PERSON)));
     }
 
     @Test
-    public void parse_multipleIndexesAndWhitespace_returnsCommand() {
+    public void parse_multipleIdsAndWhitespace_returnsCommand() {
         assertParseSuccess(parser, " candidate  3\t1\n2 ",
-                new AcceptCommand(List.of(INDEX_THIRD_PERSON, INDEX_FIRST_PERSON, INDEX_SECOND_PERSON)));
+                new AcceptCommand(List.of(ID_THIRD_PERSON, ID_FIRST_PERSON, ID_SECOND_PERSON)));
     }
 
     @Test
-    public void parse_duplicateIndexes_returnsCommandWithUniqueIndexes() {
+    public void parse_duplicateIds_returnsCommandWithUniqueIds() {
         assertParseSuccess(parser, "candidate 2 1 2",
-                new AcceptCommand(List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON)));
+                new AcceptCommand(List.of(ID_SECOND_PERSON, ID_FIRST_PERSON)));
     }
 
     @Test
@@ -46,11 +46,11 @@ public class AcceptCommandParserTest {
     }
 
     @Test
-    public void parse_invalidIndex_throwsParseException() {
-        for (String index : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
-            assertParseFailure(parser, "candidate " + index, expectedUsageFailure);
-            assertParseFailure(parser, "candidate 1 " + index + " 2", expectedUsageFailure);
-            assertParseFailure(parser, "candidate 1 2 " + index, expectedUsageFailure);
+    public void parse_invalidId_throwsParseException() {
+        for (String candidateId : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
+            assertParseFailure(parser, "candidate " + candidateId, expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 " + candidateId + " 2", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 2 " + candidateId, expectedUsageFailure);
         }
     }
 

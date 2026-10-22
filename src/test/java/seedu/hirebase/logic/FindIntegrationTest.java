@@ -53,11 +53,12 @@ public class FindIntegrationTest {
     }
 
     @Test
-    public void execute_emailSearchThenDelete_deletesCandidateAtDisplayedIndex() throws Exception {
+    public void execute_emailSearchThenDelete_deletesCandidateWithGivenId() throws Exception {
         logic.execute("find JOHND@EXAMPLE.COM");
         assertEquals(List.of(BENSON), logic.getFilteredPersonList());
 
-        logic.execute("delete candidate 1");
+        // Benson is shown at position 1 but his CANDIDATE_ID is 2 in the typical data.
+        logic.execute("delete candidate 2");
 
         HireBase expectedHireBase = getTypicalHireBase();
         expectedHireBase.removePerson(BENSON);
@@ -66,11 +67,12 @@ public class FindIntegrationTest {
     }
 
     @Test
-    public void execute_emailSearchThenEdit_editsCandidateAtDisplayedIndex() throws Exception {
+    public void execute_emailSearchThenEdit_editsCandidateWithGivenId() throws Exception {
         logic.execute("find JOHND@");
         assertEquals(List.of(BENSON), logic.getFilteredPersonList());
 
-        logic.execute("edit candidate 1 p/91234567");
+        // Benson is shown at position 1 but his CANDIDATE_ID is 2 in the typical data.
+        logic.execute("edit candidate 2 p/91234567");
 
         Person editedBenson = new PersonBuilder(BENSON).withPhone("91234567").build();
         HireBase expectedHireBase = getTypicalHireBase();

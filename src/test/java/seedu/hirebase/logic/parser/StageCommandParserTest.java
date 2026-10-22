@@ -4,9 +4,9 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_THIRD_PERSON;
 
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +24,7 @@ public class StageCommandParserTest {
     @Test
     public void parse_allStages_returnsStageCommand() {
         for (InterviewStage stage : InterviewStage.values()) {
-            StageCommand expected = new StageCommand(INDEX_FIRST_PERSON, stage);
+            StageCommand expected = new StageCommand(ID_FIRST_PERSON, stage);
             assertParseSuccess(parser, "candidate 1 " + stage.name(), expected);
             assertParseSuccess(parser, "candidate 1 " + stage.name().toLowerCase(Locale.ROOT), expected);
         }
@@ -33,21 +33,21 @@ public class StageCommandParserTest {
     @Test
     public void parse_extraWhitespaceAndMixedCase_returnsStageCommand() {
         assertParseSuccess(parser, "  candidate\t  1   aCcEpTeD  ",
-                new StageCommand(INDEX_FIRST_PERSON, InterviewStage.ACCEPTED));
+                new StageCommand(ID_FIRST_PERSON, InterviewStage.ACCEPTED));
     }
 
     @Test
-    public void parse_multipleIndexes_returnsStageCommand() {
+    public void parse_multipleIds_returnsStageCommand() {
         for (InterviewStage stage : InterviewStage.values()) {
             assertParseSuccess(parser, "  candidate\t3  1\t2   " + stage.name().toLowerCase(Locale.ROOT),
-                    new StageCommand(List.of(INDEX_THIRD_PERSON, INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), stage));
+                    new StageCommand(List.of(ID_THIRD_PERSON, ID_FIRST_PERSON, ID_SECOND_PERSON), stage));
         }
     }
 
     @Test
-    public void parse_duplicateIndexes_returnsStageCommandWithUniqueIndexes() {
+    public void parse_duplicateIds_returnsStageCommandWithUniqueIds() {
         assertParseSuccess(parser, "candidate 2 1 2 ACCEPTED",
-                new StageCommand(List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON), InterviewStage.ACCEPTED));
+                new StageCommand(List.of(ID_SECOND_PERSON, ID_FIRST_PERSON), InterviewStage.ACCEPTED));
     }
 
     @Test
@@ -60,11 +60,11 @@ public class StageCommandParserTest {
     }
 
     @Test
-    public void parse_invalidIndex_throwsParseException() {
-        for (String index : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
-            assertParseFailure(parser, "candidate " + index + " ACCEPTED", expectedUsageFailure);
-            assertParseFailure(parser, "candidate 1 " + index + " 2 ACCEPTED", expectedUsageFailure);
-            assertParseFailure(parser, "candidate 1 2 " + index + " ACCEPTED", expectedUsageFailure);
+    public void parse_invalidId_throwsParseException() {
+        for (String candidateId : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
+            assertParseFailure(parser, "candidate " + candidateId + " ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 " + candidateId + " 2 ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 2 " + candidateId + " ACCEPTED", expectedUsageFailure);
         }
     }
 

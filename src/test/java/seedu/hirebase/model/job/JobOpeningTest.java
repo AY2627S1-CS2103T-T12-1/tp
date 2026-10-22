@@ -6,7 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
+
+import seedu.hirebase.model.candidate.Skill;
 
 public class JobOpeningTest {
     private final JobOpening opening = job("Software Engineer", "Engineering", "Build services.");
@@ -52,6 +57,27 @@ public class JobOpeningTest {
         assertTrue(opening.toString().contains("title=Software Engineer"));
         assertTrue(opening.toString().contains("department=Engineering"));
         assertTrue(opening.toString().contains("description=Build services."));
+    }
+
+    @Test
+    public void skills_immutableSnapshot_survivesIdAssignmentAndParticipatesInValueEquality() {
+        Set<Skill> supplied = new HashSet<>(Set.of(new Skill("Java")));
+        JobOpening tagged = new JobOpening(opening.getTitle(), opening.getDepartment(), opening.getDescription(),
+                null, supplied);
+        supplied.clear();
+        assertEquals(Set.of(new Skill("Java")), tagged.getSkills());
+        assertThrows(UnsupportedOperationException.class, () -> tagged.getSkills().clear());
+        assertEquals(tagged.getSkills(), tagged.withJobId(new JobId(7)).getSkills());
+        assertTrue(tagged.isSameJobOpening(opening));
+        assertNotEquals(tagged, opening);
+        JobOpening sameSkills = new JobOpening(opening.getTitle(), opening.getDepartment(), opening.getDescription(),
+                null, Set.of(new Skill("java")));
+        assertEquals(tagged, sameSkills);
+        assertEquals(tagged.hashCode(), sameSkills.hashCode());
+        assertEquals("Java", tagged.getSkillsText());
+        assertEquals("None", opening.getSkillsText());
+        assertThrows(NullPointerException.class, () -> new JobOpening(opening.getTitle(), opening.getDepartment(),
+                opening.getDescription(), null, null));
     }
 
     private static JobOpening job(String title, String department, String description) {

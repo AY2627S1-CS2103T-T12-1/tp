@@ -38,7 +38,8 @@ public class ListJobsIntegrationTest {
         Model reloaded = new ModelManager(storage.readHireBase().orElseThrow(), new UserPrefs());
         HireBase before = new HireBase(reloaded.getHireBase());
         String result = logic(reloaded, storage).execute("list jobs").getFeedbackToUser();
-        assertEquals("Listed 1 job opening.\n\n1. Engineer — Research\nDescription: Build  services.", result);
+        assertEquals("Listed 1 job opening.\n\n1. Engineer — Research\nDescription: Build  services."
+                + "\nRequired skills: None", result);
         assertEquals(before, reloaded.getHireBase());
         assertEquals(saved, Files.readString(file));
         assertEquals(modified, Files.getLastModifiedTime(file));

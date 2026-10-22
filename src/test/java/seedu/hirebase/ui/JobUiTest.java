@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +25,10 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.model.ModelManager;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.JobTitle;
 import seedu.hirebase.storage.JsonHireBaseStorage;
@@ -52,7 +55,7 @@ public class JobUiTest {
     public void card_longDetails_wrapAndRemainComplete() throws Exception {
         onFxThread(() -> {
             JobOpening job = job("Long description ".repeat(100));
-            JobCard card = new JobCard(job, 3);
+            JobCard card = new JobCard(job.withJobId(new JobId(3)));
             Scene scene = new Scene(card.getRoot(), 350, 800);
             scene.getRoot().applyCss();
             scene.getRoot().layout();
@@ -69,18 +72,33 @@ public class JobUiTest {
     }
 
     @Test
-    public void cell_reuseAndReindex_refreshesAndClearsCards() throws Exception {
+    public void card_requiredSkills_areSortedAndWrap() throws Exception {
         onFxThread(() -> {
-            var jobs = FXCollections.observableArrayList(job("Build services"));
+            JobOpening base = job("Build services");
+            JobOpening tagged = new JobOpening(base.getTitle(), base.getDepartment(), base.getDescription(),
+                    new JobId(7), Set.of(new Skill("Python"), new Skill("Java")));
+            JobCard card = new JobCard(tagged);
+            Label skills = (Label) card.getRoot().lookup("#skills");
+            assertEquals("Required skills: Java, Python", skills.getText());
+            assertTrue(skills.isWrapText());
+            JobCard empty = new JobCard(base.withJobId(new JobId(8)));
+            assertEquals("Required skills: None", ((Label) empty.getRoot().lookup("#skills")).getText());
+        });
+    }
+
+    @Test
+    public void cell_reuseAndReindex_preservesIdAndClearsCards() throws Exception {
+        onFxThread(() -> {
+            var jobs = FXCollections.observableArrayList(job("Build services").withJobId(new JobId(7)));
             JobListPanel panel = new JobListPanel(jobs);
             JobListPanel.JobListCell cell = panel.new JobListCell();
             cell.updateIndex(0);
             cell.updateItem(jobs.getFirst(), false);
             assertNotNull(cell.getGraphic());
-            assertEquals("1. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
+            assertEquals("7. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
             cell.updateIndex(2);
             cell.updateItem(jobs.getFirst(), false);
-            assertEquals("3. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
+            assertEquals("7. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
             cell.updateItem(null, false);
             assertEquals(null, cell.getGraphic());
             cell.updateIndex(-1);

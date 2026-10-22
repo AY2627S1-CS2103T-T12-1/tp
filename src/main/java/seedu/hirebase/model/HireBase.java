@@ -11,6 +11,7 @@ import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.UniquePersonList;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.UniqueJobOpeningList;
 
@@ -18,11 +19,14 @@ import seedu.hirebase.model.job.UniqueJobOpeningList;
  * Stores candidates and job openings. Each list enforces its own identity-based uniqueness.
  */
 public class HireBase implements ReadOnlyHireBase {
+    public static final String MESSAGE_JOB_IDS_EXHAUSTED = "No more job IDs are available.";
+
 
     private final UniquePersonList persons = new UniquePersonList();
     private final UniqueJobOpeningList jobOpenings = new UniqueJobOpeningList();
     // Only ever increases, so the ID of a deleted candidate is never given to another candidate.
     private int nextCandidateId = 1;
+    private long nextJobId = 1;
 
     public HireBase() {}
 
@@ -54,9 +58,11 @@ public class HireBase implements ReadOnlyHireBase {
         UniquePersonList newPersons = new UniquePersonList();
         newPersons.setPersons(withAssignedIds(newData.getPersonList()));
         UniqueJobOpeningList newJobOpenings = new UniqueJobOpeningList();
-        newJobOpenings.setJobOpenings(newData.getJobOpeningList());
+        newJobOpenings.setJobOpenings(withAssignedJobIds(newData.getJobOpeningList(),
+                Math.max(nextJobId, newData.getNextJobId())));
         persons.setPersons(newPersons);
         jobOpenings.setJobOpenings(newJobOpenings);
+        nextJobId = Math.max(Math.max(nextJobId, newData.getNextJobId()), nextIdAfter(getJobOpeningList()));
         // Never move the counter backwards, so IDs of removed candidates stay retired.
         nextCandidateId = Math.max(nextCandidateId, newData.getNextCandidateId());
     }
@@ -154,7 +160,8 @@ public class HireBase implements ReadOnlyHireBase {
      * Replaces all job openings. Rejects null or duplicate entries without changing existing data.
      */
     public void setJobOpenings(List<JobOpening> jobOpenings) {
-        this.jobOpenings.setJobOpenings(jobOpenings);
+        this.jobOpenings.setJobOpenings(withAssignedJobIds(jobOpenings, nextJobId));
+        nextJobId = Math.max(nextJobId, nextIdAfter(getJobOpeningList()));
     }
 
     /**
@@ -168,7 +175,16 @@ public class HireBase implements ReadOnlyHireBase {
      * Adds a non-null job opening that must not already exist.
      */
     public void addJobOpening(JobOpening jobOpening) {
-        jobOpenings.add(jobOpening);
+        requireNonNull(jobOpening);
+        JobOpening stored = jobOpening;
+        if (stored.getJobId().isEmpty()) {
+            if (nextJobId > Integer.MAX_VALUE) {
+                throw new IllegalStateException(MESSAGE_JOB_IDS_EXHAUSTED);
+            }
+            stored = stored.withJobId(new JobId((int) nextJobId));
+        }
+        jobOpenings.add(stored);
+        nextJobId = Math.max(nextJobId, (long) stored.getJobId().orElseThrow().getValue() + 1);
     }
 
     /**
@@ -178,9 +194,52 @@ public class HireBase implements ReadOnlyHireBase {
         jobOpenings.remove(jobOpening);
     }
 
+    /**
+     * Replaces an existing opening without changing its position or allowing duplicates.
+     */
+    public void setJobOpening(JobOpening target, JobOpening editedJobOpening) {
+        jobOpenings.setJobOpening(target, editedJobOpening);
+    }
+
     @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return jobOpenings.asUnmodifiableObservableList();
+    }
+
+    /**
+     * Preserves the saved allocation counter, including IDs of deleted openings.
+     */
+    public void reserveJobIdsUpTo(long minimum) {
+        if (minimum < 1 || minimum > (long) Integer.MAX_VALUE + 1) {
+            throw new IllegalArgumentException("Next job ID is out of range.");
+        }
+        nextJobId = Math.max(nextJobId, minimum);
+    }
+
+    @Override
+    public long getNextJobId() {
+        return nextJobId;
+    }
+
+    private static long nextIdAfter(List<JobOpening> jobs) {
+        return jobs.stream().flatMap(job -> job.getJobId().stream())
+                .mapToLong(JobId::getValue).max().orElse(0) + 1;
+    }
+
+    private static List<JobOpening> withAssignedJobIds(List<JobOpening> jobs, long minimum) {
+        long next = Math.max(minimum, nextIdAfter(jobs));
+        List<JobOpening> result = new ArrayList<>();
+        for (JobOpening job : jobs) {
+            if (job.getJobId().isPresent()) {
+                result.add(job);
+            } else {
+                if (next > Integer.MAX_VALUE) {
+                    throw new IllegalStateException(MESSAGE_JOB_IDS_EXHAUSTED);
+                }
+                result.add(job.withJobId(new JobId((int) next++)));
+            }
+        }
+        return result;
     }
 
     //// util methods

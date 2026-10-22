@@ -65,7 +65,13 @@ public class HireBaseParser {
                 }
                 yield new AddCommandParser().parse(arguments);
             }
-            case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
+            case EditCommand.COMMAND_WORD -> {
+                Matcher jobArguments = Pattern.compile("(?s)^\\s+job(?=\\s|$)(.*)$").matcher(arguments);
+                if (jobArguments.matches()) {
+                    yield new EditJobCommandParser().parse(jobArguments.group(1));
+                }
+                yield new EditCommandParser().parse(arguments);
+            }
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
             case StageCommand.COMMAND_WORD -> new StageCommandParser().parse(arguments);
             case AcceptCommand.COMMAND_WORD -> new AcceptCommandParser().parse(arguments);

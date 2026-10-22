@@ -6,12 +6,12 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import java.util.ArrayList;
 import java.util.List;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.RejectCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 
 /**
- * Parses arguments for {@code reject candidate INDEX [MORE_INDEXES]...}.
+ * Parses arguments for {@code reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...}.
  */
 public class RejectCommandParser implements Parser<RejectCommand> {
     @Override
@@ -22,11 +22,11 @@ public class RejectCommandParser implements Parser<RejectCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RejectCommand.MESSAGE_USAGE));
         }
         try {
-            List<Index> indexes = new ArrayList<>();
+            List<CandidateId> candidateIds = new ArrayList<>();
             for (int i = 1; i < parts.length; i++) {
-                indexes.add(ParserUtil.parseIndex(parts[i]));
+                candidateIds.add(ParserUtil.parseCandidateId(parts[i]));
             }
-            return new RejectCommand(indexes);
+            return new RejectCommand(candidateIds);
         } catch (ParseException e) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RejectCommand.MESSAGE_USAGE), e);
         }

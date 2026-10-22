@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ListChangeListener;
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
@@ -28,8 +27,10 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.JobTitle;
 import seedu.hirebase.storage.JsonHireBaseStorage;
@@ -47,18 +48,18 @@ public class DeleteJobIntegrationTest {
 
     @Test
     public void parse_validWhitespaceAndCandidateRouting_success() throws Exception {
-        assertEquals(new DeleteJobCommand(Index.fromOneBased(2)), parser.parseCommand("  delete   job  2  "));
-        assertEquals(new DeleteJobCommand(Index.fromOneBased(1)), parser.parseCommand("delete\tjob\t1"));
-        assertEquals(new DeleteCommand(Index.fromOneBased(1)), parser.parseCommand("delete candidate 1"));
+        assertEquals(new DeleteJobCommand(new JobId(2)), parser.parseCommand("  delete   job  2  "));
+        assertEquals(new DeleteJobCommand(new JobId(1)), parser.parseCommand("delete\tjob\t1"));
+        assertEquals(new DeleteCommand(new CandidateId(1)), parser.parseCommand("delete candidate 1"));
     }
 
     @Test
     public void parse_missingMultipleAndInvalidIndexes_reportsUsage() {
-        assertParseError("delete job", DeleteJobCommand.MESSAGE_MISSING_INDEX);
+        assertParseError("delete job", DeleteJobCommand.MESSAGE_MISSING_ID);
         assertParseError("delete job 1 2", DeleteJobCommand.MESSAGE_MULTIPLE_ARGUMENTS);
         assertParseError("delete job 1\n2", DeleteJobCommand.MESSAGE_MULTIPLE_ARGUMENTS);
         for (String index : new String[] {"0", "-1", "1.5", "abc", "+1", "2147483648", "99999999999999999"}) {
-            assertParseError("delete job " + index, DeleteJobCommand.MESSAGE_INVALID_INDEX);
+            assertParseError("delete job " + index, DeleteJobCommand.MESSAGE_INVALID_ID);
         }
     }
 
@@ -84,11 +85,11 @@ public class DeleteJobIntegrationTest {
         assertEquals(List.of(ALICE, BOB), model.getHireBase().getPersonList());
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
         assertEquals(new HireBase(model.getHireBase()), new HireBase(storage.readHireBase().orElseThrow()));
-        assertTrue(logic.execute("list jobs").getFeedbackToUser().contains("1. Developer — Research"));
+        assertTrue(logic.execute("list jobs").getFeedbackToUser().contains("2. Developer — Research"));
         logic.execute("add job t/Developer d/Engineering desc/Build services");
         assertEquals(List.of(second, first), model.getJobOpeningList());
         logic.execute("delete job 2");
-        logic.execute("delete job 1");
+        logic.execute("delete job 3");
         assertTrue(model.getJobOpeningList().isEmpty());
         assertTrue(storage.readHireBase().orElseThrow().getJobOpeningList().isEmpty());
     }
@@ -148,16 +149,16 @@ public class DeleteJobIntegrationTest {
 
     @Test
     public void command_nullEqualityAndToString_contracts() {
-        DeleteJobCommand command = new DeleteJobCommand(Index.fromOneBased(1));
+        DeleteJobCommand command = new DeleteJobCommand(new JobId(1));
         assertThrows(NullPointerException.class, () -> new DeleteJobCommand(null));
         assertThrows(NullPointerException.class, () -> command.execute(null));
         assertEquals(command, command);
-        assertEquals(command, new DeleteJobCommand(Index.fromOneBased(1)));
-        assertEquals(command.hashCode(), new DeleteJobCommand(Index.fromOneBased(1)).hashCode());
-        assertNotEquals(command, new DeleteJobCommand(Index.fromOneBased(2)));
+        assertEquals(command, new DeleteJobCommand(new JobId(1)));
+        assertEquals(command.hashCode(), new DeleteJobCommand(new JobId(1)).hashCode());
+        assertNotEquals(command, new DeleteJobCommand(new JobId(2)));
         assertNotEquals(command, null);
         assertNotEquals(command, "delete job");
-        assertTrue(command.toString().contains("targetIndex"));
+        assertTrue(command.toString().contains("targetId"));
     }
 
     private void assertParseError(String input, String expected) {

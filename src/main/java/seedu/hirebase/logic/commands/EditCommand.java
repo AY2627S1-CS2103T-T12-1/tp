@@ -12,18 +12,17 @@ import static seedu.hirebase.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.CollectionUtil;
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.Address;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
@@ -42,9 +41,9 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE
             + ": Edits the details of the candidate identified "
-            + "by the index number used in the displayed candidate list. "
+            + "by their CANDIDATE_ID. "
             + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: candidate INDEX (must be a positive integer) "
+            + "Parameters: candidate CANDIDATE_ID (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
@@ -60,31 +59,27 @@ public class EditCommand extends Command {
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This candidate already exists (matching email).";
 
-    private final Index index;
+    private final CandidateId candidateId;
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param index                of the person in the filtered person list to edit
+     * @param candidateId          of the candidate to edit
      * @param editPersonDescriptor details to edit the person with
      */
-    public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
-        requireNonNull(index);
+    public EditCommand(CandidateId candidateId, EditPersonDescriptor editPersonDescriptor) {
+        requireNonNull(candidateId);
         requireNonNull(editPersonDescriptor);
 
-        this.index = index;
+        this.candidateId = candidateId;
         this.editPersonDescriptor = new EditPersonDescriptor(editPersonDescriptor);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
-
-        if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-
-        Person personToEdit = lastShownList.get(index.getZeroBased());
+        Person personToEdit = model.getHireBase().getPersonByCandidateId(candidateId)
+                .orElseThrow(() -> new CommandException(
+                    String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, candidateId.getValue())));
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
@@ -127,14 +122,14 @@ public class EditCommand extends Command {
             return false;
         }
 
-        return index.equals(otherEditCommand.index)
+        return candidateId.equals(otherEditCommand.candidateId)
                 && editPersonDescriptor.equals(otherEditCommand.editPersonDescriptor);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
+                .add("candidateId", candidateId)
                 .add("editPersonDescriptor", editPersonDescriptor)
                 .toString();
     }

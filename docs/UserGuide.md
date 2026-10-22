@@ -29,7 +29,7 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 
    - `add job t/Software Engineer d/Engineering desc/Build backend services using Java.` : Records a local job opening.
 
-   - `list jobs` : Shows all job openings and their current indexes.
+   - `list jobs` : Shows all job openings and their permanent IDs.
 
    - `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer` : Adds a contact named `John Doe` to HireBase.
 
@@ -60,10 +60,10 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 
 - Prefixed parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
-  Positional arguments, such as `INDEX [MORE_INDEXES]... STAGE` in
-  `stage candidate INDEX [MORE_INDEXES]... STAGE`, must follow the order shown.
+  Positional arguments, such as `CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE` in
+  `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`, must follow the order shown.
 
-- `INDEX [MORE_INDEXES]...` means one or more indexes separated by spaces.
+- `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.
   For example, `accept candidate 1` and `accept candidate 1 3 5` are both valid formats.
 
 - `help`, `exit`, `clear`, and `list candidates` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
@@ -111,13 +111,12 @@ Use `list jobs` to view openings instead. The bare command `list` is not accepte
 ### Managing job openings
 
 Use job openings to keep a local record of roles you are recruiting for. Each opening has a title, department,
-and description. The supported commands are [`add job`](#adding-a-job-opening-add-job),
-[`list jobs`](#listing-job-openings-list-jobs), and [`delete job`](#deleting-a-job-opening-delete-job).
+description, and optional required skills. The supported commands are [`add job`](#adding-a-job-opening-add-job),
+[`list jobs`](#listing-job-openings-list-jobs), [`edit job`](#editing-a-job-opening-edit-job), and [`delete job`](#deleting-a-job-opening-delete-job).
 They do not publish vacancies or accept applications.
 
-Job openings and candidate profiles are separate records. Adding or deleting an opening does not assign candidates
-to it or change their target roles. There is no `edit job` command: to correct an opening, check its index with
-`list jobs`, delete it, and add the replacement. The replacement appears at the end of the job list.
+Job openings and candidate profiles are separate records. Adding, editing or deleting an opening does not assign candidates
+to it or change their target roles. Use `edit job` to correct an opening while keeping its ID and position in the job list.
 
 ### Switching between candidates and job openings
 
@@ -125,9 +124,10 @@ Click **Candidates** or **Job openings** above the list to switch views. Switchi
 or reset a candidate search. You can also use `list jobs` or `list candidates` from the command box;
 `list candidates` resets the candidate filter to show all candidates.
 
-Each job card displays its current 1-based index, title, department, and full description. Long details wrap
+Each job card displays its permanent positive-integer ID, title, department, full description, and required skills.
+Long details wrap
 across lines; scroll the list to read additional content. An empty jobs tab shows `No job openings found.`
-Cards update after adding, deleting or clearing records. After a deletion, later job indexes shift down by one.
+Cards update after adding, editing, deleting or clearing records. After a deletion, all remaining openings keep their IDs.
 
 Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
 the Candidates tab. Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active
@@ -137,12 +137,13 @@ tab and empties both lists. On launch, the Candidates tab is selected; saved ope
 
 Records an opening locally; it does not publish a vacancy externally or accept applications.
 
-Format: `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`
+Format: `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`
 
 Example: `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`
 
-All three prefixes are required exactly once and may appear in any order. Command words and prefixes are
-case-sensitive. Multiple spaces between command words are accepted. Missing, empty, repeated or unknown
+The `t/`, `d/` and `desc/` prefixes are required exactly once and may appear in any order. Optional `s/` fields
+may be repeated, once per required skill. Command words and prefixes are
+case-sensitive. Multiple spaces between command words are accepted. Missing or empty required fields, repeated non-skill fields, unknown
 parameters, and unexpected text before the first parameter, are rejected without changing records.
 A prefix token such as `d/` following whitespace starts a new parameter and cannot be included literally in a value.
 This also applies to unknown prefixes: `desc/Build CI/CD pipelines` is rejected as `Unknown parameter: CI/.`.
@@ -155,33 +156,44 @@ is collapsed. Descriptions accept 1–2000 printable Unicode characters on one l
 character. Tabs, line breaks and control characters are rejected. Surrounding spaces are trimmed, internal spaces
 are preserved, and length limits apply after normalization. Capitalization is preserved for display.
 
+Add required skills with repeated `s/` fields, for example:
+`add job t/Software Engineer d/Engineering desc/Build services s/Java s/SQL`.
+Omitting `s/` creates an opening with no required skills. An empty `s/` is rejected when adding.
+Skills follow the same rules as candidate skills: 1–30 characters after trimming and collapsing whitespace,
+using letters, digits, spaces and `+ # . /`. Skills are compared without regard to case, so `s/Java s/java`
+stores one tag. Use `s/Machine Learning` for a multi-word skill and `s/C++ s/C#` for separate skills.
+As with other job values, a prefix-like token following whitespace starts a new parameter; `s/CI/CD` is accepted,
+while `s/Build CI/CD` is rejected because `CI/` is read as a parameter.
+
 An opening is a duplicate if both its title and department match an existing opening after normalization,
-ignoring case. Descriptions do not determine uniqueness. The same title in a different department is allowed.
+ignoring case. Descriptions and required skills do not determine uniqueness. The same title in a different department is allowed.
 For example, after adding `Software Engineer` in `Engineering`, adding `software engineer` in `ENGINEERING`
 is rejected even with a different description. Adding `Software Engineer` in `Research` is accepted.
 Multiple vacancies with the same title and department share one opening under this rule.
 
-Success shows `Added job opening INDEX: TITLE — DEPARTMENT.` The index is the opening's current position in
-creation order, starting at 1; it is not a permanent ID. A duplicate reports the existing opening's index,
-title and department and is not added. The opening is saved before success is reported. If saving fails,
+Success shows `Added job opening ID: TITLE — DEPARTMENT.` IDs start at 1 and increase for each new
+opening. They remain unchanged after deletion of other openings, and across restarts. Deleted IDs are never reused,
+even after `clear`. Job IDs and candidate IDs are separate; the same number can identify one record of each type.
+A duplicate reports the existing opening's ID, title and department and is not added. The opening is saved before success is reported. If saving fails,
 HireBase reports `Could not save changes. Job opening was not added. Check storage permissions and available disk space, then try again.`
 and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
-Successful job commands select the Job openings tab automatically.
+Successful job commands select the Job openings tab automatically. If all IDs through 2147483647 have been
+allocated, further additions are rejected with `No more job IDs are available.`; existing openings remain usable.
 
 Common input errors (none adds an opening):
 
 | Input problem | Example | Feedback |
 | --- | --- | --- |
-| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
 | Empty title | `add job t/ d/Engineering desc/Build services` | `Parameter t/ cannot be empty.` |
 | Repeated department | `add job t/Engineer d/Engineering d/Research desc/Build services` | `Parameter d/ must be specified only once.` |
 | Unknown prefix | `add job t/Engineer d/Engineering desc/Build services salary/5000` | `Unknown parameter: salary/.` |
-| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
 
 Invalid title, department or description values produce a field-specific validation message. Correct the input
-and submit the command again. For a duplicate at index 1, feedback is
+and submit the command again. For a duplicate at ID 1, feedback is
 `Job opening already exists (1): Software Engineer — Engineering. Job opening was not added.`
 
 ### Listing job openings: `list jobs`
@@ -189,9 +201,11 @@ and submit the command again. For a duplicate at index 1, feedback is
 Format: `list jobs`
 
 Selects the Job openings tab and displays all stored openings as cards in creation order (earliest first).
-The command result area also includes their full details.
-Each entry shows its current 1-based index, title, department, and full description. Openings with the same title
-in different departments are displayed separately. Indexes are list positions, not permanent IDs.
+The command result area also includes their full details. Required skills are displayed alphabetically,
+ignoring case, or as `Required skills: None` when no tags are set.
+Each entry shows its permanent positive-integer ID, title, department, full description, and required skills. Openings with the same title
+in different departments are displayed separately. The number identifies the opening, even if it is no longer
+at that list position. Gaps are expected after deletions.
 
 The result starts with `Listed N job openings.` (or `Listed 1 job opening.` for a single opening).
 An empty list is a successful result: `No job openings found.`
@@ -203,6 +217,7 @@ Listed 1 job opening.
 
 1. Software Engineer — Engineering
 Description: Build backend services using Java.
+Required skills: None
 ```
 
 The command is case-sensitive and accepts no parameters. Surrounding whitespace and multiple spaces between
@@ -212,55 +227,85 @@ The command is case-sensitive and accepts no parameters. Surrounding whitespace 
 Listing jobs does not change records, their order, the candidate list or its active filter, and does not rewrite
 the data file.
 
+### Editing a job opening: `edit job`
+
+Format: `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`
+
+Example: `edit job 1 t/Senior Software Engineer desc/Lead backend development.`
+
+Use `list jobs` to check the permanent ID. The ID must be a positive integer referring to an existing
+opening; candidate filters do not affect job IDs. The ID is independent of list position: after deleting job 1,
+`edit job 2 d/Research` still edits job 2 even if it is now the first card. Deleted IDs are rejected.
+The keywords `edit` and `job` are case-sensitive.
+Provide at least one field, in any order. Omitted fields retain their values. Supplied titles, departments and descriptions must be non-empty
+and follow the same validation rules as [`add job`](#adding-a-job-opening-add-job). Repeated non-skill prefixes and unknown prefixes
+are rejected. An edit that would duplicate another opening's title and department (ignoring case) is rejected.
+Changing only capitalisation or supplying the existing values is allowed.
+
+To tag an existing opening, use `edit job 2 s/Java s/SQL`. Supplied skills **replace the entire required-skill set**;
+include every skill you want to keep. Omitting `s/` preserves existing skills, including when editing the title,
+department or description. A single empty `s/`, as in `edit job 2 s/`, clears all skills. Combining an empty `s/`
+with other `s/` fields is rejected. Skills use the same validation and duplicate rules as `add job`.
+Tagging skills preserves the opening's ID and does not change candidate skills or filter candidates automatically.
+
+Success shows `Edited job opening ID: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
+keeps its ID and list position; other openings, candidate records and candidate filters remain unchanged.
+Changes persist across launches. If saving fails, the live opening remains unchanged and HireBase reports
+`Could not save changes. Job opening was not edited. Check storage permissions and available disk space, then try again.`
+
+For example, `edit job 1 d/Research` changes only the department. `edit job 1` is rejected because no fields were
+specified, and `edit job 1 desc/` is rejected because descriptions cannot be empty. An unavailable ID reports
+`Job ID "ID" does not exist. Use list jobs to view available job IDs.`
+
 ### Deleting a job opening: `delete job`
 
-Format: `delete job INDEX`
+Format: `delete job ID`
 
-Example: `delete job 2` deletes the second opening shown by `list jobs`.
-The index must be a positive integer referring to an existing opening in the current job list.
-Use `list jobs` before deleting to check the index. Indexes are list positions, not permanent IDs;
-after deletion, later openings shift down by one. Candidate filters do not affect job indexes.
+Example: `delete job 2` deletes the opening with ID 2, regardless of its position in `list jobs`.
+The ID must be a positive integer referring to an existing opening in the current job list.
+Use `list jobs` before deleting to check the ID. After deletion, remaining openings retain their IDs.
+Candidate filters do not affect job IDs. A deleted ID is rejected even if another opening occupies its old position.
 
-The command accepts exactly one index. `job` is a required, case-sensitive keyword.
+The command accepts exactly one ID. `job` is a required, case-sensitive keyword.
 Surrounding whitespace and multiple spaces between command words are accepted. Missing, invalid or multiple
-indexes are rejected with usage guidance. A nonexistent index reports
-`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
+IDs are rejected with usage guidance. A nonexistent ID reports
+`Job ID "ID" does not exist. Use list jobs to view available job IDs.`
 
-Success shows `Deleted job opening INDEX: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
+Success shows `Deleted job opening ID: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
 candidate records, target roles and the active candidate filter remain unchanged. An opening with the same title
-and department can then be added again and is appended to the end of the list.
+and department can then be added again with a new ID and is appended to the end of the list.
 
 The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
 HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
-Successful deletion selects the Job openings tab and refreshes its cards and indexes.
+Successful deletion selects the Job openings tab and refreshes its cards.
 
 Common deletion errors:
 
 | Command | Feedback |
 | --- | --- |
-| `delete job` | `Missing job index. Usage: delete job INDEX` |
-| `delete job 1 2` | `Expected exactly one job index. Usage: delete job INDEX` |
-| `delete job 0` | `Job index must be a positive integer. Usage: delete job INDEX` |
-| `delete job 1.5` | `Job index must be a positive integer. Usage: delete job INDEX` |
+| `delete job` | `Missing job ID. Usage: delete job ID` |
+| `delete job 1 2` | `Expected exactly one job ID. Usage: delete job ID` |
+| `delete job 0` | `Job ID must be a positive integer. Usage: delete job ID` |
+| `delete job 1.5` | `Job ID must be a positive integer. Usage: delete job ID` |
 
-Negative indexes, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid index
+Negative IDs, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid ID
 must still refer to an existing opening; use `list jobs` to check the current list after an error.
 
 ### Example: create, review and close an opening
 
-The following example assumes the job list is initially empty. If it already contains openings, use the indexes
-reported by your own `list jobs` result instead of the example indexes. Do not use `clear` to prepare this example:
-it deletes candidate records as well as openings.
+The following example assumes no jobs have ever been added to this data file. Otherwise, use the IDs
+reported by your own `list jobs` result instead of the example IDs, even if the list is currently empty.
+Do not use `clear` to prepare this example: it deletes candidate records as well as openings.
 
 Run `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`. HireBase reports
 `Added job opening 1: Software Engineer — Engineering.` and selects the Job openings tab.
-Then run `add job t/Data Analyst d/Analytics desc/Analyse business data using SQL.`. This opening receives index 2.
+Then run `add job t/Data Analyst d/Analytics desc/Analyse business data using SQL.`. This opening receives ID 2.
 `list jobs` now shows both cards and reports `Listed 2 job openings.`
 
 When the Software Engineer opening closes, run `delete job 1`. HireBase reports
-`Deleted job opening 1: Software Engineer — Engineering.`. Run `list jobs` again: Data Analyst is now index 1,
-not index 2. Candidate records and their target roles are unchanged. Restarting HireBase retains the remaining
-opening; click Job openings or run `list jobs` to see it again.
+`Deleted job opening 1: Software Engineer — Engineering.`. Run `list jobs` again: Data Analyst still has ID 2.
+Adding another opening gives it ID 3. Candidate records and their target roles are unchanged.
+Restarting HireBase retains the remaining opening; click Job openings or run `list jobs` to see it again.
 
 ### Editing a candidate: `edit candidate`
 
@@ -347,17 +392,17 @@ Examples:
 Changes the interview stage of one or more specified candidates. New candidates start at `SCREENING`.
 The candidate card shows the current stage as **Screening**, **Accepted**, or **Rejected**.
 
-Format: `stage candidate INDEX [MORE_INDEXES]... STAGE`
+Format: `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`
 
 - `stage` and the required `candidate` keyword are case-sensitive.
-- Each index must be a positive integer referring to a candidate in the currently displayed list,
-  including results narrowed by `find`. Indexes are list positions, not permanent IDs.
+- Each ID must be a positive integer matching a candidate's permanent `CANDIDATE_ID` shown on their card.
+  IDs stay the same after filtering or deleting other candidates. Candidates hidden by `find` can also be updated.
 - `STAGE` must be `SCREENING`, `ACCEPTED`, or `REJECTED`. Stage names are case-insensitive;
   for example, `accepted` and `ACCEPTED` have the same effect.
-- Supply one or more indexes followed by one stage, which is applied to every selected candidate.
-  There is no fixed limit on the number of indexes. Repeated indexes update the candidate only once,
-  in the order the indexes first appear.
-- All indexes refer to the list displayed before the command runs. If any index is invalid or beyond that list,
+- Supply one or more IDs followed by one stage, which is applied to every selected candidate.
+  There is no fixed limit on the number of IDs. Repeated IDs update the candidate only once,
+  in the order the IDs first appear.
+- All IDs are checked against all candidates before any updates. If any ID is invalid or does not exist,
   no candidates are changed. Missing arguments and unknown stages are also rejected without changing records.
 - Surrounding whitespace and multiple spaces between arguments are accepted.
 - You can move a candidate from any stage to any other stage, including back to `SCREENING`.
@@ -366,59 +411,59 @@ Format: `stage candidate INDEX [MORE_INDEXES]... STAGE`
 Successful `stage`, `accept`, and `reject` commands change only the interview stage, preserving all other candidate
 information, including notes and permanent candidate IDs. They select the Candidates tab, show the full candidate
 list again, and update the stage on each selected candidate's card.
-Recheck the displayed indexes before another command, as a search filter is cleared after success.
+The search filter is cleared after success; permanent candidate IDs remain unchanged.
 The stage is saved automatically and restored when you reopen HireBase. Editing a candidate or their notes
 preserves the stage.
 
-Success shows `Updated interview stage for candidate INDEX: NAME (EMAIL) to STAGE` for each selected candidate,
+Success shows `Updated interview stage for candidate CANDIDATE_ID: NAME (EMAIL) to STAGE` for each selected candidate,
 on a separate line. Single-candidate commands show one line.
-An index beyond the displayed list reports `The person index provided is invalid.`
+A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list to view available candidate IDs.`
 An unknown stage reports `Interview stage must be one of [SCREENING, ACCEPTED, REJECTED] (case-insensitive).`
 
 Examples:
 
-- `stage candidate 1 ACCEPTED` sets the first displayed candidate's stage to `ACCEPTED`.
-- `stage candidate 2 screening` returns the second displayed candidate to `SCREENING`.
-- `stage candidate 1 3 5 ACCEPTED` accepts the first, third, and fifth displayed candidates.
-- `stage candidate 2 1 2 REJECTED` rejects the second and first displayed candidates, updating each only once.
-- `find Betsy` followed by `stage candidate 1 rejected` rejects the first candidate in the search results,
-  then shows the full candidate list.
+- `stage candidate 1 ACCEPTED` sets the stage of the candidate with ID 1 to `ACCEPTED`.
+- `stage candidate 2 screening` returns the candidate with ID 2 to `SCREENING`.
+- `stage candidate 1 3 5 ACCEPTED` accepts candidates with IDs 1, 3, and 5.
+- `stage candidate 2 1 2 REJECTED` rejects candidates with IDs 2 and 1, updating each only once.
+- After `find Betsy`, `stage candidate 1 rejected` still rejects the candidate with ID 1,
+  even if they are hidden by the search, then shows the full candidate list.
 
-If only three candidates are displayed, `stage candidate 1 4 ACCEPTED` reports an invalid index and changes no records.
+If ID 4 does not exist, `stage candidate 1 4 ACCEPTED` reports the missing ID and changes no records, including ID 1.
 
 ### Accepting candidates: `accept candidate`
 
 Marks one or more specified candidates as accepted by setting their stage to `ACCEPTED`.
-This is a shortcut for `stage candidate INDEX [MORE_INDEXES]... ACCEPTED`.
+This is a shortcut for `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... ACCEPTED`.
 
-Format: `accept candidate INDEX [MORE_INDEXES]...`
+Format: `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`
 
-`accept` and the required `candidate` keyword are case-sensitive. Supply one or more positive indexes from the
-currently displayed candidate list, including search results. Do not add a stage argument: `accept candidate 1 ACCEPTED`
+`accept` and the required `candidate` keyword are case-sensitive. Supply one or more positive permanent candidate IDs,
+including IDs of candidates hidden by a search. Do not add a stage argument: `accept candidate 1 ACCEPTED`
 is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
-Every index refers to the list displayed before the command runs. Repeated indexes update each candidate once.
-Missing indexes, non-index arguments, invalid indexes, and nonexistent displayed indexes leave all records unchanged.
+Every ID is checked against all candidates before any updates. Repeated IDs update each candidate once.
+Missing IDs, non-ID arguments, invalid IDs, and nonexistent or deleted IDs leave all records unchanged.
 
-Examples: `accept candidate 1` accepts the first displayed candidate; `accept candidate 1 3 5` accepts the first,
-third, and fifth displayed candidates. The command shows the full candidate list again and uses the same success
+Examples: `accept candidate 1` accepts the candidate with ID 1; `accept candidate 1 3 5` accepts candidates with
+IDs 1, 3, and 5. The command shows the full candidate list again and uses the same success
 message as `stage candidate` for each selected candidate, ending in `to ACCEPTED`.
 Candidates stay in HireBase; accepting already accepted candidates is allowed, and their stages can be changed later.
 
 ### Rejecting candidates: `reject candidate`
 
 Marks one or more specified candidates as rejected by setting their stage to `REJECTED`.
-This is a shortcut for `stage candidate INDEX [MORE_INDEXES]... REJECTED`.
+This is a shortcut for `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... REJECTED`.
 
-Format: `reject candidate INDEX [MORE_INDEXES]...`
+Format: `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`
 
-`reject` and the required `candidate` keyword are case-sensitive. Supply one or more positive indexes from the
-currently displayed candidate list, including search results. Do not add a stage argument: `reject candidate 1 REJECTED`
+`reject` and the required `candidate` keyword are case-sensitive. Supply one or more positive permanent candidate IDs,
+including IDs of candidates hidden by a search. Do not add a stage argument: `reject candidate 1 REJECTED`
 is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
-Every index refers to the list displayed before the command runs. Repeated indexes update each candidate once.
-Missing indexes, non-index arguments, invalid indexes, and nonexistent displayed indexes leave all records unchanged.
+Every ID is checked against all candidates before any updates. Repeated IDs update each candidate once.
+Missing IDs, non-ID arguments, invalid IDs, and nonexistent or deleted IDs leave all records unchanged.
 
-Examples: `reject candidate 1` rejects the first displayed candidate; `reject candidate 1 3 5` rejects the first,
-third, and fifth displayed candidates. The command shows the full candidate list again and uses the same success
+Examples: `reject candidate 1` rejects the candidate with ID 1; `reject candidate 1 3 5` rejects candidates with
+IDs 1, 3, and 5. The command shows the full candidate list again and uses the same success
 message as `stage candidate` for each selected candidate, ending in `to REJECTED`.
 Candidates stay in HireBase; rejecting already rejected candidates is allowed, and their stages can be changed later.
 
@@ -449,7 +494,17 @@ Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED`
 Older records without this field, or with a `null` value, load as `SCREENING`.
 Blank strings, unknown stage names, or incorrect capitalization make the data file invalid.
 
-The `jobs` array stores each opening's `title`, `department`, and `description`, preserving their order.
+The `jobs` array stores each opening's `id`, `title`, `department`, `description`, and `skills`, preserving job order.
+`skills` is an array of strings, for example `["Java", "SQL"]`. Older openings with no `skills` field, or a null
+field, load with no required skills. Invalid skill values, non-string entries, or a non-array field make the file
+invalid; duplicate skill strings are combined ignoring case. Skills are saved across restarts.
+Job IDs must be unique positive integers from 1 to 2147483647. The top-level `nextJobId` counter preserves the
+next unused ID, including after deletion or `clear`; do not lower it or change assigned IDs manually.
+Older openings with no ID (or a null ID) receive IDs in file order, starting above all stored IDs and at least as high as the saved
+counter. If no IDs or counter exist, numbering starts at 1. These assigned IDs are saved on the next successful
+command that writes data; `list jobs` alone does not rewrite the file. A missing counter is reconstructed from
+stored IDs. A counter below an existing ID is advanced automatically. Invalid or duplicate IDs make the file
+invalid. The counter accepts 1 through 2147483648; the final value indicates that no new IDs are available.
 Each opening must have all three fields and satisfy the job model's validation rules: titles and departments are
 1–100 characters using letters, digits, spaces, or `& / ( ) + # . , ' ’ -`, with at least one letter or digit;
 descriptions are 1–2000 printable characters on one line. Title and department whitespace is collapsed,
@@ -491,13 +546,14 @@ _Details coming soon ..._
 | **List candidates** | `list candidates` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
 | **Edit candidate** | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
-| **Change interview stage** | `stage candidate INDEX [MORE_INDEXES]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
-| **Accept candidates** | `accept candidate INDEX [MORE_INDEXES]...`<br> e.g., `accept candidate 1 3` |
-| **Reject candidates** | `reject candidate INDEX [MORE_INDEXES]...`<br> e.g., `reject candidate 2 4` |
+| **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
+| **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
+| **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
-| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
+| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
-| **Delete job** | `delete job INDEX`<br> e.g., `delete job 2` |
+| **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
+| **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

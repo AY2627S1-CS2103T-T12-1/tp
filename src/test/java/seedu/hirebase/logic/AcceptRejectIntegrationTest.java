@@ -64,7 +64,7 @@ public class AcceptRejectIntegrationTest {
     }
 
     @Test
-    public void execute_filteredList_updatesOnlyDisplayedCandidateAndRequestsCandidateView() throws Exception {
+    public void execute_filteredList_updatesCandidateWithGivenIdAndRequestsCandidateView() throws Exception {
         Map<String, InterviewStage> outcomes = Map.of("accept", InterviewStage.ACCEPTED,
                 "reject", InterviewStage.REJECTED);
         for (Map.Entry<String, InterviewStage> outcome : outcomes.entrySet()) {
@@ -77,11 +77,40 @@ public class AcceptRejectIntegrationTest {
             logic.execute("find " + BOB.getEmail().value);
             assertEquals(List.of(BOB), model.getFilteredPersonList());
 
-            CommandResult result = logic.execute(outcome.getKey() + " \t candidate \n 1 ");
+            CommandResult result = logic.execute(outcome.getKey() + " \t candidate \n 2 ");
             Person expected = new PersonBuilder(BOB).withInterviewStage(outcome.getValue()).build();
             assertEquals(CommandResult.ListView.CANDIDATES, result.getListView());
             assertEquals(List.of(ALICE, expected), model.getFilteredPersonList());
             assertEquals(model.getHireBase(), storage.readHireBase().orElseThrow());
+        }
+    }
+
+    @Test
+    public void execute_bulkCommands_usePermanentIdsAndPersistAllUpdates() throws Exception {
+        Map<String, InterviewStage> outcomes = Map.of("stage", InterviewStage.REJECTED,
+                "accept", InterviewStage.ACCEPTED, "reject", InterviewStage.REJECTED);
+        for (Map.Entry<String, InterviewStage> outcome : outcomes.entrySet()) {
+            HireBase hireBase = new HireBase();
+            hireBase.addPerson(ALICE);
+            hireBase.addPerson(BOB);
+            hireBase.removePerson(hireBase.getPersonList().get(0));
+            hireBase.addPerson(ALICE);
+            Model model = new ModelManager(hireBase, new UserPrefs());
+            Storage storage = createStorage();
+            Logic logic = new LogicManager(model, storage);
+            logic.execute("find " + BOB.getEmail().value);
+
+            String command = outcome.getKey() + " candidate 3 2 3"
+                    + (outcome.getKey().equals("stage") ? " " + outcome.getValue() : "");
+            assertEquals(CommandResult.ListView.CANDIDATES, logic.execute(command).getListView());
+
+            assertEquals(List.of(new PersonBuilder(BOB).withInterviewStage(outcome.getValue()).build(),
+                    new PersonBuilder(ALICE).withInterviewStage(outcome.getValue()).build()),
+                    model.getFilteredPersonList());
+            var reloaded = storage.readHireBase().orElseThrow();
+            assertEquals(model.getHireBase(), reloaded);
+            assertEquals(List.of(2, 3), reloaded.getPersonList().stream()
+                    .map(person -> person.getCandidateId().orElseThrow().getValue()).toList());
         }
     }
 
@@ -99,8 +128,10 @@ public class AcceptRejectIntegrationTest {
             for (String args : List.of("", "candidate", "candidate 0", "person 1", "candidate 1 extra")) {
                 assertThrows(ParseException.class, () -> logic.execute(action + " " + args));
             }
-            assertThrows(CommandException.class, () -> logic.execute(action + " candidate 2"));
+            assertThrows(CommandException.class, () -> logic.execute(action + " candidate 3"));
+            assertThrows(CommandException.class, () -> logic.execute(action + " candidate 1 3"));
         }
+        assertThrows(CommandException.class, () -> logic.execute("stage candidate 1 3 ACCEPTED"));
 
         assertEquals(hireBase, model.getHireBase());
         assertEquals(List.of(BOB), model.getFilteredPersonList());

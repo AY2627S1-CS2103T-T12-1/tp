@@ -82,6 +82,17 @@ public class JobIdModelTest {
         assertThrows(IllegalArgumentException.class, () -> data.reserveJobIdsUpTo(0));
     }
 
+    @Test
+    public void reserveIds_outOfRangeUpperBound_preservesCounterAndJobs() {
+        HireBase data = new HireBase();
+        data.addJobOpening(job("First"));
+        assertThrows(IllegalArgumentException.class, () -> data.reserveJobIdsUpTo((long) Integer.MAX_VALUE + 2));
+        assertEquals(2, data.getNextJobId());
+        assertEquals(1, id(data.getJobOpeningList().getFirst()));
+        data.addJobOpening(job("Second"));
+        assertEquals(2, id(data.getJobOpeningList().getLast()));
+    }
+
     private static int id(JobOpening job) {
         return job.getJobId().orElseThrow().getValue();
     }

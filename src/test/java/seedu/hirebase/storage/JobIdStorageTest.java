@@ -67,6 +67,14 @@ public class JobIdStorageTest {
     }
 
     @Test
+    public void integersOutsideLongRange_rejectWholeFileWithoutRewriting() throws Exception {
+        for (String overflow : List.of("9223372036854775808", "-9223372036854775809")) {
+            assertInvalid("{\"persons\":[],\"jobs\":[" + jsonJob("First", "\"id\":" + overflow + ",") + "]}");
+            assertInvalid("{\"persons\":[],\"jobs\":[],\"nextJobId\":" + overflow + "}");
+        }
+    }
+
+    @Test
     public void exhaustedCounter_loadsButCannotAssignNewIds() throws Exception {
         HireBase data = load("{\"persons\":[],\"nextJobId\":2147483648,\"jobs\":["
                 + jsonJob("Last", "\"id\":2147483647,") + "]}");

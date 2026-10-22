@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ListChangeListener;
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
@@ -28,6 +27,7 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
 import seedu.hirebase.model.job.JobId;
@@ -50,7 +50,7 @@ public class DeleteJobIntegrationTest {
     public void parse_validWhitespaceAndCandidateRouting_success() throws Exception {
         assertEquals(new DeleteJobCommand(new JobId(2)), parser.parseCommand("  delete   job  2  "));
         assertEquals(new DeleteJobCommand(new JobId(1)), parser.parseCommand("delete\tjob\t1"));
-        assertEquals(new DeleteCommand(Index.fromOneBased(1)), parser.parseCommand("delete candidate 1"));
+        assertEquals(new DeleteCommand(new CandidateId(1)), parser.parseCommand("delete candidate 1"));
     }
 
     @Test

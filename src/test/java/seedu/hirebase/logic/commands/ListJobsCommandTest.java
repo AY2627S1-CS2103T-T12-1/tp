@@ -56,11 +56,11 @@ public class ListJobsCommandTest {
     }
 
     @Test
-    public void execute_afterRemoval_usesCurrentListIndexes() {
+    public void execute_afterRemoval_preservesJobIds() {
         model.addJobOpening(first);
         model.addJobOpening(second);
         model.deleteJobOpening(first);
-        assertEquals("Listed 1 job opening.\n\n1. 开发 Engineer — Research\nDescription: Research services.",
+        assertEquals("Listed 1 job opening.\n\n2. 开发 Engineer — Research\nDescription: Research services.",
                 command.execute(model).getFeedbackToUser());
     }
 

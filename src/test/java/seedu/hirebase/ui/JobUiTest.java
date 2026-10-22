@@ -26,6 +26,7 @@ import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.JobTitle;
 import seedu.hirebase.storage.JsonHireBaseStorage;
@@ -52,7 +53,7 @@ public class JobUiTest {
     public void card_longDetails_wrapAndRemainComplete() throws Exception {
         onFxThread(() -> {
             JobOpening job = job("Long description ".repeat(100));
-            JobCard card = new JobCard(job, 3);
+            JobCard card = new JobCard(job.withJobId(new JobId(3)));
             Scene scene = new Scene(card.getRoot(), 350, 800);
             scene.getRoot().applyCss();
             scene.getRoot().layout();
@@ -69,18 +70,18 @@ public class JobUiTest {
     }
 
     @Test
-    public void cell_reuseAndReindex_refreshesAndClearsCards() throws Exception {
+    public void cell_reuseAndReindex_preservesIdAndClearsCards() throws Exception {
         onFxThread(() -> {
-            var jobs = FXCollections.observableArrayList(job("Build services"));
+            var jobs = FXCollections.observableArrayList(job("Build services").withJobId(new JobId(7)));
             JobListPanel panel = new JobListPanel(jobs);
             JobListPanel.JobListCell cell = panel.new JobListCell();
             cell.updateIndex(0);
             cell.updateItem(jobs.getFirst(), false);
             assertNotNull(cell.getGraphic());
-            assertEquals("1. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
+            assertEquals("7. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
             cell.updateIndex(2);
             cell.updateItem(jobs.getFirst(), false);
-            assertEquals("3. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
+            assertEquals("7. Developer", ((Label) cell.getGraphic().lookup("#title")).getText());
             cell.updateItem(null, false);
             assertEquals(null, cell.getGraphic());
             cell.updateIndex(-1);

@@ -7,6 +7,7 @@ import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.CandidateId;
+import seedu.hirebase.model.job.JobId;
 
 /**
  * Parses candidate and job deletion commands.
@@ -22,7 +23,7 @@ public class DeleteCommandParser implements Parser<Command> {
         String trimmedArgs = args.trim();
         String[] parts = trimmedArgs.split("\\s+", 2);
         if (parts[0].equals("job")) {
-            return parseJobIndex(parts.length > 1 ? parts[1] : "");
+            return parseJobId(parts.length > 1 ? parts[1] : "");
         }
         if (!parts[0].equals(DeleteCommand.RECORD_TYPE_CANDIDATE)) {
             throw new ParseException(
@@ -39,17 +40,17 @@ public class DeleteCommandParser implements Parser<Command> {
         }
     }
 
-    private DeleteJobCommand parseJobIndex(String args) throws ParseException {
+    private DeleteJobCommand parseJobId(String args) throws ParseException {
         if (args.isBlank()) {
-            throw new ParseException(DeleteJobCommand.MESSAGE_MISSING_INDEX);
+            throw new ParseException(DeleteJobCommand.MESSAGE_MISSING_ID);
         }
         if (args.trim().split("\\s+").length != 1) {
             throw new ParseException(DeleteJobCommand.MESSAGE_MULTIPLE_ARGUMENTS);
         }
         try {
-            return new DeleteJobCommand(ParserUtil.parseIndex(args));
+            return new DeleteJobCommand(new JobId(ParserUtil.parseIndex(args).getOneBased()));
         } catch (ParseException e) {
-            throw new ParseException(DeleteJobCommand.MESSAGE_INVALID_INDEX, e);
+            throw new ParseException(DeleteJobCommand.MESSAGE_INVALID_ID, e);
         }
     }
 }

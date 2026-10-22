@@ -8,7 +8,7 @@ import javafx.scene.layout.Region;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
- * A live list of job cards with current, one-based indexes.
+ * A live list of job cards with permanent IDs.
  */
 public class JobListPanel extends UiPart<Region> {
     private static final String FXML = "JobListPanel.fxml";
@@ -46,7 +46,7 @@ public class JobListPanel extends UiPart<Region> {
             if (isEmpty() || getItem() == null || getIndex() < 0) {
                 setGraphic(null);
             } else {
-                Region card = new JobCard(getItem(), getIndex() + 1).getRoot();
+                Region card = new JobCard(getItem()).getRoot();
                 card.prefWidthProperty().bind(widthProperty().subtract(24));
                 setGraphic(card);
             }

@@ -3,6 +3,7 @@ package seedu.hirebase.model;
 import javafx.collections.ObservableList;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
@@ -31,6 +32,14 @@ public interface ReadOnlyHireBase {
                 .mapToInt(CandidateId::getValue)
                 .max()
                 .orElse(0) + 1;
+    }
+
+    /**
+     * Returns the next unused job ID. A value above Integer.MAX_VALUE means IDs are exhausted.
+     */
+    default long getNextJobId() {
+        return getJobOpeningList().stream().flatMap(job -> job.getJobId().stream())
+                .mapToLong(JobId::getValue).max().orElse(0) + 1;
     }
 
 }

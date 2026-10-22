@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
+import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.job.JobOpening;
 
@@ -35,12 +36,17 @@ public class AddJobCommand extends Command {
             JobOpening existing = model.getJobOpeningList().get(i);
             if (existing.isSameJobOpening(toAdd)) {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE,
-                        i + 1, existing.getTitle(), existing.getDepartment()));
+                        existing.getJobId().orElseThrow().getValue(),
+                        existing.getTitle(), existing.getDepartment()));
             }
+        }
+        if (model.getHireBase().getNextJobId() > Integer.MAX_VALUE) {
+            throw new CommandException(HireBase.MESSAGE_JOB_IDS_EXHAUSTED);
         }
         model.addJobOpening(toAdd);
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                model.getJobOpeningList().size(), toAdd.getTitle(), toAdd.getDepartment()));
+                model.getJobOpeningList().getLast().getJobId().orElseThrow().getValue(),
+                toAdd.getTitle(), toAdd.getDepartment()));
     }
 
     @Override

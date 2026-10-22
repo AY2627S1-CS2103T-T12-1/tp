@@ -1,10 +1,14 @@
 package seedu.hirebase.model;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
@@ -80,6 +84,14 @@ public interface Model {
      * Returns a live, unmodifiable view of all job openings in creation order.
      */
     ObservableList<JobOpening> getJobOpeningList();
+
+    /**
+     * Finds a job by its permanent ID, independently of its displayed position.
+     */
+    default Optional<JobOpening> findJobOpening(JobId id) {
+        requireNonNull(id);
+        return getJobOpeningList().stream().filter(job -> job.getJobId().filter(id::equals).isPresent()).findFirst();
+    }
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

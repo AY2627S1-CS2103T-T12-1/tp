@@ -118,7 +118,7 @@ public class JobUiTest {
             submit(command, "add candidate n/Alice p/91234567 e/alice@example.com a/Singapore s/Java r/Engineer");
             assertEquals("Candidates", tabs.getSelectionModel().getSelectedItem().getText());
             for (String input : new String[] {"find Alice", "edit candidate 1 p/91234567",
-                "remark 1 r/Interview scheduled", "delete candidate 1"}) {
+                "note 1 Interview scheduled", "delete candidate 1"}) {
                 tabs.getSelectionModel().select(1);
                 submit(command, input);
                 assertEquals("Candidates", tabs.getSelectionModel().getSelectedItem().getText());

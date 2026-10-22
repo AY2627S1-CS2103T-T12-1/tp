@@ -54,8 +54,8 @@
             <FlowPane fx:id="skills" hgap="4" vgap="4" />
           </HBox>
           <HBox spacing="10">
-            <Label styleClass="detail-key" text="Remark" minWidth="80" />
-            <Label fx:id="remark" styleClass="detail-value" wrapText="true" />
+            <Label styleClass="detail-key" text="Notes" minWidth="80" />
+            <Label fx:id="note" styleClass="detail-value" wrapText="true" />
           </HBox>
         </VBox>
       </StackPane>

@@ -15,9 +15,9 @@ import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
+import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
-import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
@@ -33,7 +33,7 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
-    private final String remark;
+    private final String note;
     private final List<String> skills;
     private final String role;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
@@ -43,17 +43,17 @@ class JsonAdaptedPerson {
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      * Only the full constructor has JSON annotations so deserialization has one unambiguous creator.
      */
-    public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String note,
             List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, remark, tags, null, null, null);
+        this(name, phone, email, address, note, tags, null, null, null);
     }
 
     /**
      * Constructs an adapted person without a stored interview stage.
      */
-    public JsonAdaptedPerson(String name, String phone, String email, String address, String remark,
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String note,
             List<JsonAdaptedTag> tags, List<String> skills, String role) {
-        this(name, phone, email, address, remark, tags, skills, role, null);
+        this(name, phone, email, address, note, tags, skills, role, null);
     }
 
     /**
@@ -63,7 +63,7 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("remark") String remark, @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("note") String note, @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("skills") List<String> skills,
             @JsonProperty("role") String role, @JsonProperty("interviewStage") String interviewStage) {
         this.skills = skills == null ? new ArrayList<>() : new ArrayList<>(skills);
@@ -72,7 +72,7 @@ class JsonAdaptedPerson {
         this.phone = phone;
         this.email = email;
         this.address = address;
-        this.remark = remark;
+        this.note = note;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -89,7 +89,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
-        remark = source.getRemark().value;
+        note = source.getNote().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -141,8 +141,8 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        // Older address books have no remark field; retain those people with an empty remark.
-        final Remark modelRemark = new Remark(remark == null ? "" : remark);
+        // Older address books have no note field; retain those people with an empty note.
+        final Note modelNote = new Note(note == null ? "" : note);
         final Set<Tag> modelTags = new HashSet<>(personTags);
         Set<Skill> modelSkills = new HashSet<>();
         for (String skill : skills) {
@@ -163,7 +163,7 @@ class JsonAdaptedPerson {
                         + "'. Expected one of " + Arrays.toString(InterviewStage.values()) + ".", e);
             }
         }
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelRemark, modelTags,
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelNote, modelTags,
                 modelSkills, role == null ? null : new Role(role), modelInterviewStage);
     }
 

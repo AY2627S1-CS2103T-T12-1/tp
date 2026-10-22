@@ -3,19 +3,19 @@ package seedu.hirebase.model.candidate;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Represents a person's remark in the address book. An empty value represents no remark.
+ * Represents a candidate's screening note in HireBase. An empty value represents no note.
  * Guarantees: immutable and not null.
  */
-public class Remark {
+public class Note {
 
     public final String value;
 
     /**
-     * Constructs a {@code Remark}, allowing any non-null string, including an empty string.
+     * Constructs a {@code Note}, allowing any non-null string, including an empty string.
      */
-    public Remark(String remark) {
-        requireNonNull(remark);
-        value = remark;
+    public Note(String note) {
+        requireNonNull(note);
+        value = note;
     }
 
     @Override
@@ -29,11 +29,11 @@ public class Remark {
             return true;
         }
 
-        if (!(other instanceof Remark otherRemark)) {
+        if (!(other instanceof Note otherNote)) {
             return false;
         }
 
-        return value.equals(otherRemark.value);
+        return value.equals(otherNote.value);
     }
 
     @Override

@@ -63,6 +63,8 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
   Positional arguments, such as `CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE` in
   `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`, must follow the order shown.
 
+- `CANDIDATE_ID` is a candidate's permanent ID, shown as `#N` (e.g. `#1`) before their name on each card. See [About candidate IDs](#about-candidate-ids).
+
 - `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.
   For example, `accept candidate 1` and `accept candidate 1 3 5` are both valid formats.
 
@@ -70,6 +72,25 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
   `list jobs` rejects extra arguments; `list jobs 2` is not valid.
 
 - If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
+</div>
+
+### About candidate IDs
+
+Every candidate gets a permanent **candidate ID** when they are added. It is shown as `#N` before the candidate's name
+on their card, for example `#3 Alex Yeoh`. Commands that act on an existing candidate (`edit candidate`,
+`delete candidate`, `view candidate`, `note`, `stage candidate`, `accept candidate` and `reject candidate`) use this
+ID, not the candidate's position in the list.
+
+- IDs start at 1 and go up by one for each new candidate.
+- A candidate keeps the same ID after `find`, after other candidates are deleted, and after you restart HireBase.
+- Deleted IDs are never given to another candidate, even after `clear`. For example, if you delete candidate `#5`,
+  the next candidate you add gets `#6` or higher, and `delete candidate 5` will report that ID `5` does not exist.
+- An ID must be a positive integer (1, 2, 3, …). An ID that no candidate has is rejected with
+  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+- Candidate IDs and job IDs are counted separately, so candidate `#1` and job opening `1` can both exist.
+
+<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
+Not sure of a candidate's ID? Use `find` with their name or email, then read the `#N` on their card.
 </div>
 
 ### Viewing help: `help`
@@ -90,6 +111,7 @@ Format: `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS].
 * A skill is 1 to 30 characters long and may contain letters, digits, spaces and `+ # . /`. Repeating `s/` adds more skills; duplicates that differ only in letter case are merged.
 * A role is 1 to 100 characters long and may contain letters, digits, spaces, hyphens and slashes.
 * Candidates are identified by email. A candidate whose email matches an existing one (ignoring case) cannot be added.
+* The new candidate is given the next unused [candidate ID](#about-candidate-ids), shown as `#N` on their card. Use this ID in later commands such as `edit candidate` or `delete candidate`.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 Tags (`t/`) are not accepted by `add candidate`. Including one shows the usage message.
@@ -547,6 +569,9 @@ Clears all candidates and job openings from HireBase.
 
 Format: `clear`
 
+Candidate IDs and job IDs used before `clear` are not reused. New candidates and job openings continue from the
+next unused ID.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -563,6 +588,12 @@ Older data files without a `jobs` field still load normally, with an empty job-o
 ### Editing the data file
 
 HireBase data is saved automatically as a JSON file `[JAR file location]/data/hirebase.json`. Advanced users are welcome to update data directly by editing that data file.
+
+Each candidate's `candidateId` must be a positive integer, and no two candidates may share the same `candidateId`.
+The top-level `nextCandidateId` counter keeps track of the next unused candidate ID, including after deletion or
+`clear`; do not lower it or change assigned IDs manually. Older candidates with no `candidateId` (or a `null` one)
+are given new IDs in file order, starting after every stored ID. An invalid or duplicate `candidateId`, or an invalid
+`nextCandidateId`, makes the data file invalid.
 
 Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED` in the JSON file (case-sensitive).
 Older records without this field, or with a `null` value, load as `SCREENING`.
@@ -623,7 +654,7 @@ _Details coming soon ..._
 | **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
 | **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
 | **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
-| **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
+| **Delete candidate** | `delete candidate CANDIDATE_ID`<br> e.g., `delete candidate 3` |
 | **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
 | **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |

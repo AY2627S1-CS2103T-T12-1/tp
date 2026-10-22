@@ -12,12 +12,13 @@ end box
 
 box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
+participant "hb:HireBase" as HireBase MODEL_COLOR
 end box
 
-[-> LogicManager : execute("delete 1")
+[-> LogicManager : execute("delete candidate 1")
 activate LogicManager
 
-LogicManager -> HireBaseParser : parseCommand("delete 1")
+LogicManager -> HireBaseParser : parseCommand("delete candidate 1")
 activate HireBaseParser
 
 create DeleteCommandParser
@@ -27,11 +28,11 @@ activate DeleteCommandParser
 DeleteCommandParser --> HireBaseParser
 deactivate DeleteCommandParser
 
-HireBaseParser -> DeleteCommandParser : parse("1")
+HireBaseParser -> DeleteCommandParser : parse("candidate 1")
 activate DeleteCommandParser
 
 create DeleteCommand
-DeleteCommandParser -> DeleteCommand
+DeleteCommandParser -> DeleteCommand : DeleteCommand(targetId)
 activate DeleteCommand
 
 DeleteCommand --> DeleteCommandParser :
@@ -49,7 +50,17 @@ deactivate HireBaseParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+DeleteCommand -> Model : getHireBase()
+activate Model
+Model --> DeleteCommand : hb
+deactivate Model
+
+DeleteCommand -> HireBase : getPersonByCandidateId(targetId)
+activate HireBase
+HireBase --> DeleteCommand : personToDelete
+deactivate HireBase
+
+DeleteCommand -> Model : deletePerson(personToDelete)
 activate Model
 
 Model --> DeleteCommand

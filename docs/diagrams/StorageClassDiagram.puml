@@ -1,6 +1,8 @@
 @startuml
 !include style.puml
 skinparam arrowThickness 1.1
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
 
@@ -13,14 +15,22 @@ package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
 }
 
-package "AddressBook Storage" #F4F6F6{
+package "HireBase Storage" #F4F6F6{
 Class JsonHireBaseStorage
-Class JsonSerializableHireBase
-Class JsonAdaptedPerson
+Class JsonSerializableHireBase {
+    -nextCandidateId : Integer
+}
+Class JsonAdaptedPerson {
+    -candidateId : Integer
+}
+Class JsonAdaptedJobOpening
 Class JsonAdaptedTag
 }
 
 }
+
+show JsonSerializableHireBase fields
+show JsonAdaptedPerson fields
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage
@@ -31,6 +41,7 @@ StorageManager -down-> "1" JsonHireBaseStorage
 
 JsonHireBaseStorage ..> JsonSerializableHireBase
 JsonSerializableHireBase --> "*" JsonAdaptedPerson
+JsonSerializableHireBase --> "*" JsonAdaptedJobOpening
 JsonAdaptedPerson --> "*" JsonAdaptedTag
 
 @enduml

@@ -51,7 +51,8 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete candidate 1`, which deletes the candidate whose
+permanent candidate ID is `1`.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="574" />
 
@@ -91,9 +92,9 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <img src="images/LogicClassDiagram.png" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete candidate 1")` API call as an example.
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
+![Interactions Inside the Logic Component for the `delete candidate 1` Command](images/DeleteSequenceDiagram.png)
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
@@ -102,7 +103,7 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `HireBaseParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to look up a candidate by their `CandidateId` and delete them).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
@@ -122,12 +123,13 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores the HireBase data i.e., all `Person` (candidate) objects (which are contained in a `UniquePersonList` object) and all `JobOpening` objects (which are contained in a `UniqueJobOpeningList` object).
+* gives every candidate a permanent `CandidateId` when they are added, and keeps the `nextCandidateId` counter in `HireBase` so that an ID is never reused (see [Candidate ID](#candidate-id)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `HireBase`, and each `Person` references tags from that list. This lets `HireBase` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
@@ -141,7 +143,8 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both HireBase data and user preference data in JSON format, and read them back into corresponding objects.
+* saves each candidate's `candidateId` in `JsonAdaptedPerson`, and the `nextCandidateId` counter in `JsonSerializableHireBase`, so that candidate IDs stay the same across restarts.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonHireBaseStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -154,6 +157,74 @@ Classes used by multiple components are in the `seedu.hirebase.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Candidate ID
+
+Every candidate has a permanent `CandidateId`, shown on their card as `#N` (e.g. `#1`). All commands that target an
+existing candidate (`edit candidate`, `delete candidate`, `view candidate`, `note`, `stage candidate`,
+`accept candidate` and `reject candidate`) identify the candidate by this ID instead of their position in the
+displayed list.
+
+#### Implementation
+
+`CandidateId` is a small immutable value class in `seedu.hirebase.model.candidate` that wraps a positive `int`.
+A `Person` holds at most one `CandidateId`. It is *not* part of `Person#equals(...)` or `Person#isSamePerson(...)`,
+so comparing candidates (for example, the duplicate-email check) ignores their IDs.
+
+**Assigning an ID.** The `Person` created by `AddCommandParser` has no ID yet. The ID is assigned by the model, in
+`HireBase#addPerson(Person)`, so that the `Logic` component never needs to know which ID comes next. The sequence
+diagram below shows what happens when `AddCommand` adds a new candidate.
+
+![Assigning a CandidateId when a candidate is added](images/CandidateIdSequenceDiagram.png)
+
+1. `AddCommand` calls `Model#addPerson(toAdd)`, which `ModelManager` passes on to `HireBase#addPerson(toAdd)`.
+1. `HireBase` sees that `toAdd` has no `CandidateId` yet, so it creates a new `CandidateId` from its `nextCandidateId` counter.
+1. Because `Person` is immutable, `Person#withCandidateId(id)` returns a copy of `toAdd` that carries the new ID. This copy is the one stored in the `UniquePersonList`.
+1. `HireBase` then increments `nextCandidateId`, and `ModelManager` resets the filter so that the new candidate is shown.
+
+**Looking up a candidate by ID.** Commands resolve an ID with `ReadOnlyHireBase#getPersonByCandidateId(CandidateId)`,
+which searches the *full* candidate list (not the filtered list) and returns an `Optional<Person>`. If the optional is
+empty, the command throws a `CommandException` with `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`. The `delete candidate`
+flow in the [Logic component](#logic-component) and the [`view`](#view-candidate-feature) and
+[`note`](#note-feature) features below all use this lookup.
+
+**Keeping an ID when a candidate is edited.** `edit candidate`, `note` and `stage candidate` build a new `Person` and
+call `Model#setPerson(target, editedPerson)`. These commands copy the original `CandidateId` into the edited `Person`.
+As a safety net, `HireBase#setPerson(...)` also copies `target`'s ID into `editedPerson` if it has none.
+
+**Never reusing an ID.** `nextCandidateId` only ever moves forward:
+
+* Deleting a candidate does not change the counter, so their ID is retired.
+* `clear` replaces the data through `HireBase#resetData(...)`, which keeps the larger of the current and new counters, so IDs used before `clear` are not given out again.
+* Adding a candidate that already has an ID (e.g. when loading from storage) moves the counter past that ID.
+
+**Saving and loading.** `JsonAdaptedPerson` stores each candidate's `candidateId`, and `JsonSerializableHireBase`
+stores `nextCandidateId`, as shown in the [Storage component](#storage-component). When loading,
+`JsonSerializableHireBase#toModelType()`:
+
+* rejects the file if two candidates have the same `candidateId`, or if any ID or the counter is not a positive integer;
+* reserves IDs up to the saved `nextCandidateId` via `HireBase#reserveCandidateIdsUpTo(int)`;
+* gives candidates from older data files that have no `candidateId` new IDs in file order, starting after every stored ID.
+
+#### Design considerations
+
+**Aspect: How commands refer to a candidate**
+
+* **Alternative 1 (current choice):** A permanent `CandidateId` assigned when the candidate is added.
+  * Pros: The same ID always refers to the same candidate, even after a `find`, a deletion or a restart, so a recruiter can note down an ID and use it later.
+  * Cons: Needs an extra field, a counter, and extra checks when loading the data file.
+* **Alternative 2:** The candidate's position (index) in the displayed list, as in AddressBook-Level3.
+  * Pros: Nothing extra to store or save.
+  * Cons: The same number points to a different candidate after a `find` or a deletion, which makes it easy to edit or delete the wrong candidate.
+
+**Aspect: Where the ID is assigned**
+
+* **Alternative 1 (current choice):** In `HireBase#addPerson(Person)`.
+  * Pros: `HireBase` owns the counter, so one place decides every new ID, and IDs stay unique however a candidate is added.
+  * Cons: The `Person` passed to `addPerson` is not the same object that gets stored, so callers must not keep using it if they need the ID.
+* **Alternative 2:** In `AddCommand` or `AddCommandParser`.
+  * Pros: The `Person` has its ID from the moment it is created.
+  * Cons: `Logic` would need to know the model's counter, and other ways of adding candidates (e.g. sample data, loading from storage) would each need their own logic.
 
 ### View candidate feature
 
@@ -221,8 +292,8 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
   * Pros: The intent to clear is explicit.
   * Cons: Adds another command for users to learn and for the parser to dispatch.
 
-Both `view` and `note` rely on the shared `HireBase#getPersonByCandidateId(CandidateId)` lookup, which is the single
-point where a `CandidateId` is resolved to a `Person`.
+Both `view` and `note` rely on the shared `HireBase#getPersonByCandidateId(CandidateId)` lookup described in
+[Candidate ID](#candidate-id), which is the single point where a `CandidateId` is resolved to a `Person`.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -661,6 +732,8 @@ The following requirements describe the intended quality attributes and operatin
 
 **Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
 
+**Candidate ID:** A permanent positive integer that HireBase gives a candidate when they are added, shown as `#N` on their card. Commands use it to refer to a candidate. It does not change when the list is filtered or other candidates are deleted, and it is never given to another candidate.
+
 **Candidate pipeline:** The set of candidates a recruiter manages and their progress through the recruitment process.
 
 **CLI (Command Line Interface):** A way of interacting with an application by typing text commands. In HireBase, commands are entered in the application's command box.
@@ -725,22 +798,49 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases …​ }_
 
-### Deleting a person
+### Deleting a candidate
 
-1. Deleting a person while all persons are being shown
+1. Deleting a candidate while all candidates are being shown
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all candidates using the `list candidates` command. There should be multiple candidates, one of whom has the ID `#1` on their card.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+   1. Test case: `delete candidate 1`<br>
+      Expected: The candidate with ID `#1` is deleted. The status message shows their ID, name and email. The other candidates keep their IDs.
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+   1. Test case: `delete candidate 0`<br>
+      Expected: No candidate is deleted. The status message shows the usage message.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
+   1. Other incorrect delete commands to try: `delete candidate`, `delete candidate x`, `delete 1`, `delete Candidate 1`<br>
       Expected: Similar to previous.
 
-1. _{ more test cases …​ }_
+1. Deleting a candidate while the list is filtered
+
+   1. Prerequisites: Run `find` with a keyword that hides the candidate with ID `#2`.
+
+   1. Test case: `delete candidate 2`<br>
+      Expected: The candidate with ID `#2` is deleted even though they are not shown, because IDs do not depend on the displayed list.
+
+1. Deleting a candidate that does not exist
+
+   1. Test case: `delete candidate 999` (where no candidate has ID `#999`)<br>
+      Expected: No candidate is deleted. The status message says that candidate ID `999` does not exist.
+
+### Candidate IDs
+
+1. IDs are not reused
+
+   1. Prerequisites: Note the largest candidate ID shown, say `#N`.
+
+   1. Delete the candidate with ID `#N`, then add a new candidate with `add candidate`.<br>
+      Expected: The new candidate gets ID `#N+1`, not `#N`.
+
+   1. Run `clear`, then add a new candidate.<br>
+      Expected: The new candidate's ID is larger than every ID used before `clear`.
+
+1. IDs are kept across restarts
+
+   1. Close HireBase and launch it again.<br>
+      Expected: Every candidate shows the same ID as before.
 
 ### Saving data
 

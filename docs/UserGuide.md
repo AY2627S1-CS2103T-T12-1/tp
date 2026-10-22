@@ -192,15 +192,17 @@ Successful job commands select the Job openings tab automatically, except that `
 the Candidates tab to show the matching rejected-candidate shortlist. If all IDs through 2147483647 have been
 allocated, further additions are rejected with `No more job IDs are available.`; existing openings remain usable.
 
-Common input errors (none adds an opening):
+Command feedback examples (errors leave the opening list unchanged):
 
-| Input problem | Example | Feedback |
-| --- | --- | --- |
-| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
-| Empty title | `add job t/ d/Engineering desc/Build services` | `Parameter t/ cannot be empty.` |
-| Repeated department | `add job t/Engineer d/Engineering d/Research desc/Build services` | `Parameter d/ must be specified only once.` |
-| Unknown prefix | `add job t/Engineer d/Engineering desc/Build services salary/5000` | `Unknown parameter: salary/.` |
-| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
+| Command | Feedback |
+| --- | --- |
+| `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
+| `add job t/ d/Engineering desc/Build services` | `Parameter t/ cannot be empty.` |
+| `add job t/Engineer d/Engineering d/Research desc/Build services` | `Parameter d/ must be specified only once.` |
+| `add job t/Engineer d/Engineering desc/Build services salary/5000` | `Unknown parameter: salary/.` |
+| `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
+| `add job t/Software Engineer d/Engineering desc/Build services` | `Added job opening 1: Software Engineer — Engineering.` (if ID 1 is next) |
+| `add job t/software engineer d/ENGINEERING desc/Other services` | `Job opening already exists (1): Software Engineer — Engineering. Job opening was not added.` (if that opening exists as ID 1) |
 
 Invalid title, department or description values produce a field-specific validation message. Correct the input
 and submit the command again. For a duplicate at ID 1, feedback is
@@ -217,18 +219,15 @@ Each entry shows its permanent positive-integer ID, title, department, full desc
 in different departments are displayed separately. The number identifies the opening, even if it is no longer
 at that list position. Gaps are expected after deletions.
 
+Command feedback examples:
+
+| Command | Feedback |
+| --- | --- |
+| `list jobs` (no openings saved) | `No job openings found.` |
+| `list jobs` (one Software Engineer opening saved) | `Listed 1 job opening.<br><br>1. Software Engineer — Engineering<br>Description: Build backend services using Java.<br>Required skills: None` |
+| `list jobs 2` | `The list jobs command does not accept parameters. Usage: list jobs` |
+
 The result starts with `Listed N job openings.` (or `Listed 1 job opening.` for a single opening).
-An empty list is a successful result: `No job openings found.`
-
-Example result after adding a Software Engineer opening:
-
-```text
-Listed 1 job opening.
-
-1. Software Engineer — Engineering
-Description: Build backend services using Java.
-Required skills: None
-```
 
 The command is case-sensitive and accepts no parameters. Surrounding whitespace and multiple spaces between
 `list` and `jobs` are accepted. Extra arguments, such as `list jobs 2`, are rejected with
@@ -263,9 +262,15 @@ keeps its ID and list position; other openings, candidate records and candidate 
 Changes persist across launches. If saving fails, the live opening remains unchanged and HireBase reports
 `Could not save changes. Job opening was not edited. Check storage permissions and available disk space, then try again.`
 
-For example, `edit job 1 d/Research` changes only the department. `edit job 1` is rejected because no fields were
-specified, and `edit job 1 desc/` is rejected because descriptions cannot be empty. An unavailable ID reports
-`Job ID "ID" does not exist. Use list jobs to view available job IDs.`
+Command feedback examples (assuming job ID 1 exists as Software Engineer — Engineering):
+
+| Command | Feedback |
+| --- | --- |
+| `edit job 1 d/Research` | `Edited job opening 1: Software Engineer — Research.` |
+| `edit job 1` | `Specify at least one field to edit. Usage: edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...` |
+| `edit job 1 desc/` | `Parameter desc/ cannot be empty.` |
+| `edit job 99 d/Research` | `Job ID "99" does not exist. Use list jobs to view available job IDs.` |
+| `edit job 1 t/Data Analyst d/Analytics` (if another opening already has that title and department) | `Job opening already exists. Job opening was not edited.` |
 
 ### Deleting a job opening: `delete job`
 
@@ -297,6 +302,7 @@ Common deletion errors:
 | `delete job 1 2` | `Expected exactly one job ID. Usage: delete job ID` |
 | `delete job 0` | `Job ID must be a positive integer. Usage: delete job ID` |
 | `delete job 1.5` | `Job ID must be a positive integer. Usage: delete job ID` |
+| `delete job 1` | `Deleted job opening 1: Software Engineer — Engineering.` (if ID 1 is that opening) |
 
 Negative IDs, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid ID
 must still refer to an existing opening; use `list jobs` to check the current list after an error.

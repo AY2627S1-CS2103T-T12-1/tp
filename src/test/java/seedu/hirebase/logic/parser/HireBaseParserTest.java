@@ -64,9 +64,8 @@ public class HireBaseParserTest {
     @Test
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " "
-                        + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
+                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " 1");
+        assertEquals(new DeleteCommand(new CandidateId(1)), command);
     }
 
     @Test

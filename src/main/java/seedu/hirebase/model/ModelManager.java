@@ -118,6 +118,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void setJobOpening(JobOpening target, JobOpening editedJobOpening) {
+        addressBook.setJobOpening(target, editedJobOpening);
+    }
+
+    @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return addressBook.getJobOpeningList();
     }

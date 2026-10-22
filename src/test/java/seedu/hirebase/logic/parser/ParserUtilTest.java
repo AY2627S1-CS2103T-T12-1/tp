@@ -56,14 +56,22 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseCandidateId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseCandidateId(null));
+    }
+
+    @Test
     public void parseCandidateId_invalidInput_throwsParseException() {
-        assertThrows(ParseException.class, () -> ParserUtil.parseCandidateId("10 a"));
+        for (String invalid : new String[] {"", "a", "1 2", "0", "-1", "1.5"}) {
+            assertThrows(ParseException.class, CandidateId.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseCandidateId(invalid));
+        }
     }
 
     @Test
     public void parseCandidateId_outOfRangeInput_throwsParseException() {
         assertThrows(ParseException.class, CandidateId.MESSAGE_CONSTRAINTS, () ->
-            ParserUtil.parseCandidateId(Long.toString(Integer.MAX_VALUE + 1)));
+                ParserUtil.parseCandidateId(Long.toString((long) Integer.MAX_VALUE + 1)));
     }
 
     @Test
@@ -72,7 +80,7 @@ public class ParserUtilTest {
         assertEquals(new CandidateId(1), ParserUtil.parseCandidateId("1"));
 
         // Leading and trailing whitespaces
-        assertEquals(new CandidateId(1), ParserUtil.parseCandidateId("  1  "));
+        assertEquals(new CandidateId(12), ParserUtil.parseCandidateId("  12  "));
     }
 
     @Test

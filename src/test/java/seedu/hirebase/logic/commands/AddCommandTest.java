@@ -95,6 +95,11 @@ public class AddCommandTest {
      */
     private class ModelStub implements Model {
         @Override
+        public void setJobOpening(JobOpening target, JobOpening editedJobOpening) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public boolean hasJobOpening(JobOpening jobOpening) {
             throw new AssertionError("This method should not be called.");
         }

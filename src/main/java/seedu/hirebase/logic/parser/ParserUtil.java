@@ -71,12 +71,13 @@ public class ParserUtil {
     }
 
     /**
-     * Parses {@code candidateId} into a {@code CandidateId} and returns it. Leading and trailing
-     * whitespace will be trimmed.
+     * Parses {@code candidateId} into a {@code CandidateId} and returns it. Leading and trailing whitespaces
+     * will be trimmed.
      *
-     * @throws ParseException if the specified ID is not a positive integer.
+     * @throws ParseException if the specified candidate ID is not a positive integer.
      */
     public static CandidateId parseCandidateId(String candidateId) throws ParseException {
+        requireNonNull(candidateId);
         String trimmedId = candidateId.trim();
         if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
             throw new ParseException(CandidateId.MESSAGE_CONSTRAINTS);

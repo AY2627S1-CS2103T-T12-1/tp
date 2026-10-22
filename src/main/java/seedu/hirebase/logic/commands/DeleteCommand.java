@@ -3,6 +3,7 @@ package seedu.hirebase.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
+import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.CandidateId;
@@ -24,8 +25,7 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_DELETE_CANDIDATE_SUCCESS = "Deleted candidate %1$d: %2$s (%3$s)";
 
-    public static final String MESSAGE_CANDIDATE_ID_NOT_FOUND =
-            "Candidate ID \"%1$d\" does not exist. Use list to view available candidate IDs.";
+    public static final String MESSAGE_CANDIDATE_ID_NOT_FOUND = Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND;
 
     private final CandidateId targetId;
 
@@ -42,11 +42,9 @@ public class DeleteCommand extends Command {
         requireNonNull(model);
 
         // Search the full candidate list, so the result does not depend on the current find filter.
-        Person personToDelete = model.getHireBase().getPersonList().stream()
-                .filter(person -> person.getCandidateId().filter(targetId::equals).isPresent())
-                .findFirst()
+        Person personToDelete = model.getHireBase().getPersonByCandidateId(targetId)
                 .orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_CANDIDATE_ID_NOT_FOUND, targetId.getValue())));
+                    String.format(MESSAGE_CANDIDATE_ID_NOT_FOUND, targetId.getValue())));
 
         model.deletePerson(personToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_CANDIDATE_SUCCESS,

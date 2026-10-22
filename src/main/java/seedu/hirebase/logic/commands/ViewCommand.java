@@ -2,12 +2,10 @@ package seedu.hirebase.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import seedu.hirebase.commons.core.LogsCenter;
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;

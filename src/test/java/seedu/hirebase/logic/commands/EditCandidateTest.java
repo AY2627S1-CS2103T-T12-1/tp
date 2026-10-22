@@ -79,11 +79,12 @@ public class EditCandidateTest {
     }
 
     @Test
-    public void execute_filteredIndex_updatesDisplayedCandidateOnly() throws Exception {
+    public void execute_filteredList_updatesCandidateWithGivenIdOnly() throws Exception {
         Person other = new PersonBuilder().withName("Other Candidate").withEmail("other@example.com").build();
         ModelManager model = modelWith(candidate, other);
         model.updateFilteredPersonList(person -> person.equals(other));
-        parser.parse(" candidate 1 r/Frontend Engineer").execute(model);
+        // "other" is shown at position 1, but was added second so its CANDIDATE_ID is 2.
+        parser.parse(" candidate 2 r/Frontend Engineer").execute(model);
         assertEquals(candidate, model.getHireBase().getPersonList().get(0));
         assertEquals(new PersonBuilder(other).withRole("Frontend Engineer").build(),
                 model.getHireBase().getPersonList().get(1));

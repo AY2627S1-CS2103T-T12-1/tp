@@ -17,6 +17,7 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.util.SampleDataUtil;
 
@@ -121,8 +122,48 @@ public class ListCommandTest {
         assertFalse(command.equals("Java"));
     }
 
+    @Test
+    public void execute_roleFilter_matchesCompleteRoleIgnoringCase() {
+        model = new ModelManager(SampleDataUtil.getSampleHireBase(), new UserPrefs());
+        assertListResults(new ListCommand(null, new Role("backend engineer")), "Alex Yeoh");
+        assertListResults(new ListCommand(null, new Role("Full-Stack Developer")), "Roy Balakrishnan");
+        assertListResults(new ListCommand(null, new Role("Backend")));
+        assertListResults(new ListCommand(null, new Role("Java")));
+    }
+
+    @Test
+    public void execute_skillAndRole_requiresBothFilters() {
+        model = new ModelManager(SampleDataUtil.getSampleHireBase(), new UserPrefs());
+        assertListResults(new ListCommand(new Skill("Java"), new Role("Backend Engineer")), "Alex Yeoh");
+        assertListResults(new ListCommand(new Skill("Python"), new Role("Backend Engineer")));
+        assertListResults(new ListCommand(new Skill("Java"), new Role("QA Engineer")), "Irfan Ibrahim");
+    }
+
+    @Test
+    public void execute_roleFilter_excludesCandidatesWithoutRole() {
+        assertListResults(new ListCommand(null, new Role("Backend Engineer")));
+        new ListCommand().execute(model);
+        assertEquals(model.getHireBase().getPersonList(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void equalsAndHashCode_includesRoleAndPreservesSkillConstructors() {
+        ListCommand command = new ListCommand(new Skill("Java"), new Role("Backend Engineer"));
+        ListCommand same = new ListCommand(new Skill("java"), new Role("backend engineer"));
+        assertEquals(command, same);
+        assertEquals(command.hashCode(), same.hashCode());
+        assertFalse(command.equals(new ListCommand(new Skill("Java"), new Role("QA Engineer"))));
+        assertFalse(command.equals(new ListCommand(new Skill("Java"))));
+        assertEquals(new ListCommand(new Skill("Java")), new ListCommand(new Skill("Java"), null));
+        assertEquals(new ListCommand(), new ListCommand(null, null));
+    }
+
     private void assertSkillResults(String skill, String... expectedNames) {
-        CommandResult result = new ListCommand(new Skill(skill)).execute(model);
+        assertListResults(new ListCommand(new Skill(skill)), expectedNames);
+    }
+
+    private void assertListResults(ListCommand command, String... expectedNames) {
+        CommandResult result = command.execute(model);
         assertEquals(List.of(expectedNames), model.getFilteredPersonList().stream()
                 .map(person -> person.getName().fullName).toList());
         String expectedMessage = expectedNames.length == 0 ? ListCommand.MESSAGE_NO_CANDIDATES

@@ -2,6 +2,7 @@ package seedu.hirebase.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 
 import java.util.Set;
@@ -10,6 +11,7 @@ import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 
 /**
@@ -36,13 +38,16 @@ public class ListCommandParser implements Parser<Command> {
             throw new ParseException(ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
         }
 
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs, PREFIX_SKILL);
+        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs, PREFIX_SKILL, PREFIX_ROLE);
         if (!argMultimap.getPreamble().equals(ListCommand.RECORD_TYPE_CANDIDATE)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE));
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SKILL);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SKILL, PREFIX_ROLE);
         Set<Skill> skills = ParserUtil.parseSkills(argMultimap.getAllValues(PREFIX_SKILL));
-        return skills.isEmpty() ? new ListCommand() : new ListCommand(skills.iterator().next());
+        Skill skill = skills.isEmpty() ? null : skills.iterator().next();
+        Role role = argMultimap.getValue(PREFIX_ROLE).isEmpty() ? null
+                : ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get());
+        return new ListCommand(skill, role);
     }
 }

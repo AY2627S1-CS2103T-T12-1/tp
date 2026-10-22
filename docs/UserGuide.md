@@ -102,9 +102,9 @@ Examples:
 
 ### Listing candidates: `list candidates`
 
-Selects the Candidates tab and lists all candidates, or filters by one technical skill shown on their cards.
+Selects the Candidates tab and lists all candidates, or filters by technical skill and target role.
 
-Format: `list candidates [s/SKILL]`
+Format: `list candidates [s/SKILL] [r/ROLE]`
 
 * `list candidates s/Java` lists candidates with the `Java` skill. Likewise, use `s/Spring` or `s/SQL`
   to match those skills. The skill can be any valid saved skill; it is not limited to these examples.
@@ -112,10 +112,15 @@ Format: `list candidates [s/SKILL]`
   It checks the skill chips, rather than the candidate's target role or name.
 * Multi-word skills are supported, for example, `list candidates s/Machine Learning`.
   Leading, trailing, and repeated whitespace is ignored. Skills use the same validation as `add candidate`.
-* Supply at most one `s/` field. Empty, invalid, or repeated skill fields are rejected.
+* `list candidates r/Backend Engineer` matches the complete saved target role, ignoring case.
+  `r/Backend` does not match `Backend Engineer`. Candidates without a target role do not match.
+  Role values follow the same length and character rules as `add candidate`; whitespace is normalized.
+* Supply at most one `s/` field and one `r/` field, in either order. Empty, invalid, or repeated fields are rejected.
+* Combining filters requires both to match. For example, `list candidates s/Java r/Backend Engineer`
+  lists candidates who have the `Java` skill and target the `Backend Engineer` role.
 * Each command filters the full candidate list, replacing any previous search or filter. Candidates retain their
   order and permanent IDs. Candidate and job records are unchanged.
-* `list candidates` without a skill clears the filter and shows everyone again. No matches shows `No candidates found.`
+* `list candidates` without filters clears the filter and shows everyone again. No matches shows `No candidates found.`
 
 Use `list jobs` to view openings instead. The bare command `list` is not accepted.
 
@@ -634,7 +639,7 @@ _Details coming soon ..._
 | Action | Format, Examples |
 |--------|------------------|
 | **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
-| **List candidates** | `list candidates [s/SKILL]`<br> e.g., `list candidates s/Java` |
+| **List candidates** | `list candidates [s/SKILL] [r/ROLE]`<br> e.g., `list candidates s/Java` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
 | **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
 | **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |

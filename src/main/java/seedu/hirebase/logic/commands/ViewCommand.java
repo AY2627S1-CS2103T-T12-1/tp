@@ -48,10 +48,11 @@ public class ViewCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person personToView = model.getPersonByCandidateId(targetId)
+        Person personToView = model.findPerson(targetId)
                 .orElseThrow(() -> {
                     logger.warning("View command rejected: no candidate with ID " + targetId);
-                    return new CommandException(String.format(Messages.MESSAGE_NO_CANDIDATE_WITH_ID, targetId));
+                    return new CommandException(
+                            String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, targetId.getValue()));
                 });
 
         model.updateFilteredPersonList(new SamePersonPredicate(personToView));

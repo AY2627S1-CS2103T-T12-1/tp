@@ -48,10 +48,14 @@ public interface Model {
     boolean hasPerson(Person person);
 
     /**
-     * Returns the candidate with the given {@code candidateId}, if one exists.
-     * The lookup is independent of the current filter, since a candidate ID is permanent.
+     * Finds a candidate by their permanent ID, independently of the current filter.
      */
-    Optional<Person> getPersonByCandidateId(CandidateId candidateId);
+    default Optional<Person> findPerson(CandidateId id) {
+        requireNonNull(id);
+        return getHireBase().getPersonList().stream()
+                .filter(person -> person.getCandidateId().filter(id::equals).isPresent())
+                .findFirst();
+    }
 
     /**
      * Deletes the given person.

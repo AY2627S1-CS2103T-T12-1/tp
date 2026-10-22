@@ -74,7 +74,7 @@ public class NoteCommandTest {
 
         CommandResult result = new NoteCommand(hiddenId, new Note("Reached by ID")).execute(model);
 
-        Person edited = model.getPersonByCandidateId(hiddenId).orElseThrow();
+        Person edited = model.findPerson(hiddenId).orElseThrow();
         assertEquals(String.format(NoteCommand.MESSAGE_ADD_NOTE_SUCCESS, Messages.format(edited)),
                 result.getFeedbackToUser());
         assertEquals("Reached by ID", edited.getNote().value);
@@ -86,7 +86,7 @@ public class NoteCommandTest {
     public void execute_nonexistentId_failure() {
         NoteCommand command = new NoteCommand(new CandidateId(999), new Note("Test"));
         assertCommandFailure(command, model,
-                String.format(Messages.MESSAGE_NO_CANDIDATE_WITH_ID, new CandidateId(999)));
+                String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, new CandidateId(999).getValue()));
     }
 
     @Test

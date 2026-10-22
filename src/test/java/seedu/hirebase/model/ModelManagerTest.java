@@ -70,21 +70,21 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void getPersonByCandidateId_nullId_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> modelManager.getPersonByCandidateId(null));
+    public void findPerson_nullId_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.findPerson(null));
     }
 
     @Test
-    public void getPersonByCandidateId_idNotPresent_returnsEmpty() {
+    public void findPerson_idNotPresent_returnsEmpty() {
         modelManager.addPerson(ALICE); // assigned ID 1
-        assertTrue(modelManager.getPersonByCandidateId(new CandidateId(2)).isEmpty());
+        assertTrue(modelManager.findPerson(new CandidateId(2)).isEmpty());
     }
 
     @Test
-    public void getPersonByCandidateId_idPresent_returnsPerson() {
+    public void findPerson_idPresent_returnsPerson() {
         modelManager.addPerson(ALICE); // assigned ID 1
         assertEquals(modelManager.getHireBase().getPersonList().get(0),
-                modelManager.getPersonByCandidateId(new CandidateId(1)).orElseThrow());
+                modelManager.findPerson(new CandidateId(1)).orElseThrow());
     }
 
     @Test

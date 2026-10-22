@@ -90,7 +90,7 @@ public class ViewCommandTest {
         Model model = modelWith(new PersonBuilder().withEmail("a@example.com").build());
         ViewCommand command = new ViewCommand(new CandidateId(999));
         assertCommandFailure(command, model,
-                String.format(Messages.MESSAGE_NO_CANDIDATE_WITH_ID, new CandidateId(999)));
+                String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, new CandidateId(999).getValue()));
     }
 
     @Test

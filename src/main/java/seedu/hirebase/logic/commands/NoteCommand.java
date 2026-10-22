@@ -51,10 +51,11 @@ public class NoteCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Person personToEdit = model.getPersonByCandidateId(targetId)
+        Person personToEdit = model.findPerson(targetId)
                 .orElseThrow(() -> {
                     logger.warning("Note command rejected: no candidate with ID " + targetId);
-                    return new CommandException(String.format(Messages.MESSAGE_NO_CANDIDATE_WITH_ID, targetId));
+                    return new CommandException(
+                            String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, targetId.getValue()));
                 });
 
         Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),

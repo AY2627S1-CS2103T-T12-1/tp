@@ -36,8 +36,8 @@ public class ListJobsCommandParserTest {
     }
 
     @Test
-    public void parse_candidates_keepsExistingBehavior() throws Exception {
+    public void parse_candidates_routesToCandidateListAndRejectsExtraText() throws Exception {
         assertEquals(new ListCommand(), parser.parseCommand("list candidates"));
-        assertEquals(new ListCommand(), parser.parseCommand("list candidates ignored arguments"));
+        assertThrows(ParseException.class, () -> parser.parseCommand("list candidates ignored arguments"));
     }
 }

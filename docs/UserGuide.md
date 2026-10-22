@@ -66,8 +66,8 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 - `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.
   For example, `accept candidate 1` and `accept candidate 1 3 5` are both valid formats.
 
-- `help`, `exit`, `clear`, and `list candidates` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
-  `list jobs` rejects extra arguments; `list jobs 2` is not valid.
+- `help`, `exit`, and `clear` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
+  `list jobs` and `list candidates` reject unexpected arguments; `list jobs 2` is not valid.
 
 - If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -100,11 +100,22 @@ Examples:
 * `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer`
 * `add candidate n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567 s/C++ s/Python r/Full-Stack Developer`
 
-### Listing all candidates: `list candidates`
+### Listing candidates: `list candidates`
 
-Selects the Candidates tab and shows all candidates in HireBase, clearing any active candidate search.
+Selects the Candidates tab and lists all candidates, or filters by one technical skill shown on their cards.
 
-Format: `list candidates`
+Format: `list candidates [s/SKILL]`
+
+* `list candidates s/Java` lists candidates with the `Java` skill. Likewise, use `s/Spring` or `s/SQL`
+  to match those skills. The skill can be any valid saved skill; it is not limited to these examples.
+* Matching uses the complete skill name without regard to case: `s/java` matches `Java`, but not `JavaScript`.
+  It checks the skill chips, rather than the candidate's target role or name.
+* Multi-word skills are supported, for example, `list candidates s/Machine Learning`.
+  Leading, trailing, and repeated whitespace is ignored. Skills use the same validation as `add candidate`.
+* Supply at most one `s/` field. Empty, invalid, or repeated skill fields are rejected.
+* Each command filters the full candidate list, replacing any previous search or filter. Candidates retain their
+  order and permanent IDs. Candidate and job records are unchanged.
+* `list candidates` without a skill clears the filter and shows everyone again. No matches shows `No candidates found.`
 
 Use `list jobs` to view openings instead. The bare command `list` is not accepted.
 
@@ -617,7 +628,7 @@ _Details coming soon ..._
 | Action | Format, Examples |
 |--------|------------------|
 | **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
-| **List candidates** | `list candidates` |
+| **List candidates** | `list candidates [s/SKILL]`<br> e.g., `list candidates s/Java` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
 | **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
 | **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |

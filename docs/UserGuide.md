@@ -108,12 +108,11 @@ Use `list jobs` to view openings instead. The bare command `list` is not accepte
 
 Use job openings to keep a local record of roles you are recruiting for. Each opening has a title, department,
 and description. The supported commands are [`add job`](#adding-a-job-opening-add-job),
-[`list jobs`](#listing-job-openings-list-jobs), and [`delete job`](#deleting-a-job-opening-delete-job).
+[`list jobs`](#listing-job-openings-list-jobs), [`edit job`](#editing-a-job-opening-edit-job), and [`delete job`](#deleting-a-job-opening-delete-job).
 They do not publish vacancies or accept applications.
 
-Job openings and candidate profiles are separate records. Adding or deleting an opening does not assign candidates
-to it or change their target roles. There is no `edit job` command: to correct an opening, check its index with
-`list jobs`, delete it, and add the replacement. The replacement appears at the end of the job list.
+Job openings and candidate profiles are separate records. Adding, editing or deleting an opening does not assign candidates
+to it or change their target roles. Use `edit job` to correct an opening while keeping its position in the job list.
 
 ### Switching between candidates and job openings
 
@@ -123,7 +122,7 @@ or reset a candidate search. You can also use `list jobs` or `list candidates` f
 
 Each job card displays its current 1-based index, title, department, and full description. Long details wrap
 across lines; scroll the list to read additional content. An empty jobs tab shows `No job openings found.`
-Cards update after adding, deleting or clearing records. After a deletion, later job indexes shift down by one.
+Cards update after adding, editing, deleting or clearing records. After a deletion, later job indexes shift down by one.
 
 Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
 the Candidates tab. Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active
@@ -207,6 +206,28 @@ The command is case-sensitive and accepts no parameters. Surrounding whitespace 
 
 Listing jobs does not change records, their order, the candidate list or its active filter, and does not rewrite
 the data file.
+
+### Editing a job opening: `edit job`
+
+Format: `edit job INDEX [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`
+
+Example: `edit job 1 t/Senior Software Engineer desc/Lead backend development.`
+
+Use `list jobs` to check the current index. The index must be a positive integer referring to an existing
+opening; candidate filters do not affect job indexes. The keywords `edit` and `job` are case-sensitive.
+Provide at least one field, in any order. Omitted fields retain their values. Supplied fields must be non-empty
+and follow the same validation rules as [`add job`](#adding-a-job-opening-add-job). Repeated and unknown prefixes
+are rejected. An edit that would duplicate another opening's title and department (ignoring case) is rejected.
+Changing only capitalisation or supplying the existing values is allowed.
+
+Success shows `Edited job opening INDEX: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
+keeps its index; other openings, candidate records and candidate filters remain unchanged. Changes persist across
+launches. If saving fails, the live opening remains unchanged and HireBase reports
+`Could not save changes. Job opening was not edited. Check storage permissions and available disk space, then try again.`
+
+For example, `edit job 1 d/Research` changes only the department. `edit job 1` is rejected because no fields were
+specified, and `edit job 1 desc/` is rejected because descriptions cannot be empty. An unavailable index reports
+`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
 
 ### Deleting a job opening: `delete job`
 
@@ -480,6 +501,7 @@ _Details coming soon ..._
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
+| **Edit job** | `edit job INDEX [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job INDEX`<br> e.g., `delete job 2` |
 | **Clear** | `clear` |
 | **Help** | `help` |

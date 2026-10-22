@@ -77,6 +77,11 @@ public interface Model {
     void deleteJobOpening(JobOpening target);
 
     /**
+     * Replaces an existing opening in place, preserving candidate records and filters.
+     */
+    void setJobOpening(JobOpening target, JobOpening editedJobOpening);
+
+    /**
      * Returns a live, unmodifiable view of all job openings in creation order.
      */
     ObservableList<JobOpening> getJobOpeningList();

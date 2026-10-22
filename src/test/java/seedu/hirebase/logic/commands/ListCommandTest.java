@@ -17,9 +17,12 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.InterviewStage;
+import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.util.SampleDataUtil;
+import seedu.hirebase.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -156,6 +159,52 @@ public class ListCommandTest {
         assertFalse(command.equals(new ListCommand(new Skill("Java"))));
         assertEquals(new ListCommand(new Skill("Java")), new ListCommand(new Skill("Java"), null));
         assertEquals(new ListCommand(), new ListCommand(null, null));
+    }
+
+    @Test
+    public void execute_stageFilter_matchesEachStage() {
+        useCandidatesAtDifferentStages();
+        assertListResults(new ListCommand(null, null, InterviewStage.SCREENING), "Alex Yeoh", "David Li");
+        assertListResults(new ListCommand(null, null, InterviewStage.ACCEPTED), "Bernice Yu", "Irfan Ibrahim");
+        assertListResults(new ListCommand(null, null, InterviewStage.REJECTED),
+                "Charlotte Oliveiro", "Roy Balakrishnan");
+    }
+
+    @Test
+    public void execute_combinedStageFilters_requiresEveryCriterion() {
+        useCandidatesAtDifferentStages();
+        assertListResults(new ListCommand(new Skill("Java"), null, InterviewStage.ACCEPTED), "Irfan Ibrahim");
+        assertListResults(new ListCommand(null, new Role("Backend Engineer"), InterviewStage.SCREENING), "Alex Yeoh");
+        assertListResults(new ListCommand(new Skill("Java"), new Role("Backend Engineer"),
+                InterviewStage.SCREENING), "Alex Yeoh");
+        assertListResults(new ListCommand(new Skill("Java"), new Role("Backend Engineer"), InterviewStage.REJECTED));
+        model = new ModelManager();
+        assertListResults(new ListCommand(null, null, InterviewStage.SCREENING));
+    }
+
+    @Test
+    public void equalsAndHashCode_includesStageAndPreservesExistingConstructors() {
+        ListCommand command = new ListCommand(new Skill("Java"), new Role("Backend Engineer"),
+                InterviewStage.SCREENING);
+        ListCommand same = new ListCommand(new Skill("java"), new Role("backend engineer"), InterviewStage.SCREENING);
+        assertEquals(command, same);
+        assertEquals(command.hashCode(), same.hashCode());
+        assertFalse(command.equals(new ListCommand(new Skill("Java"), new Role("Backend Engineer"),
+                InterviewStage.ACCEPTED)));
+        assertFalse(command.equals(new ListCommand(new Skill("Java"), new Role("Backend Engineer"))));
+        assertEquals(new ListCommand(new Skill("Java"), new Role("Backend Engineer")),
+                new ListCommand(new Skill("Java"), new Role("Backend Engineer"), null));
+        assertEquals(new ListCommand(), new ListCommand(null, null, null));
+    }
+
+    private void useCandidatesAtDifferentStages() {
+        HireBase hireBase = new HireBase();
+        Person[] persons = SampleDataUtil.getSamplePersons();
+        InterviewStage[] stages = InterviewStage.values();
+        for (int i = 0; i < persons.length; i++) {
+            hireBase.addPerson(new PersonBuilder(persons[i]).withInterviewStage(stages[i % stages.length]).build());
+        }
+        model = new ModelManager(hireBase, new UserPrefs());
     }
 
     private void assertSkillResults(String skill, String... expectedNames) {

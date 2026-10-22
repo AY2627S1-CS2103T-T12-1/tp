@@ -65,6 +65,15 @@ public class HireBaseTest {
     }
 
     @Test
+    public void getPersonByCandidateId_existingAndMissingId() {
+        HireBase hireBase = new HireBase();
+        hireBase.addPerson(ALICE);
+
+        assertTrue(hireBase.getPersonByCandidateId(new CandidateId(1)).isPresent());
+        assertTrue(hireBase.getPersonByCandidateId(new CandidateId(2)).isEmpty());
+    }
+
+    @Test
     public void setPerson_editedPersonWithoutId_keepsTargetId() {
         addressBook.addPerson(ALICE);
         Person target = addressBook.getPersonList().get(0);

@@ -15,10 +15,10 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.EditCommand;
 import seedu.hirebase.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.tag.Tag;
 
 /**
@@ -43,10 +43,10 @@ public class EditCommandParser implements Parser<EditCommand> {
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(parts[1], PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS, PREFIX_TAG, PREFIX_SKILL, PREFIX_ROLE);
 
-        Index index;
+        CandidateId candidateId;
 
         try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
+            candidateId = ParserUtil.parseCandidateId(argMultimap.getPreamble());
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
         }
@@ -83,7 +83,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
         }
 
-        return new EditCommand(index, editPersonDescriptor);
+        return new EditCommand(candidateId, editPersonDescriptor);
     }
 
     /**

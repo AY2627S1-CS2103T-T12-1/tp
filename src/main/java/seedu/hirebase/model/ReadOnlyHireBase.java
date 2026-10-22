@@ -1,5 +1,7 @@
 package seedu.hirebase.model;
 
+import java.util.Optional;
+
 import javafx.collections.ObservableList;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
@@ -21,6 +23,15 @@ public interface ReadOnlyHireBase {
      * Returns a live, unmodifiable view of all job openings in creation order, without duplicates.
      */
     ObservableList<JobOpening> getJobOpeningList();
+
+    /**
+     * Returns the candidate with the given {@code candidateId}, or empty if there is no such candidate.
+     */
+    default Optional<Person> getPersonByCandidateId(CandidateId candidateId) {
+        return getPersonList().stream()
+                .filter(person -> person.getCandidateId().filter(candidateId::equals).isPresent())
+                .findFirst();
+    }
 
     /**
      * Returns the candidate ID that will be given to the next new candidate.

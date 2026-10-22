@@ -3,7 +3,7 @@ package seedu.hirebase.logic.parser;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,9 +15,9 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsViewCommand() {
-        assertParseSuccess(parser, " candidate 1", new ViewCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, " candidate 1", new ViewCommand(ID_FIRST_PERSON));
         // Extra surrounding whitespace is tolerated.
-        assertParseSuccess(parser, "   candidate   1  ", new ViewCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "   candidate   1  ", new ViewCommand(ID_FIRST_PERSON));
     }
 
     @Test

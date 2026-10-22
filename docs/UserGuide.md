@@ -344,7 +344,7 @@ Invalid input leaves the records unchanged.
 
 For example, `edit candidate 1 p/+6591234567 e/johndoe@example.com` updates only the contact details of the candidate with ID 1.
 `edit candidate 2 s/Java s/SQL r/Backend Engineer` replaces the skills and target role of the candidate with ID 2,
-preserving their contact details and remark. Editing a remark also preserves skills and target role.
+preserving their contact details and note. Editing a note also preserves skills and target role.
 Edited recruitment details appear on the candidate card and are saved locally.
 Older records without skills or a target role can still be loaded and edited.
 
@@ -368,7 +368,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   candidate by their permanent `CANDIDATE_ID` (shown as `#N` on each card), not by their position in the results.
 - Each search considers all candidates, including those hidden by a previous search.
   Use `list candidates` to display all candidates again.
-- The search considers only names and email addresses; it does not search skills, roles, remarks, or other fields.
+- The search considers only names and email addresses; it does not search skills, roles, notes, or other fields.
 
 Examples:
 

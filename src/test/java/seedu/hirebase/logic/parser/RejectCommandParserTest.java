@@ -5,6 +5,8 @@ import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailu
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 
 import java.util.List;
 
@@ -19,14 +21,26 @@ public class RejectCommandParserTest {
 
     @Test
     public void parse_validArgsAndWhitespace_returnsCommand() {
-        assertParseSuccess(parser, "candidate 1", new RejectCommand(INDEX_FIRST_PERSON));
-        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new RejectCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "candidate 1", new RejectCommand(List.of(INDEX_FIRST_PERSON)));
+        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new RejectCommand(List.of(INDEX_FIRST_PERSON)));
+    }
+
+    @Test
+    public void parse_multipleIndexesAndWhitespace_returnsCommand() {
+        assertParseSuccess(parser, " candidate  3\t1\n2 ",
+                new RejectCommand(List.of(INDEX_THIRD_PERSON, INDEX_FIRST_PERSON, INDEX_SECOND_PERSON)));
+    }
+
+    @Test
+    public void parse_duplicateIndexes_returnsCommandWithUniqueIndexes() {
+        assertParseSuccess(parser, "candidate 2 1 2",
+                new RejectCommand(List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON)));
     }
 
     @Test
     public void parse_invalidFormat_throwsParseException() {
         for (String args : List.of("", " ", "candidate", "1", "Candidate 1", "person 1", "job 1",
-                "candidate 1 extra", "candidate 1 2", "candidate 1 REJECTED")) {
+                "candidate 1 extra", "candidate 1,2", "candidate 1 REJECTED", "candidate 1 2 REJECTED")) {
             assertParseFailure(parser, args, expectedUsageFailure);
         }
     }
@@ -35,6 +49,8 @@ public class RejectCommandParserTest {
     public void parse_invalidIndex_throwsParseException() {
         for (String index : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
             assertParseFailure(parser, "candidate " + index, expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 " + index + " 2", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 2 " + index, expectedUsageFailure);
         }
     }
 

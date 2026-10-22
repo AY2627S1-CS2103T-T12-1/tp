@@ -7,7 +7,11 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,25 +57,74 @@ public class AcceptCommandTest {
     @Test
     public void execute_invalidIndex_leavesModelUnchanged() {
         Index outOfBounds = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
-        assertCommandFailure(new AcceptCommand(outOfBounds), model,
+        assertCommandFailure(new AcceptCommand(List.of(outOfBounds)), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        assertCommandFailure(new AcceptCommand(INDEX_SECOND_PERSON), model,
+        assertCommandFailure(new AcceptCommand(List.of(INDEX_SECOND_PERSON)), model,
                 Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
-    public void constructor_nullIndex_throwsNullPointerException() {
+    public void constructor_nullIndexes_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new AcceptCommand(null));
     }
 
+    @Test
+    public void execute_multipleIndexes_updatesSelectedCandidates() {
+        assertShortcutSuccess(List.of(INDEX_THIRD_PERSON, INDEX_FIRST_PERSON));
+    }
+
+    @Test
+    public void execute_filteredListAndDuplicates_usesOriginalDisplayedIndexes() {
+        Person hiddenCandidate = model.getHireBase().getPersonList().get(0);
+        model.updateFilteredPersonList(person -> !person.equals(hiddenCandidate)
+                && person.getInterviewStage() == InterviewStage.SCREENING);
+
+        assertShortcutSuccess(List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON, Index.fromOneBased(2)));
+
+        assertEquals(hiddenCandidate, model.getHireBase().getPersonList().get(0));
+        assertEquals(model.getHireBase().getPersonList().size(), model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_invalidIndexAfterValidIndex_leavesModelAndFilterUnchanged() {
+        Index outOfBounds = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        assertCommandFailure(new AcceptCommand(List.of(INDEX_FIRST_PERSON, outOfBounds)), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        assertCommandFailure(new AcceptCommand(List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON)), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertEquals(1, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void constructor_emptyIndexes_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new AcceptCommand(List.of()));
+    }
+
     private void assertShortcutSuccess() {
-        Person original = model.getFilteredPersonList().get(0);
-        Person expected = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
+        assertShortcutSuccess(List.of(INDEX_FIRST_PERSON));
+    }
+
+    private void assertShortcutSuccess(List<Index> indexes) {
+        List<Person> displayedCandidates = List.copyOf(model.getFilteredPersonList());
+        List<?> originalIds = model.getHireBase().getPersonList().stream().map(Person::getCandidateId).toList();
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
-        expectedModel.setPerson(original, expected);
-        String message = String.format(StageCommand.MESSAGE_STAGE_CANDIDATE_SUCCESS,
-                INDEX_FIRST_PERSON.getOneBased(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED);
-        assertCommandSuccess(new AcceptCommand(INDEX_FIRST_PERSON), model, message, expectedModel);
+        List<Index> processedIndexes = new ArrayList<>();
+        List<String> messages = new ArrayList<>();
+        for (Index index : indexes) {
+            if (processedIndexes.contains(index)) {
+                continue;
+            }
+            processedIndexes.add(index);
+            Person original = displayedCandidates.get(index.getZeroBased());
+            Person expected = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
+            expectedModel.setPerson(original, expected);
+            messages.add(String.format(StageCommand.MESSAGE_STAGE_CANDIDATE_SUCCESS,
+                    index.getOneBased(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED));
+        }
+        assertCommandSuccess(new AcceptCommand(indexes), model, String.join("\n", messages), expectedModel);
+        assertEquals(originalIds, model.getHireBase().getPersonList().stream().map(Person::getCandidateId).toList());
     }
 }

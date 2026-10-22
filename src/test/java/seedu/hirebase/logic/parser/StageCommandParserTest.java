@@ -5,6 +5,8 @@ import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailu
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,10 +37,24 @@ public class StageCommandParserTest {
     }
 
     @Test
+    public void parse_multipleIndexes_returnsStageCommand() {
+        for (InterviewStage stage : InterviewStage.values()) {
+            assertParseSuccess(parser, "  candidate\t3  1\t2   " + stage.name().toLowerCase(Locale.ROOT),
+                    new StageCommand(List.of(INDEX_THIRD_PERSON, INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), stage));
+        }
+    }
+
+    @Test
+    public void parse_duplicateIndexes_returnsStageCommandWithUniqueIndexes() {
+        assertParseSuccess(parser, "candidate 2 1 2 ACCEPTED",
+                new StageCommand(List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON), InterviewStage.ACCEPTED));
+    }
+
+    @Test
     public void parse_invalidFormat_throwsParseException() {
         for (String args : List.of("", " ", "candidate", "candidate 1", "1 ACCEPTED",
                 "person 1 ACCEPTED", "Candidate 1 ACCEPTED", "candidate 1 ACCEPTED extra",
-                "candidate 1 2 ACCEPTED")) {
+                "candidate 1,2 ACCEPTED")) {
             assertParseFailure(parser, args, expectedUsageFailure);
         }
     }
@@ -47,6 +63,8 @@ public class StageCommandParserTest {
     public void parse_invalidIndex_throwsParseException() {
         for (String index : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
             assertParseFailure(parser, "candidate " + index + " ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 " + index + " 2 ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 2 " + index + " ACCEPTED", expectedUsageFailure);
         }
     }
 
@@ -54,6 +72,7 @@ public class StageCommandParserTest {
     public void parse_invalidStage_throwsParseException() {
         for (String stage : List.of("UNKNOWN", "HIRED", "ACCEPTED!", "1")) {
             assertParseFailure(parser, "candidate 1 " + stage, StageCommand.MESSAGE_INVALID_STAGE);
+            assertParseFailure(parser, "candidate 1 2 " + stage, StageCommand.MESSAGE_INVALID_STAGE);
         }
     }
 

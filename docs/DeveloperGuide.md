@@ -155,6 +155,75 @@ Classes used by multiple components are in the `seedu.hirebase.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### View candidate feature
+
+The `view candidate CANDIDATE_ID` command shows the full details of one candidate in the result display and collapses
+the candidate list to show only that candidate. It identifies its target by the candidate's permanent `CandidateId`
+rather than a displayed list position, so the same ID always resolves to the same candidate regardless of the current
+filter.
+
+#### Implementation
+
+The sequence diagram below shows the interactions within the `Logic` and `Model` components when the user issues
+`view candidate 1`. Only the successful flow is shown.
+
+![Interactions Inside the Logic and Model Components for the `view candidate 1` Command](images/ViewSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `ViewCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
+1. `LogicManager` passes the command text to `HireBaseParser`, which creates a `ViewCommandParser`.
+1. `ViewCommandParser` requires the `candidate` record-type keyword, then uses `ParserUtil#parseCandidateId(String)` to convert the remaining token into a `CandidateId`. It returns a `ViewCommand` holding that id as `targetId`.
+1. When executed, `ViewCommand` obtains the `ReadOnlyHireBase` through `Model#getHireBase()` and calls `HireBase#getPersonByCandidateId(targetId)`, which streams the full, unfiltered candidate list and returns an `Optional<Person>`.
+1. If the optional is empty, `ViewCommand` throws a `CommandException` carrying `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`. Otherwise it calls `Model#updateFilteredPersonList(...)` with a `SamePersonPredicate` matching only the found candidate, collapsing the displayed list.
+1. Finally it builds a `CommandResult` containing a multi-line, formatted summary of the candidate and tagged with `ListView.CANDIDATES`, which `LogicManager` returns.
+
+#### Design considerations
+
+**Aspect: How the target candidate is identified**
+
+* **Alternative 1 (current choice):** Identify the candidate by their permanent `CandidateId`.
+  * Pros: The ID is stable under filtering and reordering, so the same command always refers to the same candidate.
+  * Cons: Requires a scan of the full candidate list on each lookup.
+* **Alternative 2:** Identify the candidate by their position (index) in the displayed list.
+  * Pros: Trivial lookup with no scan.
+  * Cons: The same index refers to different candidates after a `find` or a deletion, which is error-prone for the user.
+
+### Note feature
+
+The `note CANDIDATE_ID [NOTE]` command adds, replaces, or clears a candidate's free-text screening note. Like `view`,
+it locates its target by `CandidateId`. Omitting the `[NOTE]` text clears the existing note.
+
+#### Implementation
+
+The sequence diagram below shows the interactions within the `Logic` and `Model` components when the user issues
+`note 1 Strong SQL round`. Only the successful flow is shown.
+
+![Interactions Inside the Logic and Model Components for the `note 1 …` Command](images/NoteSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `NoteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
+
+1. `NoteCommandParser` splits the arguments into the ID token and the free-text remainder. `ParserUtil#parseCandidateId(String)` produces the `CandidateId`; the remainder (which may be empty) becomes a `Note`. It returns a `NoteCommand(candidateId, note)`.
+1. On execution, `NoteCommand` resolves `personToEdit` via `Model#getHireBase()` and `HireBase#getPersonByCandidateId(candidateId)`, throwing a `CommandException` with `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND` if no candidate has that id.
+1. Because `Person` is immutable, `NoteCommand` constructs a new `Person` (`ep`) that copies every field from `personToEdit` but with the new `Note`, preserving the original `CandidateId` and `InterviewStage`.
+1. It calls `Model#setPerson(personToEdit, ep)`, then `Model#updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)` to show the full candidate list again.
+1. It selects `MESSAGE_ADD_NOTE_SUCCESS` or `MESSAGE_DELETE_NOTE_SUCCESS` depending on whether the note text is empty, formats the edited candidate into a `CommandResult`, and returns it.
+
+#### Design considerations
+
+**Aspect: How a note is cleared**
+
+* **Alternative 1 (current choice):** Overload `note` with an empty `[NOTE]` argument to clear the note.
+  * Pros: Keeps the command surface small; one command handles add, replace, and clear.
+  * Cons: Clearing is implicit (an empty argument) rather than an explicit keyword.
+* **Alternative 2:** Add a separate `clearnote CANDIDATE_ID` command.
+  * Pros: The intent to clear is explicit.
+  * Cons: Adds another command for users to learn and for the parser to dispatch.
+
+Both `view` and `note` rely on the shared `HireBase#getPersonByCandidateId(CandidateId)` lookup, which is the single
+point where a `CandidateId` is resolved to a `Person`.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation

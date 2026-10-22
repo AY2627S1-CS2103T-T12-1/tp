@@ -27,7 +27,7 @@ public class RejectCommandTest {
     public void execute_preservesOtherDetailsAndCanBeRepeated() {
         Person original = model.getFilteredPersonList().get(0);
         Person candidate = new PersonBuilder(original).withSkills("Java", "SQL").withRole("Engineer")
-                .withRemark("Follow up").withTags("priority").withInterviewStage(InterviewStage.ACCEPTED).build();
+                .withNote("Follow up").withTags("priority").withInterviewStage(InterviewStage.ACCEPTED).build();
         model.setPerson(original, candidate);
 
         assertShortcutSuccess();

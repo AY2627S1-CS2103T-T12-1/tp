@@ -54,7 +54,7 @@ public class PersonDetailWindowTest {
             PersonDetailWindow window = new PersonDetailWindow(new Stage());
             window.setPerson(new PersonBuilder().withName("Jolene Tan").withPhone("91234567")
                     .withEmail("jolene@example.com").withAddress("Blk 30")
-                    .withRemark("Strong referral").withSkills("SQL", "Java")
+                    .withNote("Strong referral").withSkills("SQL", "Java")
                     .withRole("Backend Engineer").withInterviewStage(InterviewStage.ACCEPTED).build());
 
             assertTrue(lookup(window, "#content").isVisible());
@@ -66,7 +66,7 @@ public class PersonDetailWindowTest {
             assertEquals("jolene@example.com", text(window, "#email"));
             assertEquals("Blk 30", text(window, "#address"));
             assertEquals("Backend Engineer", text(window, "#role"));
-            assertEquals("Strong referral", text(window, "#remark"));
+            assertEquals("Strong referral", text(window, "#note"));
 
             FlowPane skills = (FlowPane) lookup(window, "#skills");
             assertEquals(2, skills.getChildren().size());
@@ -80,9 +80,9 @@ public class PersonDetailWindowTest {
     public void setPerson_missingOptionalFields_showsEmPlaceholders() throws Exception {
         runOnFxThread(() -> {
             PersonDetailWindow window = new PersonDetailWindow(new Stage());
-            window.setPerson(new PersonBuilder().withRemark("").build());
+            window.setPerson(new PersonBuilder().withNote("").build());
             assertEquals("—", text(window, "#role"));
-            assertEquals("—", text(window, "#remark"));
+            assertEquals("—", text(window, "#note"));
         });
     }
 

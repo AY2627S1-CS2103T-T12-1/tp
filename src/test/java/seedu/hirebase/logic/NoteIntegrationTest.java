@@ -21,13 +21,13 @@ import seedu.hirebase.storage.Storage;
 import seedu.hirebase.storage.StorageManager;
 import seedu.hirebase.testutil.PersonBuilder;
 
-public class RemarkIntegrationTest {
+public class NoteIntegrationTest {
 
     @TempDir
     public Path testFolder;
 
     @Test
-    public void execute_remarkAndEdit_persistsAcrossReloads() throws Exception {
+    public void execute_noteAndEdit_persistsAcrossReloads() throws Exception {
         HireBase addressBook = new HireBase();
         Person candidate = new PersonBuilder(ALICE).withSkills("Java", "SQL").withRole("Engineer").build();
         addressBook.addPerson(candidate);
@@ -37,10 +37,10 @@ public class RemarkIntegrationTest {
                 new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
         Logic logic = new LogicManager(model, storage);
 
-        logic.execute("remark 1 r/Likes baseball");
-        Person expected = new PersonBuilder(candidate).withRemark("Likes baseball").build();
+        logic.execute("note 1 Likes baseball");
+        Person expected = new PersonBuilder(candidate).withNote("Likes baseball").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
-        assertTrue(Files.readString(file).contains("\"remark\" : \"Likes baseball\""));
+        assertTrue(Files.readString(file).contains("\"note\" : \"Likes baseball\""));
 
         // Simulate restarting the app by rebuilding its model and logic from saved data.
         model = new ModelManager(storage.readHireBase().orElseThrow(), new UserPrefs());
@@ -50,8 +50,8 @@ public class RemarkIntegrationTest {
                 .withRole("Backend Engineer").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
 
-        logic.execute("remark 1 r/");
-        expected = new PersonBuilder(expected).withRemark("").build();
+        logic.execute("note 1");
+        expected = new PersonBuilder(expected).withNote("").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
     }
 }

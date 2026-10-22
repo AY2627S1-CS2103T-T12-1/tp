@@ -7,31 +7,31 @@ import static seedu.hirebase.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-public class RemarkTest {
+public class NoteTest {
 
     @Test
     public void constructor_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new Remark(null));
+        assertThrows(NullPointerException.class, () -> new Note(null));
     }
 
     @Test
     public void constructor_emptyAndUnrestrictedValues_success() {
         for (String value : new String[] {"", " ", "Likes baseball", "Symbols: @/#, 中文\nSecond line"}) {
-            Remark remark = new Remark(value);
-            assertEquals(value, remark.value);
-            assertEquals(value, remark.toString());
+            Note note = new Note(value);
+            assertEquals(value, note.value);
+            assertEquals(value, note.toString());
         }
     }
 
     @Test
     public void equalsAndHashCode() {
-        Remark remark = new Remark("Likes baseball");
-        Remark copy = new Remark("Likes baseball");
-        assertTrue(remark.equals(remark));
-        assertTrue(remark.equals(copy));
-        assertEquals(remark.hashCode(), copy.hashCode());
-        assertFalse(remark.equals(new Remark("")));
-        assertFalse(remark.equals(null));
-        assertFalse(remark.equals("Likes baseball"));
+        Note note = new Note("Likes baseball");
+        Note copy = new Note("Likes baseball");
+        assertTrue(note.equals(note));
+        assertTrue(note.equals(copy));
+        assertEquals(note.hashCode(), copy.hashCode());
+        assertFalse(note.equals(new Note("")));
+        assertFalse(note.equals(null));
+        assertFalse(note.equals("Likes baseball"));
     }
 }

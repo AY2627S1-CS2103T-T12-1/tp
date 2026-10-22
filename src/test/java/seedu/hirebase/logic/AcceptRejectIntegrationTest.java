@@ -35,7 +35,7 @@ public class AcceptRejectIntegrationTest {
     @Test
     public void execute_acceptAndReject_persistAcrossReloadAndLaterEdits() throws Exception {
         Person candidate = new PersonBuilder(ALICE).withSkills("Java", "SQL").withRole("Engineer")
-                .withRemark("Follow up").withTags("priority").build();
+                .withNote("Follow up").withTags("priority").build();
         HireBase hireBase = new HireBase();
         hireBase.addPerson(candidate);
         Model model = new ModelManager(hireBase, new UserPrefs());
@@ -56,8 +56,8 @@ public class AcceptRejectIntegrationTest {
         model = new ModelManager(storage.readHireBase().orElseThrow(), new UserPrefs());
         logic = new LogicManager(model, storage);
         logic.execute("edit candidate 1 p/91234567");
-        logic.execute("remark 1 r/Updated note");
-        expected = new PersonBuilder(expected).withPhone("91234567").withRemark("Updated note").build();
+        logic.execute("note 1 Updated note");
+        expected = new PersonBuilder(expected).withPhone("91234567").withNote("Updated note").build();
         assertEquals(expected, storage.readHireBase().orElseThrow().getPersonList().get(0));
         assertEquals(CommandResult.ListView.CANDIDATES,
                 logic.execute("stage candidate 1 SCREENING").getListView());

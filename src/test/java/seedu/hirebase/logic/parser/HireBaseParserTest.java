@@ -24,6 +24,7 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
@@ -63,9 +64,8 @@ public class HireBaseParserTest {
     @Test
     public void parseCommand_delete() throws Exception {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " "
-                        + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
+                DeleteCommand.COMMAND_WORD + " " + DeleteCommand.RECORD_TYPE_CANDIDATE + " 1");
+        assertEquals(new DeleteCommand(new CandidateId(1)), command);
     }
 
     @Test

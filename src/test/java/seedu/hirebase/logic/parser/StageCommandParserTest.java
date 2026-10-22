@@ -5,6 +5,8 @@ import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailu
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_THIRD_PERSON;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,18 +37,34 @@ public class StageCommandParserTest {
     }
 
     @Test
+    public void parse_multipleIds_returnsStageCommand() {
+        for (InterviewStage stage : InterviewStage.values()) {
+            assertParseSuccess(parser, "  candidate\t3  1\t2   " + stage.name().toLowerCase(Locale.ROOT),
+                    new StageCommand(List.of(ID_THIRD_PERSON, ID_FIRST_PERSON, ID_SECOND_PERSON), stage));
+        }
+    }
+
+    @Test
+    public void parse_duplicateIds_returnsStageCommandWithUniqueIds() {
+        assertParseSuccess(parser, "candidate 2 1 2 ACCEPTED",
+                new StageCommand(List.of(ID_SECOND_PERSON, ID_FIRST_PERSON), InterviewStage.ACCEPTED));
+    }
+
+    @Test
     public void parse_invalidFormat_throwsParseException() {
         for (String args : List.of("", " ", "candidate", "candidate 1", "1 ACCEPTED",
                 "person 1 ACCEPTED", "Candidate 1 ACCEPTED", "candidate 1 ACCEPTED extra",
-                "candidate 1 2 ACCEPTED")) {
+                "candidate 1,2 ACCEPTED")) {
             assertParseFailure(parser, args, expectedUsageFailure);
         }
     }
 
     @Test
-    public void parse_invalidIndex_throwsParseException() {
-        for (String index : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
-            assertParseFailure(parser, "candidate " + index + " ACCEPTED", expectedUsageFailure);
+    public void parse_invalidId_throwsParseException() {
+        for (String candidateId : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
+            assertParseFailure(parser, "candidate " + candidateId + " ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 " + candidateId + " 2 ACCEPTED", expectedUsageFailure);
+            assertParseFailure(parser, "candidate 1 2 " + candidateId + " ACCEPTED", expectedUsageFailure);
         }
     }
 
@@ -54,6 +72,7 @@ public class StageCommandParserTest {
     public void parse_invalidStage_throwsParseException() {
         for (String stage : List.of("UNKNOWN", "HIRED", "ACCEPTED!", "1")) {
             assertParseFailure(parser, "candidate 1 " + stage, StageCommand.MESSAGE_INVALID_STAGE);
+            assertParseFailure(parser, "candidate 1 2 " + stage, StageCommand.MESSAGE_INVALID_STAGE);
         }
     }
 

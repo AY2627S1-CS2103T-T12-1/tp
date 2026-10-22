@@ -3,7 +3,9 @@ package seedu.hirebase.model.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +29,19 @@ public class SampleDataUtilTest {
         for (Person person : samplePersons) {
             assertTrue(sampleHireBase.getPersonList().contains(person));
         }
+    }
+
+    @Test
+    public void getSampleHireBase_assignsSequentialCandidateIds() {
+        ReadOnlyHireBase sampleHireBase = SampleDataUtil.getSampleHireBase();
+        int size = sampleHireBase.getPersonList().size();
+
+        List<Integer> ids = sampleHireBase.getPersonList().stream()
+                .map(person -> person.getCandidateId().get().getValue())
+                .toList();
+
+        assertEquals(IntStream.rangeClosed(1, size).boxed().toList(), ids);
+        assertEquals(size + 1, sampleHireBase.getNextCandidateId());
     }
 
     @Test

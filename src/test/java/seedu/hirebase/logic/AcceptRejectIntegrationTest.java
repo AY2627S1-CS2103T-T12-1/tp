@@ -86,6 +86,35 @@ public class AcceptRejectIntegrationTest {
     }
 
     @Test
+    public void execute_bulkCommands_usePermanentIdsAndPersistAllUpdates() throws Exception {
+        Map<String, InterviewStage> outcomes = Map.of("stage", InterviewStage.REJECTED,
+                "accept", InterviewStage.ACCEPTED, "reject", InterviewStage.REJECTED);
+        for (Map.Entry<String, InterviewStage> outcome : outcomes.entrySet()) {
+            HireBase hireBase = new HireBase();
+            hireBase.addPerson(ALICE);
+            hireBase.addPerson(BOB);
+            hireBase.removePerson(hireBase.getPersonList().get(0));
+            hireBase.addPerson(ALICE);
+            Model model = new ModelManager(hireBase, new UserPrefs());
+            Storage storage = createStorage();
+            Logic logic = new LogicManager(model, storage);
+            logic.execute("find " + BOB.getEmail().value);
+
+            String command = outcome.getKey() + " candidate 3 2 3"
+                    + (outcome.getKey().equals("stage") ? " " + outcome.getValue() : "");
+            assertEquals(CommandResult.ListView.CANDIDATES, logic.execute(command).getListView());
+
+            assertEquals(List.of(new PersonBuilder(BOB).withInterviewStage(outcome.getValue()).build(),
+                    new PersonBuilder(ALICE).withInterviewStage(outcome.getValue()).build()),
+                    model.getFilteredPersonList());
+            var reloaded = storage.readHireBase().orElseThrow();
+            assertEquals(model.getHireBase(), reloaded);
+            assertEquals(List.of(2, 3), reloaded.getPersonList().stream()
+                    .map(person -> person.getCandidateId().orElseThrow().getValue()).toList());
+        }
+    }
+
+    @Test
     public void execute_invalidArguments_leaveModelFilterAndSavedFileUnchanged() throws Exception {
         HireBase hireBase = new HireBase();
         hireBase.addPerson(ALICE);
@@ -100,7 +129,9 @@ public class AcceptRejectIntegrationTest {
                 assertThrows(ParseException.class, () -> logic.execute(action + " " + args));
             }
             assertThrows(CommandException.class, () -> logic.execute(action + " candidate 3"));
+            assertThrows(CommandException.class, () -> logic.execute(action + " candidate 1 3"));
         }
+        assertThrows(CommandException.class, () -> logic.execute("stage candidate 1 3 ACCEPTED"));
 
         assertEquals(hireBase, model.getHireBase());
         assertEquals(List.of(BOB), model.getFilteredPersonList());

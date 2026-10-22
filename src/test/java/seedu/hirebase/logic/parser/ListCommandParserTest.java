@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
+import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 
 public class ListCommandParserTest {
@@ -30,7 +31,6 @@ public class ListCommandParserTest {
         assertParseFailure(parser, ListCommand.RECORD_TYPE_CANDIDATE + "1", expectedUsageFailure);
         assertParseFailure(parser, "invalid preamble", expectedUsageFailure);
         assertParseFailure(parser, "candidates additional arguments", expectedUsageFailure);
-        assertParseFailure(parser, "candidates r/Backend Engineer", expectedUsageFailure);
         assertParseFailure(parser, "candidates stage/SCREENING", expectedUsageFailure);
     }
 
@@ -67,4 +67,35 @@ public class ListCommandParserTest {
         assertParseSuccess(parser, "\t jobs \n", new ListJobsCommand());
         assertParseFailure(parser, "jobs s/Java", ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
     }
+    @Test
+    public void parse_roleFilter_normalizesAndValidatesRole() {
+        for (String role : new String[] {"Backend Engineer", "Full-Stack Developer", "DevOps/SRE", "a".repeat(100)}) {
+            assertParseSuccess(parser, "candidates r/" + role, new ListCommand(null, new Role(role)));
+        }
+        assertParseSuccess(parser, "candidates r/ backend\t engineer  ",
+                new ListCommand(null, new Role("Backend Engineer")));
+        for (String role : new String[] {"", "  ", "@", "a".repeat(101)}) {
+            assertParseFailure(parser, "candidates r/" + role, Role.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_skillAndRole_acceptsEitherOrder() {
+        ListCommand expected = new ListCommand(new Skill("Java"), new Role("Backend Engineer"));
+        assertParseSuccess(parser, "candidates s/Java r/Backend Engineer", expected);
+        assertParseSuccess(parser, "candidates r/Backend Engineer s/Java", expected);
+        assertParseFailure(parser, "candidates s/@ r/Backend Engineer", Skill.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_repeatedRoleOrSkill_rejectsDuplicates() {
+        assertParseFailure(parser, "candidates r/Backend Engineer r/Backend Engineer",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_ROLE));
+        assertParseFailure(parser, "candidates r/Backend Engineer r/QA Engineer s/Java",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_ROLE));
+        assertParseFailure(parser, "candidates s/Java s/SQL r/Backend Engineer",
+                Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_SKILL));
+        assertParseFailure(parser, "jobs r/Backend Engineer", ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
+    }
+
 }

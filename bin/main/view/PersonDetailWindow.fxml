@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.stage.Stage?>
+
+<fx:root resizable="false" title="Candidate Details" type="javafx.stage.Stage"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <scene>
+    <Scene>
+      <stylesheets>
+        <URL value="@DarkTheme.css" />
+      </stylesheets>
+
+      <StackPane styleClass="detail-panel" prefWidth="360">
+        <padding>
+          <Insets top="16" right="18" bottom="16" left="18" />
+        </padding>
+
+        <Label fx:id="placeholder" styleClass="detail-placeholder" text="Select a candidate to see details." />
+
+        <VBox fx:id="content" spacing="7">
+          <HBox alignment="CENTER_LEFT" spacing="9">
+            <Label fx:id="name" styleClass="detail-name" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="stage" styleClass="stage-badge" />
+          </HBox>
+
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Phone" minWidth="80" />
+            <Label fx:id="phone" styleClass="detail-value" wrapText="true" />
+          </HBox>
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Email" minWidth="80" />
+            <Label fx:id="email" styleClass="detail-value" wrapText="true" />
+          </HBox>
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Address" minWidth="80" />
+            <Label fx:id="address" styleClass="detail-value" wrapText="true" />
+          </HBox>
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Role" minWidth="80" />
+            <Label fx:id="role" styleClass="detail-value" wrapText="true" />
+          </HBox>
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Skills" minWidth="80" />
+            <FlowPane fx:id="skills" hgap="4" vgap="4" />
+          </HBox>
+          <HBox spacing="10">
+            <Label styleClass="detail-key" text="Notes" minWidth="80" />
+            <Label fx:id="note" styleClass="detail-value" wrapText="true" />
+          </HBox>
+        </VBox>
+      </StackPane>
+    </Scene>
+  </scene>
+</fx:root>

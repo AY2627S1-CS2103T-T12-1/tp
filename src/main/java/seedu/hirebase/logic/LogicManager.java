@@ -17,7 +17,7 @@ import seedu.hirebase.logic.commands.EditCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
-import seedu.hirebase.logic.commands.RemarkCommand;
+import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.StageCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
@@ -80,7 +80,7 @@ public class LogicManager implements Logic {
 
         if (command instanceof AddCommand || command instanceof DeleteCommand || command instanceof EditCommand
                 || command instanceof FindCommand || command instanceof ListCommand
-                || command instanceof RemarkCommand || command instanceof StageCommand) {
+                || command instanceof NoteCommand || command instanceof StageCommand) {
             return commandResult.withListView(CommandResult.ListView.CANDIDATES);
         }
         return commandResult;

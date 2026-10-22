@@ -27,28 +27,28 @@ public class Person {
 
     // Data fields
     private final Address address;
-    private final Remark remark;
+    private final Note note;
     private final Set<Tag> tags = new HashSet<>();
     private final InterviewStage interviewStage;
     // Assigned by the model when the candidate is added; null until then. Not part of equals/hashCode.
     private final CandidateId candidateId;
 
     /**
-     * Creates a candidate with recruitment details and an empty remark.
+     * Creates a candidate with recruitment details and an empty note.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Set<Skill> skills, Role role) {
-        this(name, phone, email, address, new Remark(""), tags, skills, role);
+        this(name, phone, email, address, new Note(""), tags, skills, role);
     }
 
     /**
      * Creates a candidate with optional recruitment details.
      * Null skills are stored as an empty set.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+    public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags,
                   Set<Skill> skills, Role role) {
-        requireAllNonNull(name, phone, email, address, remark, tags);
-        this(name, phone, email, address, remark, tags, skills, role,
+        requireAllNonNull(name, phone, email, address, note, tags);
+        this(name, phone, email, address, note, tags, skills, role,
                 InterviewStage.SCREENING);
     }
 
@@ -56,25 +56,25 @@ public class Person {
      * Creates a candidate with optional recruitment details.
      * Null skills are stored as an empty set.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+    public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags,
             Set<Skill> skills, Role role, InterviewStage interviewStage) {
-        this(name, phone, email, address, remark, tags, skills, role, interviewStage, null);
+        this(name, phone, email, address, note, tags, skills, role, interviewStage, null);
     }
 
     /**
      * Creates a candidate that may already have a {@code candidateId}.
      * A null {@code candidateId} means that the model has not assigned one yet.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags,
+    public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags,
             Set<Skill> skills, Role role, InterviewStage interviewStage, CandidateId candidateId) {
-        requireAllNonNull(name, phone, email, address, remark, tags, interviewStage);
+        requireAllNonNull(name, phone, email, address, note, tags, interviewStage);
         this.skills = skills == null ? Collections.emptySet() : Set.copyOf(skills);
         this.role = role;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
-        this.remark = remark;
+        this.note = note;
         this.tags.addAll(tags);
         this.interviewStage = interviewStage;
         this.candidateId = candidateId;
@@ -91,7 +91,7 @@ public class Person {
      * Returns a copy of this candidate with the given {@code candidateId}.
      */
     public Person withCandidateId(CandidateId candidateId) {
-        return new Person(name, phone, email, address, remark, tags, skills, role, interviewStage, candidateId);
+        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId);
     }
 
     public Set<Skill> getSkills() {
@@ -118,8 +118,8 @@ public class Person {
         return address;
     }
 
-    public Remark getRemark() {
-        return remark;
+    public Note getNote() {
+        return note;
     }
 
     /**
@@ -166,7 +166,7 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && remark.equals(otherPerson.remark)
+                && note.equals(otherPerson.note)
                 && tags.equals(otherPerson.tags)
                 && skills.equals(otherPerson.skills)
                 && Objects.equals(role, otherPerson.role)
@@ -176,7 +176,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, remark, tags, skills, role);
+        return Objects.hash(name, phone, email, address, note, tags, skills, role);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
-                .add("remark", remark)
+                .add("note", note)
                 .add("tags", tags)
                 .add("skills", skills)
                 .add("role", role)

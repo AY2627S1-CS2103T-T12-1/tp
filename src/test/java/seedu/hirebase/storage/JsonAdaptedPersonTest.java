@@ -65,19 +65,19 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_missingRemark_returnsPersonWithEmptyRemark() throws Exception {
+    public void toModelType_missingNote_returnsPersonWithEmptyNote() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 VALID_ADDRESS, null, VALID_TAGS);
         assertEquals(BENSON, person.toModelType());
 
         String legacyJson = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON))
-                .replaceAll("(?m)^.*\"remark\".*\\R", "");
+                .replaceAll("(?m)^.*\"note\".*\\R", "");
         assertEquals(BENSON, JsonUtil.fromJsonString(legacyJson, JsonAdaptedPerson.class).toModelType());
     }
 
     @Test
-    public void toModelType_nonEmptyRemark_returnsPersonWithRemark() throws Exception {
-        var expected = new PersonBuilder(BENSON).withRemark("Likes baseball").build();
+    public void toModelType_nonEmptyNote_returnsPersonWithNote() throws Exception {
+        var expected = new PersonBuilder(BENSON).withNote("Likes baseball").build();
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));
         assertEquals(expected, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
     }
@@ -86,7 +86,7 @@ public class JsonAdaptedPersonTest {
     public void fromJson_allInterviewStages_preservesStageAndCandidateDetails() throws Exception {
         for (InterviewStage stage : InterviewStage.values()) {
             Person expected = new PersonBuilder(BENSON).withInterviewStage(stage)
-                    .withSkills("Java", "SQL").withRole("Backend Engineer").withRemark("Follow up").build();
+                    .withSkills("Java", "SQL").withRole("Backend Engineer").withNote("Follow up").build();
             String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));
             ObjectNode stored = JsonUtil.fromJsonString(json, ObjectNode.class);
             assertEquals(stage.name(), stored.get("interviewStage").asText());

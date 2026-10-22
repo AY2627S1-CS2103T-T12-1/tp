@@ -35,7 +35,7 @@ public class PersonDetailWindow extends UiPart<Stage> {
     @FXML
     private FlowPane skills;
     @FXML
-    private Label remark;
+    private Label note;
 
     /**
      * Creates a new {@code PersonDetailWindow} using the given {@code Stage} as its root.
@@ -83,8 +83,8 @@ public class PersonDetailWindow extends UiPart<Stage> {
                     skills.getChildren().add(pill);
                 });
 
-        String remarkValue = person.getRemark().value;
-        remark.setText(remarkValue.isEmpty() ? EMPTY_PLACEHOLDER : remarkValue);
+        String noteValue = person.getNote().value;
+        note.setText(noteValue.isEmpty() ? EMPTY_PLACEHOLDER : noteValue);
     }
 
     private void setStageBadge(Person person) {

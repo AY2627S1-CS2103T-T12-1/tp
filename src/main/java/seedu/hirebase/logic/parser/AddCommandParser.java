@@ -18,9 +18,9 @@ import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.Address;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
+import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
-import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 
@@ -57,7 +57,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         Set<Skill> skills = ParserUtil.parseSkills(argMultimap.getAllValues(PREFIX_SKILL));
         Role role = ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get());
 
-        Person person = new Person(name, phone, email, address, new Remark(""), Collections.emptySet(),
+        Person person = new Person(name, phone, email, address, new Note(""), Collections.emptySet(),
                 skills, role);
 
         return new AddCommand(person);

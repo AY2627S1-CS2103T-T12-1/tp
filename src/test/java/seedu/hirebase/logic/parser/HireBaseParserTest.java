@@ -21,11 +21,12 @@ import seedu.hirebase.logic.commands.ExitCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
-import seedu.hirebase.logic.commands.RemarkCommand;
+import seedu.hirebase.logic.commands.NoteCommand;
+import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
+import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
-import seedu.hirebase.model.candidate.Remark;
 import seedu.hirebase.testutil.EditPersonDescriptorBuilder;
 import seedu.hirebase.testutil.PersonBuilder;
 import seedu.hirebase.testutil.PersonUtil;
@@ -35,10 +36,15 @@ public class HireBaseParserTest {
     private final HireBaseParser parser = new HireBaseParser();
 
     @Test
-    public void parseCommand_remark() throws Exception {
-        assertEquals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Likes baseball")),
-                parser.parseCommand("remark 1 r/Likes baseball"));
-        assertEquals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")), parser.parseCommand("remark 1 r/"));
+    public void parseCommand_note() throws Exception {
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball")),
+                parser.parseCommand("note 1 Likes baseball"));
+        assertEquals(new NoteCommand(INDEX_FIRST_PERSON, new Note("")), parser.parseCommand("note 1"));
+    }
+
+    @Test
+    public void parseCommand_view() throws Exception {
+        assertEquals(new ViewCommand(INDEX_FIRST_PERSON), parser.parseCommand("view candidate 1"));
     }
 
     @Test

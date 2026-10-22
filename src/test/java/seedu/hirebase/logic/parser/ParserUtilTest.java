@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.Address;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
@@ -52,6 +53,34 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseCandidateId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseCandidateId(null));
+    }
+
+    @Test
+    public void parseCandidateId_invalidInput_throwsParseException() {
+        for (String invalid : new String[] {"", "a", "1 2", "0", "-1", "1.5"}) {
+            assertThrows(ParseException.class, CandidateId.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseCandidateId(invalid));
+        }
+    }
+
+    @Test
+    public void parseCandidateId_outOfRangeInput_throwsParseException() {
+        assertThrows(ParseException.class, CandidateId.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseCandidateId(Long.toString((long) Integer.MAX_VALUE + 1)));
+    }
+
+    @Test
+    public void parseCandidateId_validInput_success() throws Exception {
+        // No whitespaces
+        assertEquals(new CandidateId(1), ParserUtil.parseCandidateId("1"));
+
+        // Leading and trailing whitespaces
+        assertEquals(new CandidateId(12), ParserUtil.parseCandidateId("  12  "));
     }
 
     @Test

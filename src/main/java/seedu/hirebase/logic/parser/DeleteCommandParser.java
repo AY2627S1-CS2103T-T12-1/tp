@@ -2,11 +2,11 @@ package seedu.hirebase.logic.parser;
 
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.job.JobId;
 
 /**
@@ -30,10 +30,10 @@ public class DeleteCommandParser implements Parser<Command> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
         }
 
-        String indexArgs = parts.length > 1 ? parts[1] : "";
+        String idArgs = parts.length > 1 ? parts[1] : "";
         try {
-            Index index = ParserUtil.parseIndex(indexArgs);
-            return new DeleteCommand(index);
+            CandidateId candidateId = ParserUtil.parseCandidateId(idArgs);
+            return new DeleteCommand(candidateId);
         } catch (ParseException pe) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE), pe);

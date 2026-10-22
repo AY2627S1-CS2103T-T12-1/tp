@@ -1,0 +1,91 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":HireBaseParser" as HireBaseParser LOGIC_COLOR
+participant ":NoteCommandParser" as NoteCommandParser LOGIC_COLOR
+participant "n:NoteCommand" as NoteCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "hb:HireBase" as HireBase MODEL_COLOR
+participant "ep:Person" as EditedPerson MODEL_COLOR
+end box
+
+[-> LogicManager : execute("note 1 Strong SQL round")
+activate LogicManager
+
+LogicManager -> HireBaseParser : parseCommand("note 1 Strong SQL round")
+activate HireBaseParser
+
+create NoteCommandParser
+HireBaseParser -> NoteCommandParser
+activate NoteCommandParser
+
+NoteCommandParser --> HireBaseParser
+deactivate NoteCommandParser
+
+HireBaseParser -> NoteCommandParser : parse("1 Strong SQL round")
+activate NoteCommandParser
+
+create NoteCommand
+NoteCommandParser -> NoteCommand
+activate NoteCommand
+
+NoteCommand --> NoteCommandParser :
+deactivate NoteCommand
+
+NoteCommandParser --> HireBaseParser : n
+deactivate NoteCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+NoteCommandParser -[hidden]-> HireBaseParser
+destroy NoteCommandParser
+
+HireBaseParser --> LogicManager : n
+deactivate HireBaseParser
+
+LogicManager -> NoteCommand : execute(m)
+activate NoteCommand
+
+NoteCommand -> Model : getHireBase()
+activate Model
+Model --> NoteCommand : hb
+deactivate Model
+
+NoteCommand -> HireBase : getPersonByCandidateId(candidateId)
+activate HireBase
+HireBase --> NoteCommand : personToEdit
+deactivate HireBase
+
+create EditedPerson
+NoteCommand -> EditedPerson : Person(personToEdit fields, note)
+activate EditedPerson
+EditedPerson --> NoteCommand : ep
+deactivate EditedPerson
+
+NoteCommand -> Model : setPerson(personToEdit, ep)
+activate Model
+Model --> NoteCommand
+deactivate Model
+
+NoteCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate Model
+Model --> NoteCommand
+deactivate Model
+
+create CommandResult
+NoteCommand -> CommandResult
+activate CommandResult
+CommandResult --> NoteCommand
+deactivate CommandResult
+
+NoteCommand --> LogicManager : r
+deactivate NoteCommand
+
+[<--LogicManager
+deactivate LogicManager
+@enduml

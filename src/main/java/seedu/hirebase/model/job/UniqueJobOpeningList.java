@@ -37,7 +37,7 @@ public final class UniqueJobOpeningList implements Iterable<JobOpening> {
      */
     public void add(JobOpening toAdd) {
         requireNonNull(toAdd);
-        if (contains(toAdd)) {
+        if (contains(toAdd) || internalList.stream().anyMatch(job -> hasSameId(job, toAdd))) {
             throw new DuplicateJobOpeningException();
         }
         internalList.add(toAdd);
@@ -61,7 +61,8 @@ public final class UniqueJobOpeningList implements Iterable<JobOpening> {
             throw new DuplicateJobOpeningException();
         }
 
-        internalList.set(index, editedJobOpening);
+        // Replacing fields must never replace an opening's permanent identity.
+        internalList.set(index, editedJobOpening.withJobId(target.getJobId().orElse(null)));
     }
 
     /**
@@ -132,10 +133,15 @@ public final class UniqueJobOpeningList implements Iterable<JobOpening> {
     /**
      * Returns true if {@code jobOpenings} contains only unique job openings.
      */
+    private static boolean hasSameId(JobOpening first, JobOpening second) {
+        return first.getJobId().isPresent() && first.getJobId().equals(second.getJobId());
+    }
+
     private boolean jobOpeningsAreUnique(List<JobOpening> jobOpenings) {
         for (int i = 0; i < jobOpenings.size() - 1; i++) {
             for (int j = i + 1; j < jobOpenings.size(); j++) {
-                if (jobOpenings.get(i).isSameJobOpening(jobOpenings.get(j))) {
+                if (jobOpenings.get(i).isSameJobOpening(jobOpenings.get(j))
+                        || hasSameId(jobOpenings.get(i), jobOpenings.get(j))) {
                     return false;
                 }
             }

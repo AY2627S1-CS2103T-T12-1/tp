@@ -60,7 +60,11 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 
 - Prefixed parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
-  Positional arguments, such as `INDEX STAGE` in `stage candidate INDEX STAGE`, must follow the order shown.
+  Positional arguments, such as `CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE` in
+  `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`, must follow the order shown.
+
+- `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.
+  For example, `accept candidate 1` and `accept candidate 1 3 5` are both valid formats.
 
 - `help`, `exit`, `clear`, and `list candidates` ignore extra arguments. For example, `help 123` is interpreted as `help`.<br>
   `list jobs` rejects extra arguments; `list jobs 2` is not valid.
@@ -457,72 +461,85 @@ Sample feedback:
 | `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
 | `note 0 x`, `note abc x`, `note` | `Invalid command format!` followed by the `note` usage (the ID must be a positive integer). |
 
-### Changing a candidate's interview stage: `stage candidate`
+### Changing candidates' interview stages: `stage candidate`
 
-Changes the interview stage of the specified candidate. New candidates start at `SCREENING`.
+Changes the interview stage of one or more specified candidates. New candidates start at `SCREENING`.
 The candidate card shows the current stage as **Screening**, **Accepted**, or **Rejected**.
 
-Format: `stage candidate INDEX STAGE`
+Format: `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`
 
 - `stage` and the required `candidate` keyword are case-sensitive.
-- `INDEX` must be a positive integer referring to a candidate in the currently displayed list,
-  including results narrowed by `find`. Indexes are list positions, not permanent IDs.
+- Each ID must be a positive integer matching a candidate's permanent `CANDIDATE_ID` shown on their card.
+  IDs stay the same after filtering or deleting other candidates. Candidates hidden by `find` can also be updated.
 - `STAGE` must be `SCREENING`, `ACCEPTED`, or `REJECTED`. Stage names are case-insensitive;
   for example, `accepted` and `ACCEPTED` have the same effect.
-- Supply exactly one index followed by one stage. Missing arguments, extra arguments, invalid indexes,
-  and unknown stages are rejected without changing candidate records.
+- Supply one or more IDs followed by one stage, which is applied to every selected candidate.
+  There is no fixed limit on the number of IDs. Repeated IDs update the candidate only once,
+  in the order the IDs first appear.
+- All IDs are checked against all candidates before any updates. If any ID is invalid or does not exist,
+  no candidates are changed. Missing arguments and unknown stages are also rejected without changing records.
 - Surrounding whitespace and multiple spaces between arguments are accepted.
 - You can move a candidate from any stage to any other stage, including back to `SCREENING`.
   Setting the current stage again is also allowed.
 
 Successful `stage`, `accept`, and `reject` commands change only the interview stage, preserving all other candidate
-information. They select the Candidates tab, show the full candidate list again, and update the stage on the card.
-Recheck the displayed indexes before another command, as a search filter is cleared after success.
-The stage is saved automatically and restored when you reopen HireBase. Editing a candidate or their remark
+information, including notes and permanent candidate IDs. They select the Candidates tab, show the full candidate
+list again, and update the stage on each selected candidate's card.
+The search filter is cleared after success; permanent candidate IDs remain unchanged.
+The stage is saved automatically and restored when you reopen HireBase. Editing a candidate or their notes
 preserves the stage.
 
-Success shows `Updated interview stage for candidate INDEX: NAME (EMAIL) to STAGE`.
-An index beyond the displayed list reports `The person index provided is invalid.`
+Success shows `Updated interview stage for candidate CANDIDATE_ID: NAME (EMAIL) to STAGE` for each selected candidate,
+on a separate line. Single-candidate commands show one line.
+A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list to view available candidate IDs.`
 An unknown stage reports `Interview stage must be one of [SCREENING, ACCEPTED, REJECTED] (case-insensitive).`
 
 Examples:
 
-- `stage candidate 1 ACCEPTED` sets the first displayed candidate's stage to `ACCEPTED`.
-- `stage candidate 2 screening` returns the second displayed candidate to `SCREENING`.
-- `find Betsy` followed by `stage candidate 1 rejected` rejects the first candidate in the search results,
-  then shows the full candidate list.
+- `stage candidate 1 ACCEPTED` sets the stage of the candidate with ID 1 to `ACCEPTED`.
+- `stage candidate 2 screening` returns the candidate with ID 2 to `SCREENING`.
+- `stage candidate 1 3 5 ACCEPTED` accepts candidates with IDs 1, 3, and 5.
+- `stage candidate 2 1 2 REJECTED` rejects candidates with IDs 2 and 1, updating each only once.
+- After `find Betsy`, `stage candidate 1 rejected` still rejects the candidate with ID 1,
+  even if they are hidden by the search, then shows the full candidate list.
 
-### Accepting a candidate: `accept candidate`
+If ID 4 does not exist, `stage candidate 1 4 ACCEPTED` reports the missing ID and changes no records, including ID 1.
 
-Marks the specified candidate as accepted by setting their stage to `ACCEPTED`.
-This is a shortcut for `stage candidate INDEX ACCEPTED`.
+### Accepting candidates: `accept candidate`
 
-Format: `accept candidate INDEX`
+Marks one or more specified candidates as accepted by setting their stage to `ACCEPTED`.
+This is a shortcut for `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... ACCEPTED`.
 
-`accept` and the required `candidate` keyword are case-sensitive. Supply exactly one positive index from the
-currently displayed candidate list, including search results. Do not add a stage argument: `accept candidate 1 ACCEPTED`
+Format: `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`
+
+`accept` and the required `candidate` keyword are case-sensitive. Supply one or more positive permanent candidate IDs,
+including IDs of candidates hidden by a search. Do not add a stage argument: `accept candidate 1 ACCEPTED`
 is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
-Missing arguments, extra arguments, invalid indexes, and nonexistent displayed indexes leave records unchanged.
+Every ID is checked against all candidates before any updates. Repeated IDs update each candidate once.
+Missing IDs, non-ID arguments, invalid IDs, and nonexistent or deleted IDs leave all records unchanged.
 
-Example: `accept candidate 1` accepts the first displayed candidate. It shows the full candidate list again
-and uses the same success message as `stage candidate`, ending in `to ACCEPTED`.
-The candidate stays in HireBase; accepting an already accepted candidate is allowed, and the stage can be changed later.
+Examples: `accept candidate 1` accepts the candidate with ID 1; `accept candidate 1 3 5` accepts candidates with
+IDs 1, 3, and 5. The command shows the full candidate list again and uses the same success
+message as `stage candidate` for each selected candidate, ending in `to ACCEPTED`.
+Candidates stay in HireBase; accepting already accepted candidates is allowed, and their stages can be changed later.
 
-### Rejecting a candidate: `reject candidate`
+### Rejecting candidates: `reject candidate`
 
-Marks the specified candidate as rejected by setting their stage to `REJECTED`.
-This is a shortcut for `stage candidate INDEX REJECTED`.
+Marks one or more specified candidates as rejected by setting their stage to `REJECTED`.
+This is a shortcut for `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... REJECTED`.
 
-Format: `reject candidate INDEX`
+Format: `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`
 
-`reject` and the required `candidate` keyword are case-sensitive. Supply exactly one positive index from the
-currently displayed candidate list, including search results. Do not add a stage argument: `reject candidate 1 REJECTED`
+`reject` and the required `candidate` keyword are case-sensitive. Supply one or more positive permanent candidate IDs,
+including IDs of candidates hidden by a search. Do not add a stage argument: `reject candidate 1 REJECTED`
 is invalid. Surrounding whitespace and multiple spaces between arguments are accepted.
-Missing arguments, extra arguments, invalid indexes, and nonexistent displayed indexes leave records unchanged.
+Every ID is checked against all candidates before any updates. Repeated IDs update each candidate once.
+Missing IDs, non-ID arguments, invalid IDs, and nonexistent or deleted IDs leave all records unchanged.
 
-Example: `reject candidate 1` rejects the first displayed candidate. It shows the full candidate list again
-and uses the same success message as `stage candidate`, ending in `to REJECTED`.
-The candidate stays in HireBase; rejecting an already rejected candidate is allowed, and the stage can be changed later.
+Examples: `reject candidate 1` rejects the candidate with ID 1; `reject candidate 1 3 5` rejects candidates with
+IDs 1, 3, and 5. The command shows the full candidate list again and uses the same success
+message as `stage candidate` for each selected candidate, ending in `to REJECTED`.
+Candidates stay in HireBase; rejecting already rejected candidates is allowed, and their stages can be changed later.
 
 ### Clearing all entries: `clear`
 
@@ -603,10 +620,10 @@ _Details coming soon ..._
 | **List candidates** | `list candidates` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
 | **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
-| **Change interview stage** | `stage candidate INDEX STAGE`<br> e.g., `stage candidate 1 ACCEPTED` |
-| **Accept candidate** | `accept candidate INDEX`<br> e.g., `accept candidate 1` |
-| **Reject candidate** | `reject candidate INDEX`<br> e.g., `reject candidate 2` |
-| **Delete candidate** | `delete candidate CANDIDATE_ID`<br> e.g., `delete candidate 3` |
+| **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
+| **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
+| **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
+| **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
 | **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
 | **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |

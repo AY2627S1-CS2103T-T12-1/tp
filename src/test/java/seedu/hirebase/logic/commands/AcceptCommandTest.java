@@ -7,8 +7,12 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 import static seedu.hirebase.testutil.TypicalCandidateIds.ID_SECOND_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_THIRD_PERSON;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -66,16 +70,52 @@ public class AcceptCommandTest {
 
     @Test
     public void constructor_nullId_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new AcceptCommand(null));
+        assertThrows(NullPointerException.class, () -> new AcceptCommand((CandidateId) null));
+        assertThrows(NullPointerException.class, () -> new AcceptCommand((List<CandidateId>) null));
+    }
+
+    @Test
+    public void execute_multipleIds_updatesSelectedCandidates() {
+        assertShortcutSuccess(List.of(ID_THIRD_PERSON, ID_FIRST_PERSON));
+    }
+
+    @Test
+    public void execute_hiddenNonconsecutiveIdsAndDuplicates_updatesById() {
+        model.deletePerson(model.getHireBase().getPersonByCandidateId(ID_FIRST_PERSON).orElseThrow());
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        assertShortcutSuccess(List.of(ID_THIRD_PERSON, ID_SECOND_PERSON, new CandidateId(3)));
+    }
+
+    @Test
+    public void execute_unknownIdAfterValidId_leavesModelAndFilterUnchanged() {
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        CandidateId unusedId = new CandidateId(model.getHireBase().getNextCandidateId());
+        assertCommandFailure(new AcceptCommand(List.of(ID_FIRST_PERSON, unusedId)), model,
+                String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, unusedId.getValue()));
+        assertEquals(1, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void constructor_emptyIds_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new AcceptCommand(List.of()));
     }
 
     private void assertShortcutSuccess(CandidateId id) {
-        Person original = model.getHireBase().getPersonByCandidateId(id).get();
-        Person expected = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
+        assertShortcutSuccess(List.of(id));
+    }
+
+    private void assertShortcutSuccess(List<CandidateId> ids) {
+        List<?> originalIds = model.getHireBase().getPersonList().stream().map(Person::getCandidateId).toList();
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
-        expectedModel.setPerson(original, expected);
-        String message = String.format(StageCommand.MESSAGE_STAGE_CANDIDATE_SUCCESS,
-                id.getValue(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED);
-        assertCommandSuccess(new AcceptCommand(id), model, message, expectedModel);
+        List<String> messages = new ArrayList<>();
+        for (CandidateId id : ids.stream().distinct().toList()) {
+            Person original = model.getHireBase().getPersonByCandidateId(id).orElseThrow();
+            Person expected = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
+            expectedModel.setPerson(original, expected);
+            messages.add(String.format(StageCommand.MESSAGE_STAGE_CANDIDATE_SUCCESS,
+                    id.getValue(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED));
+        }
+        assertCommandSuccess(new AcceptCommand(ids), model, String.join("\n", messages), expectedModel);
+        assertEquals(originalIds, model.getHireBase().getPersonList().stream().map(Person::getCandidateId).toList());
     }
 }

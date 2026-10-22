@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,7 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
         requireNonNull(args);
         Matcher matcher = PREFIX_TOKEN.matcher(args);
         Map<String, String> values = new LinkedHashMap<>();
+        List<String> skills = new ArrayList<>();
         List<String> prefixes = new ArrayList<>();
         List<Integer> starts = new ArrayList<>();
         List<Integer> ends = new ArrayList<>();
@@ -45,7 +47,7 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
         }
         for (int i = 0; i < prefixes.size(); i++) {
             String prefix = prefixes.get(i);
-            if (!ALLOWED_PREFIXES.contains(prefix)) {
+            if (!prefix.equals("s/") && !ALLOWED_PREFIXES.contains(prefix)) {
                 throw new ParseException("Unknown parameter: " + prefix + ".");
             }
             if (values.containsKey(prefix)) {
@@ -53,9 +55,14 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
             }
             int end = i + 1 < starts.size() ? starts.get(i + 1) : args.length();
             // Keep controls intact so description validation rejects tabs and line breaks at the edges too.
-            values.put(prefix, args.substring(ends.get(i), end).replaceAll("^\\p{Zs}+|\\p{Zs}+$", ""));
+            String value = args.substring(ends.get(i), end).replaceAll("^\\p{Zs}+|\\p{Zs}+$", "");
+            if (prefix.equals("s/")) {
+                skills.add(value);
+            } else {
+                values.put(prefix, value);
+            }
         }
-        if (values.isEmpty()) {
+        if (values.isEmpty() && skills.isEmpty()) {
             throw new ParseException(EditJobCommand.MESSAGE_NO_FIELDS);
         }
         for (String prefix : values.keySet()) {
@@ -67,7 +74,9 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
             return new EditJobCommand(id,
                     values.containsKey("t/") ? new JobTitle(values.get("t/")) : null,
                     values.containsKey("d/") ? new Department(values.get("d/")) : null,
-                    values.containsKey("desc/") ? new Description(values.get("desc/")) : null);
+                    values.containsKey("desc/") ? new Description(values.get("desc/")) : null,
+                    skills.isEmpty() ? null : skills.size() == 1 && skills.getFirst().isBlank()
+                            ? Set.of() : ParserUtil.parseSkills(skills));
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

@@ -107,7 +107,7 @@ Use `list jobs` to view openings instead. The bare command `list` is not accepte
 ### Managing job openings
 
 Use job openings to keep a local record of roles you are recruiting for. Each opening has a title, department,
-and description. The supported commands are [`add job`](#adding-a-job-opening-add-job),
+description, and optional required skills. The supported commands are [`add job`](#adding-a-job-opening-add-job),
 [`list jobs`](#listing-job-openings-list-jobs), [`edit job`](#editing-a-job-opening-edit-job), and [`delete job`](#deleting-a-job-opening-delete-job).
 They do not publish vacancies or accept applications.
 
@@ -120,7 +120,8 @@ Click **Candidates** or **Job openings** above the list to switch views. Switchi
 or reset a candidate search. You can also use `list jobs` or `list candidates` from the command box;
 `list candidates` resets the candidate filter to show all candidates.
 
-Each job card displays its permanent positive-integer ID, title, department, and full description. Long details wrap
+Each job card displays its permanent positive-integer ID, title, department, full description, and required skills.
+Long details wrap
 across lines; scroll the list to read additional content. An empty jobs tab shows `No job openings found.`
 Cards update after adding, editing, deleting or clearing records. After a deletion, all remaining openings keep their IDs.
 
@@ -132,12 +133,13 @@ tab and empties both lists. On launch, the Candidates tab is selected; saved ope
 
 Records an opening locally; it does not publish a vacancy externally or accept applications.
 
-Format: `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`
+Format: `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`
 
 Example: `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`
 
-All three prefixes are required exactly once and may appear in any order. Command words and prefixes are
-case-sensitive. Multiple spaces between command words are accepted. Missing, empty, repeated or unknown
+The `t/`, `d/` and `desc/` prefixes are required exactly once and may appear in any order. Optional `s/` fields
+may be repeated, once per required skill. Command words and prefixes are
+case-sensitive. Multiple spaces between command words are accepted. Missing or empty required fields, repeated non-skill fields, unknown
 parameters, and unexpected text before the first parameter, are rejected without changing records.
 A prefix token such as `d/` following whitespace starts a new parameter and cannot be included literally in a value.
 This also applies to unknown prefixes: `desc/Build CI/CD pipelines` is rejected as `Unknown parameter: CI/.`.
@@ -150,8 +152,17 @@ is collapsed. Descriptions accept 1–2000 printable Unicode characters on one l
 character. Tabs, line breaks and control characters are rejected. Surrounding spaces are trimmed, internal spaces
 are preserved, and length limits apply after normalization. Capitalization is preserved for display.
 
+Add required skills with repeated `s/` fields, for example:
+`add job t/Software Engineer d/Engineering desc/Build services s/Java s/SQL`.
+Omitting `s/` creates an opening with no required skills. An empty `s/` is rejected when adding.
+Skills follow the same rules as candidate skills: 1–30 characters after trimming and collapsing whitespace,
+using letters, digits, spaces and `+ # . /`. Skills are compared without regard to case, so `s/Java s/java`
+stores one tag. Use `s/Machine Learning` for a multi-word skill and `s/C++ s/C#` for separate skills.
+As with other job values, a prefix-like token following whitespace starts a new parameter; `s/CI/CD` is accepted,
+while `s/Build CI/CD` is rejected because `CI/` is read as a parameter.
+
 An opening is a duplicate if both its title and department match an existing opening after normalization,
-ignoring case. Descriptions do not determine uniqueness. The same title in a different department is allowed.
+ignoring case. Descriptions and required skills do not determine uniqueness. The same title in a different department is allowed.
 For example, after adding `Software Engineer` in `Engineering`, adding `software engineer` in `ENGINEERING`
 is rejected even with a different description. Adding `Software Engineer` in `Research` is accepted.
 Multiple vacancies with the same title and department share one opening under this rule.
@@ -171,11 +182,11 @@ Common input errors (none adds an opening):
 
 | Input problem | Example | Feedback |
 | --- | --- | --- |
-| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| Missing description | `add job t/Engineer d/Engineering` | `Missing required parameter: desc/. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
 | Empty title | `add job t/ d/Engineering desc/Build services` | `Parameter t/ cannot be empty.` |
 | Repeated department | `add job t/Engineer d/Engineering d/Research desc/Build services` | `Parameter d/ must be specified only once.` |
 | Unknown prefix | `add job t/Engineer d/Engineering desc/Build services salary/5000` | `Unknown parameter: salary/.` |
-| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
+| Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...` |
 
 Invalid title, department or description values produce a field-specific validation message. Correct the input
 and submit the command again. For a duplicate at ID 1, feedback is
@@ -186,8 +197,9 @@ and submit the command again. For a duplicate at ID 1, feedback is
 Format: `list jobs`
 
 Selects the Job openings tab and displays all stored openings as cards in creation order (earliest first).
-The command result area also includes their full details.
-Each entry shows its permanent positive-integer ID, title, department, and full description. Openings with the same title
+The command result area also includes their full details. Required skills are displayed alphabetically,
+ignoring case, or as `Required skills: None` when no tags are set.
+Each entry shows its permanent positive-integer ID, title, department, full description, and required skills. Openings with the same title
 in different departments are displayed separately. The number identifies the opening, even if it is no longer
 at that list position. Gaps are expected after deletions.
 
@@ -201,6 +213,7 @@ Listed 1 job opening.
 
 1. Software Engineer — Engineering
 Description: Build backend services using Java.
+Required skills: None
 ```
 
 The command is case-sensitive and accepts no parameters. Surrounding whitespace and multiple spaces between
@@ -212,7 +225,7 @@ the data file.
 
 ### Editing a job opening: `edit job`
 
-Format: `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`
+Format: `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`
 
 Example: `edit job 1 t/Senior Software Engineer desc/Lead backend development.`
 
@@ -220,10 +233,16 @@ Use `list jobs` to check the permanent ID. The ID must be a positive integer ref
 opening; candidate filters do not affect job IDs. The ID is independent of list position: after deleting job 1,
 `edit job 2 d/Research` still edits job 2 even if it is now the first card. Deleted IDs are rejected.
 The keywords `edit` and `job` are case-sensitive.
-Provide at least one field, in any order. Omitted fields retain their values. Supplied fields must be non-empty
-and follow the same validation rules as [`add job`](#adding-a-job-opening-add-job). Repeated and unknown prefixes
+Provide at least one field, in any order. Omitted fields retain their values. Supplied titles, departments and descriptions must be non-empty
+and follow the same validation rules as [`add job`](#adding-a-job-opening-add-job). Repeated non-skill prefixes and unknown prefixes
 are rejected. An edit that would duplicate another opening's title and department (ignoring case) is rejected.
 Changing only capitalisation or supplying the existing values is allowed.
+
+To tag an existing opening, use `edit job 2 s/Java s/SQL`. Supplied skills **replace the entire required-skill set**;
+include every skill you want to keep. Omitting `s/` preserves existing skills, including when editing the title,
+department or description. A single empty `s/`, as in `edit job 2 s/`, clears all skills. Combining an empty `s/`
+with other `s/` fields is rejected. Skills use the same validation and duplicate rules as `add job`.
+Tagging skills preserves the opening's ID and does not change candidate skills or filter candidates automatically.
 
 Success shows `Edited job opening ID: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
 keeps its ID and list position; other openings, candidate records and candidate filters remain unchanged.
@@ -458,7 +477,10 @@ Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED`
 Older records without this field, or with a `null` value, load as `SCREENING`.
 Blank strings, unknown stage names, or incorrect capitalization make the data file invalid.
 
-The `jobs` array stores each opening's `id`, `title`, `department`, and `description`, preserving their order.
+The `jobs` array stores each opening's `id`, `title`, `department`, `description`, and `skills`, preserving job order.
+`skills` is an array of strings, for example `["Java", "SQL"]`. Older openings with no `skills` field, or a null
+field, load with no required skills. Invalid skill values, non-string entries, or a non-array field make the file
+invalid; duplicate skill strings are combined ignoring case. Skills are saved across restarts.
 Job IDs must be unique positive integers from 1 to 2147483647. The top-level `nextJobId` counter preserves the
 next unused ID, including after deletion or `clear`; do not lower it or change assigned IDs manually.
 Older openings with no ID (or a null ID) receive IDs in file order, starting above all stored IDs and at least as high as the saved
@@ -511,9 +533,9 @@ _Details coming soon ..._
 | **Accept candidate** | `accept candidate INDEX`<br> e.g., `accept candidate 1` |
 | **Reject candidate** | `reject candidate INDEX`<br> e.g., `reject candidate 2` |
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
-| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
+| **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
-| **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`<br> e.g., `edit job 1 d/Research` |
+| **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Clear** | `clear` |
 | **Help** | `help` |

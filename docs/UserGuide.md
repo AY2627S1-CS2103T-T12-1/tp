@@ -390,7 +390,7 @@ Shows the full details of one candidate in the result display and collapses the 
 Format: `view candidate CANDIDATE_ID`
 
 - The `candidate` record-type keyword is required and case-sensitive.
-- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `ID: N`. It never changes when the list is
+- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `#N` (for example, `#1`) before their name. It never changes when the list is
   filtered, reordered, or when other candidates are deleted.
 - Because the ID is permanent, you can view any candidate by their ID even while a `find` filter is hiding them.
 - `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
@@ -419,7 +419,7 @@ Adds, updates, or clears the free-text screening note of an existing candidate. 
 
 Format: `note CANDIDATE_ID [NOTE]`
 
-- `CANDIDATE_ID` is the candidate's **permanent ID** (`ID: N` on the card), the same ID used by `view candidate`.
+- `CANDIDATE_ID` is the candidate's **permanent ID** (shown on the card as `#N`, e.g. `#1`), the same ID used by `view candidate`.
   It **must be a positive integer**.
 - The note replaces any existing note. **Omit `NOTE` to clear** the candidate's note.
 - Leading and trailing whitespace is trimmed; spacing and punctuation inside the note are preserved. The note is plain

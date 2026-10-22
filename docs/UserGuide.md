@@ -319,20 +319,20 @@ Restarting HireBase retains the remaining opening; click Job openings or run `li
 
 ### Editing a candidate: `edit candidate`
 
-Updates the candidate at the positive `INDEX` shown in the current list, including a list narrowed by `find`.
+Updates the candidate with the given `CANDIDATE_ID`, the candidate's permanent ID shown on each card as `#N` (for example, `#1`) before their name.
 After a successful edit, the full list is displayed again.
 
-Format: `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
+Format: `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
 
-`candidate` is a required, case-sensitive keyword. The old `edit INDEX ...` syntax is rejected.
+`candidate` is a required, case-sensitive keyword. The old keyword-less `edit ...` syntax is rejected.
 Multiple spaces between command words are accepted.
 
 Supply at least one field. Omitted fields retain their existing values. Supplying `s/` replaces the entire skill set;
-repeat it to supply multiple skills. Skills are optional: use `edit candidate INDEX s/` to clear them.
+repeat it to supply multiple skills. Skills are optional: use `edit candidate CANDIDATE_ID s/` to clear them.
 When supplying multiple skills, each value must be non-blank.
 Repeated skills are combined without regard to case. A repeated single-value prefix such as `r/` is rejected.
 
-For example, `edit candidate 1 s/` removes all skills from the first displayed candidate. Mixing an empty skill with a
+For example, `edit candidate 1 s/` removes all skills from the candidate with ID 1. Mixing an empty skill with a
 non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
 To replace all existing skills with just "new skill", use `edit candidate 1 s/new skill`.
 Omitting `s/` entirely preserves the candidate's existing skills.
@@ -346,9 +346,9 @@ Target roles accept 1–100 characters consisting of letters, digits, spaces, hy
 Leading and trailing whitespace is trimmed, and consecutive whitespace in names, skills and roles is collapsed.
 Invalid input leaves the records unchanged.
 
-For example, `edit candidate 1 p/+6591234567 e/johndoe@example.com` updates only the first displayed candidate's contact details.
-`edit candidate 2 s/Java s/SQL r/Backend Engineer` replaces the second displayed candidate's skills and target role,
-preserving their contact details and remark. Editing a remark also preserves skills and target role.
+For example, `edit candidate 1 p/+6591234567 e/johndoe@example.com` updates only the contact details of the candidate with ID 1.
+`edit candidate 2 s/Java s/SQL r/Backend Engineer` replaces the skills and target role of the candidate with ID 2,
+preserving their contact details and note. Editing a note also preserves skills and target role.
 Edited recruitment details appear on the candidate card and are saved locally.
 Older records without skills or a target role can still be loaded and edited.
 
@@ -368,10 +368,11 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 - Keywords are separated by whitespace. Supply at least one keyword; an empty search is rejected.
 - A candidate is returned if any keyword matches their name or email address (an `OR` search).
   Keyword order does not matter, and a candidate matching several keywords appears only once.
-- Results retain the candidate list's order and use the displayed indexes for subsequent edit or delete commands.
+- Results retain the candidate list's order. Subsequent `edit`, `delete`, `view`, and `note` commands identify a
+  candidate by their permanent `CANDIDATE_ID` (shown as `#N` on each card), not by their position in the results.
 - Each search considers all candidates, including those hidden by a previous search.
   Use `list candidates` to display all candidates again.
-- The search considers only names and email addresses; it does not search skills, roles, remarks, or other fields.
+- The search considers only names and email addresses; it does not search skills, roles, notes, or other fields.
 
 Examples:
 
@@ -385,17 +386,18 @@ Examples:
 
 Deletes the specified candidate from HireBase.
 
-Format: `delete candidate INDEX`
+Format: `delete candidate CANDIDATE_ID`
 
 - The `candidate` record-type keyword is required and case-sensitive.
-- Deletes the candidate at the specified `INDEX`.
-- The index refers to the index number shown in the displayed candidate list.
-- The index **must be a positive integer** 1, 2, 3, …​
+- Deletes the candidate with the specified `CANDIDATE_ID`.
+- The `CANDIDATE_ID` is the candidate's permanent ID, shown as `#N` on each card, not their position in the list.
+- The `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​
 
 Examples:
 
-- `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
-- `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
+- `delete candidate 2` deletes the candidate whose ID is `2`, regardless of their position in the list.
+- `find Betsy` followed by `delete candidate 1` deletes the candidate with ID `1`, even while the search filter is
+  active — the filter does not affect which candidate is removed.
 
 ### Viewing a candidate's full details: `view candidate`
 
@@ -617,7 +619,7 @@ _Details coming soon ..._
 | **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
 | **List candidates** | `list candidates` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
-| **Edit candidate** | `edit candidate INDEX [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
+| **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
 | **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
 | **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
 | **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |

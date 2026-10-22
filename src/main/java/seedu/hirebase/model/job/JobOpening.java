@@ -3,6 +3,7 @@ package seedu.hirebase.model.job;
 import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
 
@@ -12,6 +13,8 @@ import seedu.hirebase.commons.util.ToStringBuilder;
  * full equality includes the description and display capitalisation.
  */
 public final class JobOpening {
+    // Assigned on insertion. Like candidate IDs, this metadata is excluded from value equality.
+    private final JobId jobId;
     private final JobTitle title;
     private final Department department;
     private final Description description;
@@ -20,10 +23,29 @@ public final class JobOpening {
      * Creates an opening with the supplied validated fields.
      */
     public JobOpening(JobTitle title, Department department, Description description) {
+        this(title, department, description, null);
+    }
+
+    /**
+     * Creates an opening with a stored ID, or null for an opening awaiting assignment.
+     */
+    public JobOpening(JobTitle title, Department department, Description description, JobId jobId) {
         requireAllNonNull(title, department, description);
+        this.jobId = jobId;
         this.title = title;
         this.department = department;
         this.description = description;
+    }
+
+    public Optional<JobId> getJobId() {
+        return Optional.ofNullable(jobId);
+    }
+
+    /**
+     * Copies this opening's fields with the supplied ID.
+     */
+    public JobOpening withJobId(JobId id) {
+        return new JobOpening(title, department, description, id);
     }
 
     public JobTitle getTitle() {
@@ -63,6 +85,7 @@ public final class JobOpening {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .add("jobId", jobId)
                 .add("title", title)
                 .add("department", department)
                 .add("description", description)

@@ -29,7 +29,7 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 
    - `add job t/Software Engineer d/Engineering desc/Build backend services using Java.` : Records a local job opening.
 
-   - `list jobs` : Shows all job openings and their current indexes.
+   - `list jobs` : Shows all job openings and their permanent IDs.
 
    - `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer` : Adds a contact named `John Doe` to HireBase.
 
@@ -112,7 +112,7 @@ and description. The supported commands are [`add job`](#adding-a-job-opening-ad
 They do not publish vacancies or accept applications.
 
 Job openings and candidate profiles are separate records. Adding, editing or deleting an opening does not assign candidates
-to it or change their target roles. Use `edit job` to correct an opening while keeping its position in the job list.
+to it or change their target roles. Use `edit job` to correct an opening while keeping its ID and position in the job list.
 
 ### Switching between candidates and job openings
 
@@ -120,9 +120,9 @@ Click **Candidates** or **Job openings** above the list to switch views. Switchi
 or reset a candidate search. You can also use `list jobs` or `list candidates` from the command box;
 `list candidates` resets the candidate filter to show all candidates.
 
-Each job card displays its current 1-based index, title, department, and full description. Long details wrap
+Each job card displays its permanent positive-integer ID, title, department, and full description. Long details wrap
 across lines; scroll the list to read additional content. An empty jobs tab shows `No job openings found.`
-Cards update after adding, editing, deleting or clearing records. After a deletion, later job indexes shift down by one.
+Cards update after adding, editing, deleting or clearing records. After a deletion, all remaining openings keep their IDs.
 
 Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
 the Candidates tab. Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active
@@ -156,14 +156,16 @@ For example, after adding `Software Engineer` in `Engineering`, adding `software
 is rejected even with a different description. Adding `Software Engineer` in `Research` is accepted.
 Multiple vacancies with the same title and department share one opening under this rule.
 
-Success shows `Added job opening INDEX: TITLE — DEPARTMENT.` The index is the opening's current position in
-creation order, starting at 1; it is not a permanent ID. A duplicate reports the existing opening's index,
-title and department and is not added. The opening is saved before success is reported. If saving fails,
+Success shows `Added job opening ID: TITLE — DEPARTMENT.` IDs start at 1 and increase for each new
+opening. They remain unchanged after deletion of other openings, and across restarts. Deleted IDs are never reused,
+even after `clear`. Job IDs and candidate IDs are separate; the same number can identify one record of each type.
+A duplicate reports the existing opening's ID, title and department and is not added. The opening is saved before success is reported. If saving fails,
 HireBase reports `Could not save changes. Job opening was not added. Check storage permissions and available disk space, then try again.`
 and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
-Successful job commands select the Job openings tab automatically.
+Successful job commands select the Job openings tab automatically. If all IDs through 2147483647 have been
+allocated, further additions are rejected with `No more job IDs are available.`; existing openings remain usable.
 
 Common input errors (none adds an opening):
 
@@ -176,7 +178,7 @@ Common input errors (none adds an opening):
 | Text before the fields | `add job Engineer t/Engineer d/Engineering desc/Build services` | `Unexpected text: Engineer. Usage: add job t/TITLE d/DEPARTMENT desc/DESCRIPTION` |
 
 Invalid title, department or description values produce a field-specific validation message. Correct the input
-and submit the command again. For a duplicate at index 1, feedback is
+and submit the command again. For a duplicate at ID 1, feedback is
 `Job opening already exists (1): Software Engineer — Engineering. Job opening was not added.`
 
 ### Listing job openings: `list jobs`
@@ -185,8 +187,9 @@ Format: `list jobs`
 
 Selects the Job openings tab and displays all stored openings as cards in creation order (earliest first).
 The command result area also includes their full details.
-Each entry shows its current 1-based index, title, department, and full description. Openings with the same title
-in different departments are displayed separately. Indexes are list positions, not permanent IDs.
+Each entry shows its permanent positive-integer ID, title, department, and full description. Openings with the same title
+in different departments are displayed separately. The number identifies the opening, even if it is no longer
+at that list position. Gaps are expected after deletions.
 
 The result starts with `Listed N job openings.` (or `Listed 1 job opening.` for a single opening).
 An empty list is a successful result: `No job openings found.`
@@ -209,75 +212,77 @@ the data file.
 
 ### Editing a job opening: `edit job`
 
-Format: `edit job INDEX [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`
+Format: `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`
 
 Example: `edit job 1 t/Senior Software Engineer desc/Lead backend development.`
 
-Use `list jobs` to check the current index. The index must be a positive integer referring to an existing
-opening; candidate filters do not affect job indexes. The keywords `edit` and `job` are case-sensitive.
+Use `list jobs` to check the permanent ID. The ID must be a positive integer referring to an existing
+opening; candidate filters do not affect job IDs. The ID is independent of list position: after deleting job 1,
+`edit job 2 d/Research` still edits job 2 even if it is now the first card. Deleted IDs are rejected.
+The keywords `edit` and `job` are case-sensitive.
 Provide at least one field, in any order. Omitted fields retain their values. Supplied fields must be non-empty
 and follow the same validation rules as [`add job`](#adding-a-job-opening-add-job). Repeated and unknown prefixes
 are rejected. An edit that would duplicate another opening's title and department (ignoring case) is rejected.
 Changing only capitalisation or supplying the existing values is allowed.
 
-Success shows `Edited job opening INDEX: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
-keeps its index; other openings, candidate records and candidate filters remain unchanged. Changes persist across
-launches. If saving fails, the live opening remains unchanged and HireBase reports
+Success shows `Edited job opening ID: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
+keeps its ID and list position; other openings, candidate records and candidate filters remain unchanged.
+Changes persist across launches. If saving fails, the live opening remains unchanged and HireBase reports
 `Could not save changes. Job opening was not edited. Check storage permissions and available disk space, then try again.`
 
 For example, `edit job 1 d/Research` changes only the department. `edit job 1` is rejected because no fields were
-specified, and `edit job 1 desc/` is rejected because descriptions cannot be empty. An unavailable index reports
-`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
+specified, and `edit job 1 desc/` is rejected because descriptions cannot be empty. An unavailable ID reports
+`Job ID "ID" does not exist. Use list jobs to view available job IDs.`
 
 ### Deleting a job opening: `delete job`
 
-Format: `delete job INDEX`
+Format: `delete job ID`
 
-Example: `delete job 2` deletes the second opening shown by `list jobs`.
-The index must be a positive integer referring to an existing opening in the current job list.
-Use `list jobs` before deleting to check the index. Indexes are list positions, not permanent IDs;
-after deletion, later openings shift down by one. Candidate filters do not affect job indexes.
+Example: `delete job 2` deletes the opening with ID 2, regardless of its position in `list jobs`.
+The ID must be a positive integer referring to an existing opening in the current job list.
+Use `list jobs` before deleting to check the ID. After deletion, remaining openings retain their IDs.
+Candidate filters do not affect job IDs. A deleted ID is rejected even if another opening occupies its old position.
 
-The command accepts exactly one index. `job` is a required, case-sensitive keyword.
+The command accepts exactly one ID. `job` is a required, case-sensitive keyword.
 Surrounding whitespace and multiple spaces between command words are accepted. Missing, invalid or multiple
-indexes are rejected with usage guidance. A nonexistent index reports
-`Job index "INDEX" does not exist. Use list jobs to view available job indexes.`
+IDs are rejected with usage guidance. A nonexistent ID reports
+`Job ID "ID" does not exist. Use list jobs to view available job IDs.`
 
-Success shows `Deleted job opening INDEX: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
+Success shows `Deleted job opening ID: TITLE — DEPARTMENT.` Only that opening is removed; other openings,
 candidate records, target roles and the active candidate filter remain unchanged. An opening with the same title
-and department can then be added again and is appended to the end of the list.
+and department can then be added again with a new ID and is appended to the end of the list.
 
 The deletion is saved before being applied to the live job list. If saving fails, the opening is retained and
 HireBase reports `Could not save changes. Job opening was not deleted. Check storage permissions and available disk space, then try again.`
-Successful deletion selects the Job openings tab and refreshes its cards and indexes.
+Successful deletion selects the Job openings tab and refreshes its cards.
 
 Common deletion errors:
 
 | Command | Feedback |
 | --- | --- |
-| `delete job` | `Missing job index. Usage: delete job INDEX` |
-| `delete job 1 2` | `Expected exactly one job index. Usage: delete job INDEX` |
-| `delete job 0` | `Job index must be a positive integer. Usage: delete job INDEX` |
-| `delete job 1.5` | `Job index must be a positive integer. Usage: delete job INDEX` |
+| `delete job` | `Missing job ID. Usage: delete job ID` |
+| `delete job 1 2` | `Expected exactly one job ID. Usage: delete job ID` |
+| `delete job 0` | `Job ID must be a positive integer. Usage: delete job ID` |
+| `delete job 1.5` | `Job ID must be a positive integer. Usage: delete job ID` |
 
-Negative indexes, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid index
+Negative IDs, non-numeric values and integers above 2147483647 are also rejected. A syntactically valid ID
 must still refer to an existing opening; use `list jobs` to check the current list after an error.
 
 ### Example: create, review and close an opening
 
-The following example assumes the job list is initially empty. If it already contains openings, use the indexes
-reported by your own `list jobs` result instead of the example indexes. Do not use `clear` to prepare this example:
-it deletes candidate records as well as openings.
+The following example assumes no jobs have ever been added to this data file. Otherwise, use the IDs
+reported by your own `list jobs` result instead of the example IDs, even if the list is currently empty.
+Do not use `clear` to prepare this example: it deletes candidate records as well as openings.
 
 Run `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`. HireBase reports
 `Added job opening 1: Software Engineer — Engineering.` and selects the Job openings tab.
-Then run `add job t/Data Analyst d/Analytics desc/Analyse business data using SQL.`. This opening receives index 2.
+Then run `add job t/Data Analyst d/Analytics desc/Analyse business data using SQL.`. This opening receives ID 2.
 `list jobs` now shows both cards and reports `Listed 2 job openings.`
 
 When the Software Engineer opening closes, run `delete job 1`. HireBase reports
-`Deleted job opening 1: Software Engineer — Engineering.`. Run `list jobs` again: Data Analyst is now index 1,
-not index 2. Candidate records and their target roles are unchanged. Restarting HireBase retains the remaining
-opening; click Job openings or run `list jobs` to see it again.
+`Deleted job opening 1: Software Engineer — Engineering.`. Run `list jobs` again: Data Analyst still has ID 2.
+Adding another opening gives it ID 3. Candidate records and their target roles are unchanged.
+Restarting HireBase retains the remaining opening; click Job openings or run `list jobs` to see it again.
 
 ### Editing a candidate: `edit candidate`
 
@@ -453,7 +458,14 @@ Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED`
 Older records without this field, or with a `null` value, load as `SCREENING`.
 Blank strings, unknown stage names, or incorrect capitalization make the data file invalid.
 
-The `jobs` array stores each opening's `title`, `department`, and `description`, preserving their order.
+The `jobs` array stores each opening's `id`, `title`, `department`, and `description`, preserving their order.
+Job IDs must be unique positive integers from 1 to 2147483647. The top-level `nextJobId` counter preserves the
+next unused ID, including after deletion or `clear`; do not lower it or change assigned IDs manually.
+Older openings with no ID (or a null ID) receive IDs in file order, starting above all stored IDs and at least as high as the saved
+counter. If no IDs or counter exist, numbering starts at 1. These assigned IDs are saved on the next successful
+command that writes data; `list jobs` alone does not rewrite the file. A missing counter is reconstructed from
+stored IDs. A counter below an existing ID is advanced automatically. Invalid or duplicate IDs make the file
+invalid. The counter accepts 1 through 2147483648; the final value indicates that no new IDs are available.
 Each opening must have all three fields and satisfy the job model's validation rules: titles and departments are
 1–100 characters using letters, digits, spaces, or `& / ( ) + # . , ' ’ -`, with at least one letter or digit;
 descriptions are 1–2000 printable characters on one line. Title and department whitespace is collapsed,
@@ -501,8 +513,8 @@ _Details coming soon ..._
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
-| **Edit job** | `edit job INDEX [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`<br> e.g., `edit job 1 d/Research` |
-| **Delete job** | `delete job INDEX`<br> e.g., `delete job 2` |
+| **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION]`<br> e.g., `edit job 1 d/Research` |
+| **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

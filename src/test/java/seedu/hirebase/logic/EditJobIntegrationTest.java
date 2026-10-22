@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ListChangeListener;
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.EditCommand;
 import seedu.hirebase.logic.commands.EditJobCommand;
@@ -29,8 +28,10 @@ import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.JobTitle;
 import seedu.hirebase.storage.JsonHireBaseStorage;
@@ -48,7 +49,7 @@ public class EditJobIntegrationTest {
 
     @Test
     public void parse_validWhitespaceAndCandidateRouting_success() throws Exception {
-        assertEquals(new EditJobCommand(Index.fromOneBased(2), new JobTitle("Engineer"), null, null),
+        assertEquals(new EditJobCommand(new JobId(2), new JobTitle("Engineer"), null, null),
                 parser.parseCommand("  edit   job  2  t/Engineer  "));
         assertTrue(parser.parseCommand("edit candidate 1 n/Alice") instanceof EditCommand);
     }
@@ -91,7 +92,7 @@ public class EditJobIntegrationTest {
     }
 
     @Test
-    public void execute_invalidIndexOrDuplicate_doesNotSaveOrMutate() throws Exception {
+    public void execute_invalidIdOrDuplicate_doesNotSaveOrMutate() throws Exception {
         JsonHireBaseStorage storage = new JsonHireBaseStorage(temporaryFolder.resolve("data.json")) {
             @Override
             public void saveHireBase(ReadOnlyHireBase data) {
@@ -137,6 +138,8 @@ public class EditJobIntegrationTest {
             assertTrue(model.getFilteredPersonList().isEmpty());
             assertTrue(changes.isEmpty());
             assertEquals(saved, Files.readString(file));
+            assertEquals(new JobId(1), model.getJobOpeningList().getFirst().getJobId().orElseThrow());
+            assertEquals(2, model.getHireBase().getNextJobId());
         }
         logic(storage).execute("edit job 1 t/Engineer");
         assertEquals(List.of("changed"), changes);
@@ -144,12 +147,41 @@ public class EditJobIntegrationTest {
 
     @Test
     public void command_equalityAndNull_contracts() {
-        EditJobCommand command = new EditJobCommand(Index.fromOneBased(1), new JobTitle("Engineer"), null, null);
-        assertEquals(command, new EditJobCommand(Index.fromOneBased(1), new JobTitle("Engineer"), null, null));
-        assertNotEquals(command, new EditJobCommand(Index.fromOneBased(2), new JobTitle("Engineer"), null, null));
+        EditJobCommand command = new EditJobCommand(new JobId(1), new JobTitle("Engineer"), null, null);
+        assertEquals(command, new EditJobCommand(new JobId(1), new JobTitle("Engineer"), null, null));
+        assertNotEquals(command, new EditJobCommand(new JobId(2), new JobTitle("Engineer"), null, null));
         assertNotEquals(command, null);
         assertThrows(NullPointerException.class, () -> command.execute(null));
-        assertThrows(IllegalArgumentException.class, () -> new EditJobCommand(Index.fromOneBased(1), null, null, null));
+        assertThrows(IllegalArgumentException.class, () -> new EditJobCommand(new JobId(1), null, null, null));
+    }
+
+    @Test
+    public void execute_afterDeletionAndRestart_editsByIdAndKeepsAllocationCounter() throws Exception {
+        model.addJobOpening(first);
+        model.addJobOpening(second);
+        JsonHireBaseStorage storage = new JsonHireBaseStorage(temporaryFolder.resolve("data.json"));
+        Logic logic = logic(storage);
+        logic.execute("delete job 1");
+        assertEquals(String.format(EditJobCommand.MESSAGE_NOT_FOUND, 1),
+                assertThrows(CommandException.class, () -> logic.execute("edit job 1 t/Wrong job")).getMessage());
+        assertEquals("Edited job opening 2: Engineer — Research.",
+                logic.execute("edit job 2 t/Engineer").getFeedbackToUser());
+        assertEquals(new JobId(2), model.getJobOpeningList().getFirst().getJobId().orElseThrow());
+        assertEquals(3, model.getHireBase().getNextJobId());
+
+        Model restarted = new ModelManager(storage.readHireBase().orElseThrow(), new UserPrefs());
+        Logic afterRestart = new LogicManager(restarted, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+        afterRestart.execute("edit job 2 d/Platform desc/Updated duties");
+        JobOpening edited = restarted.findJobOpening(new JobId(2)).orElseThrow();
+        assertEquals(new JobTitle("Engineer"), edited.getTitle());
+        assertEquals(new Department("Platform"), edited.getDepartment());
+        assertEquals(new Description("Updated duties"), edited.getDescription());
+        assertEquals(new JobId(2), storage.readHireBase().orElseThrow()
+                .getJobOpeningList().getFirst().getJobId().orElseThrow());
+        assertEquals(3, storage.readHireBase().orElseThrow().getNextJobId());
+        afterRestart.execute("add job t/New role d/Engineering desc/Build");
+        assertEquals(new JobId(3), restarted.getJobOpeningList().getLast().getJobId().orElseThrow());
     }
 
     private Logic logic(JsonHireBaseStorage storage) {

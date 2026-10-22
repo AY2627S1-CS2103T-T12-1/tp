@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.EditJobCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
+import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobTitle;
 
 /**
@@ -37,11 +37,11 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
             ends.add(matcher.end());
         }
         String preamble = args.substring(0, starts.isEmpty() ? args.length() : starts.getFirst()).strip();
-        Index index;
+        JobId id;
         try {
-            index = ParserUtil.parseIndex(preamble);
+            id = new JobId(ParserUtil.parseIndex(preamble).getOneBased());
         } catch (ParseException e) {
-            throw new ParseException(EditJobCommand.MESSAGE_INVALID_INDEX, e);
+            throw new ParseException(EditJobCommand.MESSAGE_INVALID_ID, e);
         }
         for (int i = 0; i < prefixes.size(); i++) {
             String prefix = prefixes.get(i);
@@ -64,7 +64,7 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
             }
         }
         try {
-            return new EditJobCommand(index,
+            return new EditJobCommand(id,
                     values.containsKey("t/") ? new JobTitle(values.get("t/")) : null,
                     values.containsKey("d/") ? new Department(values.get("d/")) : null,
                     values.containsKey("desc/") ? new Description(values.get("desc/")) : null);

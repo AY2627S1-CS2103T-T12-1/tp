@@ -20,12 +20,15 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ListChangeListener;
 import seedu.hirebase.logic.commands.AddJobCommand;
+import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.candidate.InterviewStage;
+import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
 import seedu.hirebase.model.job.JobOpening;
@@ -33,6 +36,7 @@ import seedu.hirebase.model.job.JobTitle;
 import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.StorageManager;
+import seedu.hirebase.testutil.PersonBuilder;
 
 public class AddJobIntegrationTest {
     private static final String INPUT = "add job t/Developer d/Engineering desc/Build  services";
@@ -59,6 +63,58 @@ public class AddJobIntegrationTest {
         assertEquals("Added job opening 2: Developer — Research.", logic.execute(
                 "add job t/Developer d/Research desc/Research services").getFeedbackToUser());
         assertEquals(2, storage.readHireBase().orElseThrow().getJobOpeningList().size());
+    }
+
+    @Test
+    public void execute_withRequiredSkills_filtersRejectedCandidatesWithAnyMatchingSkill() throws Exception {
+        Person rejectedJava = new PersonBuilder(ALICE).withSkills("Java")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        Person rejectedPython = new PersonBuilder(BOB).withSkills("Python")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        Person screeningJava = new PersonBuilder(ALICE).withName("Carol").withEmail("carol@example.com")
+                .withSkills("Java").build();
+        model.addPerson(rejectedJava);
+        model.addPerson(rejectedPython);
+        model.addPerson(screeningJava);
+
+        CommandResult result = logic(new JsonHireBaseStorage(temporaryFolder.resolve("data.json")))
+                .execute("add job t/Developer d/Engineering desc/Build services s/java s/SQL");
+
+        assertEquals("Added job opening 1: Developer — Engineering.\n"
+                + "Found 1 previously rejected candidate with matching skills.", result.getFeedbackToUser());
+        assertEquals(CommandResult.ListView.CANDIDATES, result.getListView());
+        assertEquals(List.of(rejectedJava), model.getFilteredPersonList());
+        assertEquals(List.of(rejectedJava, rejectedPython, screeningJava), model.getHireBase().getPersonList());
+    }
+
+    @Test
+    public void execute_withRequiredSkillsAndNoMatches_reportsEmptyShortlist() throws Exception {
+        model.addPerson(new PersonBuilder(ALICE).withSkills("Python")
+                .withInterviewStage(InterviewStage.REJECTED).build());
+
+        CommandResult result = logic(new JsonHireBaseStorage(temporaryFolder.resolve("data.json")))
+                .execute("add job t/Developer d/Engineering desc/Build services s/Java");
+
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(CommandResult.ListView.CANDIDATES, result.getListView());
+        assertTrue(result.getFeedbackToUser().endsWith("No previously rejected candidates have matching skills."));
+    }
+
+    @Test
+    public void execute_withSeveralRequiredSkillMatches_usesPluralFeedback() throws Exception {
+        Person rejectedJava = new PersonBuilder(ALICE).withSkills("Java")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        Person rejectedSql = new PersonBuilder(BOB).withSkills("SQL")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        model.addPerson(rejectedJava);
+        model.addPerson(rejectedSql);
+
+        CommandResult result = logic(new JsonHireBaseStorage(temporaryFolder.resolve("data.json")))
+                .execute("add job t/Developer d/Engineering desc/Build services s/Java s/SQL");
+
+        assertEquals("Added job opening 1: Developer — Engineering.\n"
+                + "Found 2 previously rejected candidates with matching skills.", result.getFeedbackToUser());
+        assertEquals(List.of(rejectedJava, rejectedSql), model.getFilteredPersonList());
     }
 
     @Test

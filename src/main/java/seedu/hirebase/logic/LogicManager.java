@@ -2,6 +2,7 @@ package seedu.hirebase.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -25,7 +26,9 @@ import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
+import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.storage.Storage;
 
@@ -100,6 +103,18 @@ public class LogicManager implements Logic {
             throw new CommandException(AddJobCommand.MESSAGE_SAVE_FAILURE, e);
         }
         model.addJobOpening(command.getJobOpening());
+        Set<Skill> requiredSkills = command.getJobOpening().getSkills();
+        if (!requiredSkills.isEmpty()) {
+            model.updateFilteredPersonList(person -> person.getInterviewStage() == InterviewStage.REJECTED
+                    && person.getSkills().stream().anyMatch(requiredSkills::contains));
+            int matchingCandidates = model.getFilteredPersonList().size();
+            String recommendationMessage = matchingCandidates == 0
+                    ? "No previously rejected candidates have matching skills."
+                    : String.format("Found %d previously rejected candidate%s with matching skills.",
+                            matchingCandidates, matchingCandidates == 1 ? "" : "s");
+            return new CommandResult(result.getFeedbackToUser() + "\n" + recommendationMessage)
+                    .withListView(CommandResult.ListView.CANDIDATES);
+        }
         return result.withListView(CommandResult.ListView.JOBS);
     }
 

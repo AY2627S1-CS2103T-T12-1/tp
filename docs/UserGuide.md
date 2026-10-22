@@ -112,7 +112,9 @@ description, and optional required skills. The supported commands are [`add job`
 They do not publish vacancies or accept applications.
 
 Job openings and candidate profiles are separate records. Adding, editing or deleting an opening does not assign candidates
-to it or change their target roles. Use `edit job` to correct an opening while keeping its ID and position in the job list.
+to it or change their target roles. When you add an opening with required skills, HireBase can surface previously rejected
+candidates with at least one matching skill as an initial shortlist. Use `list candidates` to clear that filter. Use
+`edit job` to correct an opening while keeping its ID and position in the job list.
 
 ### Switching between candidates and job openings
 
@@ -161,6 +163,13 @@ stores one tag. Use `s/Machine Learning` for a multi-word skill and `s/C++ s/C#`
 As with other job values, a prefix-like token following whitespace starts a new parameter; `s/CI/CD` is accepted,
 while `s/Build CI/CD` is rejected because `CI/` is read as a parameter.
 
+When an opening has required skills, adding it selects the Candidates tab and filters the list to candidates whose
+interview stage is `REJECTED` and who have at least one skill matching any of the opening's required skills,
+ignoring letter case. For example, a candidate with `Java` is shortlisted for a job requiring `java` and `SQL`.
+The command reports how many candidates matched, or that none matched. This shortlist is only a display filter:
+it does not change candidate records or assign them to the opening. Use `list candidates` to clear the filter and
+show all candidates. Adding an opening without required skills continues to select the Job openings tab.
+
 An opening is a duplicate if both its title and department match an existing opening after normalization,
 ignoring case. Descriptions and required skills do not determine uniqueness. The same title in a different department is allowed.
 For example, after adding `Software Engineer` in `Engineering`, adding `software engineer` in `ENGINEERING`
@@ -175,7 +184,8 @@ HireBase reports `Could not save changes. Job opening was not added. Check stora
 and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
-Successful job commands select the Job openings tab automatically. If all IDs through 2147483647 have been
+Successful job commands select the Job openings tab automatically, except that `add job` with required skills selects
+the Candidates tab to show the matching rejected-candidate shortlist. If all IDs through 2147483647 have been
 allocated, further additions are rejected with `No more job IDs are available.`; existing openings remain usable.
 
 Common input errors (none adds an opening):

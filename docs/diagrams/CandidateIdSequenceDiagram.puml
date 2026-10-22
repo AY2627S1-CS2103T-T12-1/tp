@@ -1,0 +1,73 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant "a:AddCommand" as AddCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:ModelManager" as ModelManager MODEL_COLOR
+participant "hb:HireBase" as HireBase MODEL_COLOR
+participant "toAdd:Person" as Person MODEL_COLOR
+participant "id:CandidateId" as CandidateId MODEL_COLOR
+participant "stored:Person" as StoredPerson MODEL_COLOR
+participant ":UniquePersonList" as UniquePersonList MODEL_COLOR
+end box
+
+[-> AddCommand : execute(m)
+activate AddCommand
+
+AddCommand -> ModelManager : addPerson(toAdd)
+activate ModelManager
+
+ModelManager -> HireBase : addPerson(toAdd)
+activate HireBase
+
+HireBase -> Person : getCandidateId()
+activate Person
+Person --> HireBase : Optional.empty()
+deactivate Person
+
+create CandidateId
+HireBase -> CandidateId : CandidateId(nextCandidateId)
+activate CandidateId
+CandidateId --> HireBase : id
+deactivate CandidateId
+
+HireBase -> Person : withCandidateId(id)
+activate Person
+
+create StoredPerson
+Person -> StoredPerson
+activate StoredPerson
+StoredPerson --> Person
+deactivate StoredPerson
+
+Person --> HireBase : stored
+deactivate Person
+
+HireBase -> UniquePersonList : add(stored)
+activate UniquePersonList
+UniquePersonList --> HireBase
+deactivate UniquePersonList
+
+HireBase -> HireBase : nextCandidateId++
+activate HireBase MODEL_COLOR_T2
+HireBase --> HireBase
+deactivate HireBase
+
+HireBase --> ModelManager
+deactivate HireBase
+
+ModelManager -> ModelManager : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate ModelManager MODEL_COLOR_T2
+ModelManager --> ModelManager
+deactivate ModelManager
+
+ModelManager --> AddCommand
+deactivate ModelManager
+
+[<-- AddCommand
+deactivate AddCommand
+@enduml

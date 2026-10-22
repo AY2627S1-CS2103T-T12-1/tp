@@ -1,54 +1,78 @@
 @startuml
 !include style.puml
 skinparam arrowThickness 1.1
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
 Package Model as ModelPackage <<Rectangle>>{
-Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
+Class "<<interface>>\nReadOnlyHireBase" as ReadOnlyHireBase
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
-Class AddressBook
+Class HireBase {
+    -nextCandidateId : int
+}
 Class ModelManager
 Class UserPrefs
 
 Class UniquePersonList
+Class UniqueJobOpeningList
+Class JobOpening
 Class Person
-Class Address
-Class Email
+Class CandidateId {
+    -value : int
+}
 Class Name
 Class Phone
+Class Email
+Class Address
+Class Note
+Class Skill
+Class Role
+Class InterviewStage
 Class Tag
 
 Class I #FFFFFF
 }
 
+show HireBase fields
+show CandidateId fields
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
 
-AddressBook .up.|> ReadOnlyAddressBook
+HireBase .up.|> ReadOnlyHireBase
 
 ModelManager .up.|> Model
 Model .right.> ReadOnlyUserPrefs
-Model .left.> ReadOnlyAddressBook
-ModelManager -left-> "1" AddressBook
+Model .left.> ReadOnlyHireBase
+ModelManager -left-> "1" HireBase
 ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
-AddressBook *--> "1" UniquePersonList
+HireBase *--> "1" UniquePersonList
+HireBase *--> "1" UniqueJobOpeningList
+UniqueJobOpeningList --> "~* all" JobOpening
 UniquePersonList --> "~* all" Person
+Person *--> "0..1" CandidateId
 Person *--> Name
 Person *--> Phone
 Person *--> Email
 Person *--> Address
+Person *--> Note
+Person *--> "*" Skill
+Person *--> "0..1" Role
+Person *--> InterviewStage
 Person *--> "*" Tag
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
 
+CandidateId -[hidden]right-> Name
 Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
+Phone -[hidden]right-> Email
+Email -[hidden]right-> Address
 
 ModelManager --> "~* filtered" Person
 @enduml

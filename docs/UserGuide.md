@@ -383,6 +383,51 @@ Examples:
 - `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
 
+### Viewing a candidate's full details: `view candidate`
+
+Shows the full details of one candidate in the result display and collapses the candidate list to only that candidate.
+
+Format: `view candidate CANDIDATE_ID`
+
+- The `candidate` record-type keyword is required and case-sensitive.
+- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `ID: N`. Unlike the `INDEX` used by
+  `edit`, `delete`, and `stage`, a candidate's ID never changes when the list is filtered, reordered, or when other
+  candidates are deleted.
+- Because the ID is permanent, you can view any candidate by their ID even while a `find` filter is hiding them.
+- `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
+- The result display lists the candidate's name, interview stage, phone, email, address, target role, skills, and note.
+  Empty optional fields (role, skills, note) are shown as `—`.
+- A `CANDIDATE_ID` that no candidate has is rejected with
+  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`, leaving the list unchanged.
+
+Examples:
+
+- `view candidate 1` shows the full details of the candidate whose ID is `1` and collapses the list to that candidate.
+- `find Betsy` followed by `view candidate 3` still shows candidate `3` even if the search filtered them out.
+
+### Adding or updating a candidate's note: `note`
+
+Adds, updates, or clears the free-text screening note of an existing candidate. Any existing note is overwritten.
+
+Format: `note CANDIDATE_ID [NOTE]`
+
+- `CANDIDATE_ID` is the candidate's **permanent ID** (`ID: N` on the card), the same ID used by `view candidate` —
+  not the displayed list index. It **must be a positive integer**.
+- The note replaces any existing note. **Omit `NOTE` to clear** the candidate's note.
+- Leading and trailing whitespace is trimmed; spacing and punctuation inside the note are preserved. The note is plain
+  text — there is no prefix to type.
+- After a successful note, HireBase shows the full candidate list again. The command works even while a `find` filter
+  is active, because the candidate is located by ID.
+- Only the note changes; the candidate's name, contact details, skills, role, and interview stage are preserved.
+- A `CANDIDATE_ID` that no candidate has is rejected with
+  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+
+Examples:
+
+- `note 1 Strong system-design round; follow up re: availability` sets the note on candidate `1`; HireBase replies
+  `Added note to candidate: …`.
+- `note 1` clears candidate `1`'s note; HireBase replies `Removed note from candidate: …`.
+
 ### Changing a candidate's interview stage: `stage candidate`
 
 Changes the interview stage of the specified candidate. New candidates start at `SCREENING`.
@@ -533,6 +578,8 @@ _Details coming soon ..._
 | **Accept candidate** | `accept candidate INDEX`<br> e.g., `accept candidate 1` |
 | **Reject candidate** | `reject candidate INDEX`<br> e.g., `reject candidate 2` |
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
+| **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
+| **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |

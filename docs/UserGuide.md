@@ -364,7 +364,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 - Keywords are separated by whitespace. Supply at least one keyword; an empty search is rejected.
 - A candidate is returned if any keyword matches their name or email address (an `OR` search).
   Keyword order does not matter, and a candidate matching several keywords appears only once.
-- Results retain the candidate list's order and use the displayed indexes for subsequent edit or delete commands.
+- Results retain the candidate list's order. Subsequent `edit`, `delete`, `view`, and `note` commands identify a
+  candidate by their permanent `CANDIDATE_ID` (shown as `#N` on each card), not by their position in the results.
 - Each search considers all candidates, including those hidden by a previous search.
   Use `list candidates` to display all candidates again.
 - The search considers only names and email addresses; it does not search skills, roles, remarks, or other fields.

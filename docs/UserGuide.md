@@ -116,7 +116,9 @@ description, and optional required skills. The supported commands are [`add job`
 They do not publish vacancies or accept applications.
 
 Job openings and candidate profiles are separate records. Adding, editing or deleting an opening does not assign candidates
-to it or change their target roles. Use `edit job` to correct an opening while keeping its ID and position in the job list.
+to it or change their target roles. When you add an opening with required skills, HireBase can surface previously rejected
+candidates with at least one matching skill as an initial shortlist. Use `list candidates` to clear that filter. Use
+`edit job` to correct an opening while keeping its ID and position in the job list.
 
 ### Switching between candidates and job openings
 
@@ -165,6 +167,13 @@ stores one tag. Use `s/Machine Learning` for a multi-word skill and `s/C++ s/C#`
 As with other job values, a prefix-like token following whitespace starts a new parameter; `s/CI/CD` is accepted,
 while `s/Build CI/CD` is rejected because `CI/` is read as a parameter.
 
+When an opening has required skills, adding it selects the Candidates tab and filters the list to candidates whose
+interview stage is `REJECTED` and who have at least one skill matching any of the opening's required skills,
+ignoring letter case. For example, a candidate with `Java` is shortlisted for a job requiring `java` and `SQL`.
+The command reports how many candidates matched, or that none matched. This shortlist is only a display filter:
+it does not change candidate records or assign them to the opening. Use `list candidates` to clear the filter and
+show all candidates. Adding an opening without required skills continues to select the Job openings tab.
+
 An opening is a duplicate if both its title and department match an existing opening after normalization,
 ignoring case. Descriptions and required skills do not determine uniqueness. The same title in a different department is allowed.
 For example, after adding `Software Engineer` in `Engineering`, adding `software engineer` in `ENGINEERING`
@@ -179,7 +188,8 @@ HireBase reports `Could not save changes. Job opening was not added. Check stora
 and leaves existing records and the candidate display unchanged.
 
 Use `list jobs` to view saved openings. The opening is retained in the local data file across launches.
-Successful job commands select the Job openings tab automatically. If all IDs through 2147483647 have been
+Successful job commands select the Job openings tab automatically, except that `add job` with required skills selects
+the Candidates tab to show the matching rejected-candidate shortlist. If all IDs through 2147483647 have been
 allocated, further additions are rejected with `No more job IDs are available.`; existing openings remain usable.
 
 Common input errors (none adds an opening):
@@ -387,6 +397,68 @@ Examples:
 - `list candidates` followed by `delete candidate 2` deletes the 2nd candidate in HireBase.
 - `find Betsy` followed by `delete candidate 1` deletes the 1st candidate in the results of the `find` command.
 
+### Viewing a candidate's full details: `view candidate`
+
+Shows the full details of one candidate in the result display and collapses the candidate list to only that candidate.
+
+Format: `view candidate CANDIDATE_ID`
+
+- The `candidate` record-type keyword is required and case-sensitive.
+- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `#N` (for example, `#1`) before their name. It never changes when the list is
+  filtered, reordered, or when other candidates are deleted.
+- Because the ID is permanent, you can view any candidate by their ID even while a `find` filter is hiding them.
+- `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
+- The result display lists the candidate's name, interview stage, phone, email, address, target role, skills, and note.
+  Empty optional fields (role, skills, note) are shown as `—`.
+- A `CANDIDATE_ID` that no candidate has is rejected with
+  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`, leaving the list unchanged.
+
+Examples:
+
+- `view candidate 1` shows the full details of the candidate whose ID is `1` and collapses the list to that candidate.
+- `find Betsy` followed by `view candidate 3` still shows candidate `3` even if the search filtered them out.
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `view candidate 1` | Candidate `1`'s full details (name, stage, phone, email, address, role, skills, note); the list collapses to that candidate. |
+| `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
+| `view 1`, `view person 1` | `Invalid command format!` followed by the `view candidate` usage (the `candidate` keyword is required). |
+
+### Adding or updating a candidate's note: `note`
+
+Adds, updates, or clears the free-text screening note of an existing candidate. Any existing note is overwritten.
+
+Format: `note CANDIDATE_ID [NOTE]`
+
+- `CANDIDATE_ID` is the candidate's **permanent ID** (shown on the card as `#N`, e.g. `#1`), the same ID used by `view candidate`.
+  It **must be a positive integer**.
+- The note replaces any existing note. **Omit `NOTE` to clear** the candidate's note.
+- Leading and trailing whitespace is trimmed; spacing and punctuation inside the note are preserved. The note is plain
+  text — there is no prefix to type.
+- After a successful note, HireBase shows the full candidate list again. The command works even while a `find` filter
+  is active, because the candidate is located by ID.
+- Only the note changes; the candidate's name, contact details, skills, role, and interview stage are preserved.
+- A `CANDIDATE_ID` that no candidate has is rejected with
+  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+
+Examples:
+
+- `note 1 Strong system-design round; follow up re: availability` sets the note on candidate `1`; HireBase replies
+  `Added note to candidate: …`.
+- `note 1` clears candidate `1`'s note; HireBase replies `Removed note from candidate: …`.
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `note 1 Strong SQL round` | `Added note to candidate: ` followed by candidate `1`'s updated details. |
+| `note 1` | `Removed note from candidate: ` followed by candidate `1`'s updated details. |
+| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `note 0 x`, `note abc x`, `note` | `Invalid command format!` followed by the `note` usage (the ID must be a positive integer). |
+
 ### Changing candidates' interview stages: `stage candidate`
 
 Changes the interview stage of one or more specified candidates. New candidates start at `SCREENING`.
@@ -550,6 +622,8 @@ _Details coming soon ..._
 | **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
 | **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
 | **Delete candidate** | `delete candidate INDEX`<br> e.g., `delete candidate 3` |
+| **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
+| **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |

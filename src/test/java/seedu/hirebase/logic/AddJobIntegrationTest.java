@@ -101,6 +101,23 @@ public class AddJobIntegrationTest {
     }
 
     @Test
+    public void execute_withSeveralRequiredSkillMatches_usesPluralFeedback() throws Exception {
+        Person rejectedJava = new PersonBuilder(ALICE).withSkills("Java")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        Person rejectedSql = new PersonBuilder(BOB).withSkills("SQL")
+                .withInterviewStage(InterviewStage.REJECTED).build();
+        model.addPerson(rejectedJava);
+        model.addPerson(rejectedSql);
+
+        CommandResult result = logic(new JsonHireBaseStorage(temporaryFolder.resolve("data.json")))
+                .execute("add job t/Developer d/Engineering desc/Build services s/Java s/SQL");
+
+        assertEquals("Added job opening 1: Developer — Engineering.\n"
+                + "Found 2 previously rejected candidates with matching skills.", result.getFeedbackToUser());
+        assertEquals(List.of(rejectedJava, rejectedSql), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_duplicate_rejectedWithoutSavingOrChangingState() throws Exception {
         JsonHireBaseStorage storage = new JsonHireBaseStorage(temporaryFolder.resolve("data.json"));
         Logic logic = logic(storage);

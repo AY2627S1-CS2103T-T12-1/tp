@@ -12,6 +12,9 @@ public class JobIdTest {
         assertThrows(IllegalArgumentException.class, () -> new JobId(0));
         assertThrows(IllegalArgumentException.class, () -> new JobId(-1));
         assertEquals(Integer.MAX_VALUE, new JobId(Integer.MAX_VALUE).getValue());
+        JobId id = new JobId(7);
+        assertEquals(id, id);
+        assertNotEquals(id, "7");
         assertEquals(new JobId(7), new JobId(7));
         assertEquals(new JobId(7).hashCode(), new JobId(7).hashCode());
         assertEquals("7", new JobId(7).toString());

@@ -1,9 +1,11 @@
 package seedu.hirebase.model;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.job.JobOpening;
 
@@ -41,6 +43,12 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Returns the candidate with the given {@code candidateId}, if one exists.
+     * The lookup is independent of the current filter, since a candidate ID is permanent.
+     */
+    Optional<Person> getPersonByCandidateId(CandidateId candidateId);
 
     /**
      * Deletes the given person.

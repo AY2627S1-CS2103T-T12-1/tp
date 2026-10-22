@@ -3,11 +3,11 @@ package seedu.hirebase.logic.parser;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.logic.commands.ViewCommand;
+import seedu.hirebase.model.candidate.CandidateId;
 
 public class ViewCommandParserTest {
 
@@ -15,9 +15,9 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_validArgs_returnsViewCommand() {
-        assertParseSuccess(parser, " candidate 1", new ViewCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, " candidate 1", new ViewCommand(new CandidateId(1)));
         // Extra surrounding whitespace is tolerated.
-        assertParseSuccess(parser, "   candidate   1  ", new ViewCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "   candidate   1  ", new ViewCommand(new CandidateId(1)));
     }
 
     @Test
@@ -29,7 +29,7 @@ public class ViewCommandParserTest {
     }
 
     @Test
-    public void parse_invalidIndex_failure() {
+    public void parse_invalidId_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE);
         for (String input : new String[] {" candidate", " candidate 0", " candidate -1", " candidate abc",
             " candidate 1.5", " candidate 1 2", " candidate 2147483648"}) {

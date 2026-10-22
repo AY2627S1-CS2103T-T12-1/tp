@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.commons.core.GuiSettings;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.NameContainsKeywordsPredicate;
 import seedu.hirebase.testutil.HireBaseBuilder;
 
@@ -66,6 +67,24 @@ public class ModelManagerTest {
     public void hasPerson_personInHireBase_returnsTrue() {
         modelManager.addPerson(ALICE);
         assertTrue(modelManager.hasPerson(ALICE));
+    }
+
+    @Test
+    public void getPersonByCandidateId_nullId_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.getPersonByCandidateId(null));
+    }
+
+    @Test
+    public void getPersonByCandidateId_idNotPresent_returnsEmpty() {
+        modelManager.addPerson(ALICE); // assigned ID 1
+        assertTrue(modelManager.getPersonByCandidateId(new CandidateId(2)).isEmpty());
+    }
+
+    @Test
+    public void getPersonByCandidateId_idPresent_returnsPerson() {
+        modelManager.addPerson(ALICE); // assigned ID 1
+        assertEquals(modelManager.getHireBase().getPersonList().get(0),
+                modelManager.getPersonByCandidateId(new CandidateId(1)).orElseThrow());
     }
 
     @Test

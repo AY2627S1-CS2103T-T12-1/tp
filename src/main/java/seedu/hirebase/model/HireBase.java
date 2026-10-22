@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javafx.collections.ObservableList;
 import seedu.hirebase.commons.util.ToStringBuilder;
@@ -107,6 +108,18 @@ public class HireBase implements ReadOnlyHireBase {
      */
     public void removePerson(Person key) {
         persons.remove(key);
+    }
+
+    /**
+     * Returns the candidate with the given {@code candidateId}, if one exists.
+     * The search covers every candidate regardless of any displayed filter, since a
+     * {@code CandidateId} is permanent and independent of list filtering or ordering.
+     */
+    public Optional<Person> getPersonByCandidateId(CandidateId candidateId) {
+        requireNonNull(candidateId);
+        return persons.asUnmodifiableObservableList().stream()
+                .filter(person -> person.getCandidateId().filter(candidateId::equals).isPresent())
+                .findFirst();
     }
 
     //// candidate ID operations

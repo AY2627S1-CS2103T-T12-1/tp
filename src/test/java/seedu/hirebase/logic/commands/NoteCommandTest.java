@@ -13,11 +13,11 @@ import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
@@ -42,70 +42,87 @@ public class NoteCommandTest {
 
     @Test
     public void execute_replaceAndClearNote_preservesInterviewStage() {
-        Person original = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person original = model.getFilteredPersonList().get(0);
         Person candidate = new PersonBuilder(original).withNote("Original note")
                 .withInterviewStage(InterviewStage.ACCEPTED).build();
         model.setPerson(original, candidate);
 
         assertNoteSuccess("Updated note");
         assertEquals(InterviewStage.ACCEPTED,
-                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
+                model.getFilteredPersonList().get(0).getInterviewStage());
 
         assertNoteSuccess("");
         assertEquals(InterviewStage.ACCEPTED,
-                model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getInterviewStage());
+                model.getFilteredPersonList().get(0).getInterviewStage());
     }
 
     @Test
-    public void execute_filteredList_editsDisplayedPersonAndShowsAll() {
-        // The second person in the address book becomes the first person in the filtered list.
+    public void execute_filteredList_editsPersonAndShowsAll() {
+        // The second person in the address book becomes the only person in the filtered list.
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
         assertNoteSuccess("Filtered person");
         assertEquals(getTypicalHireBase().getPersonList().size(), model.getFilteredPersonList().size());
     }
 
     @Test
-    public void execute_invalidIndex_failure() {
-        NoteCommand command = new NoteCommand(Index.fromOneBased(999), new Note("Test"));
-        assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        command = new NoteCommand(INDEX_SECOND_PERSON, new Note("Test"));
-        assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    public void execute_candidateHiddenByFilter_stillResolvedById() throws Exception {
+        // ID lookup ignores the current filter: a candidate filtered out of view is still editable by ID.
+        Person hidden = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        CandidateId hiddenId = hidden.getCandidateId().orElseThrow();
+        showPersonAtIndex(model, INDEX_FIRST_PERSON); // list now shows only the first candidate
+        assertEquals(1, model.getFilteredPersonList().size());
+
+        CommandResult result = new NoteCommand(hiddenId, new Note("Reached by ID")).execute(model);
+
+        Person edited = model.getPersonByCandidateId(hiddenId).orElseThrow();
+        assertEquals(String.format(NoteCommand.MESSAGE_ADD_NOTE_SUCCESS, Messages.format(edited)),
+                result.getFeedbackToUser());
+        assertEquals("Reached by ID", edited.getNote().value);
+        // The command re-shows the full list.
+        assertEquals(getTypicalHireBase().getPersonList().size(), model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_nonexistentId_failure() {
+        NoteCommand command = new NoteCommand(new CandidateId(999), new Note("Test"));
+        assertCommandFailure(command, model,
+                String.format(Messages.MESSAGE_NO_CANDIDATE_WITH_ID, new CandidateId(999)));
     }
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new NoteCommand(null, new Note("")));
-        assertThrows(NullPointerException.class, () -> new NoteCommand(INDEX_FIRST_PERSON, null));
+        assertThrows(NullPointerException.class, () -> new NoteCommand(new CandidateId(1), null));
     }
 
     @Test
     public void equals() {
-        NoteCommand command = new NoteCommand(INDEX_FIRST_PERSON, new Note("Test"));
+        NoteCommand command = new NoteCommand(new CandidateId(1), new Note("Test"));
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new NoteCommand(INDEX_FIRST_PERSON, new Note("Test"))));
-        assertFalse(command.equals(new NoteCommand(INDEX_SECOND_PERSON, new Note("Test"))));
-        assertFalse(command.equals(new NoteCommand(INDEX_FIRST_PERSON, new Note(""))));
+        assertTrue(command.equals(new NoteCommand(new CandidateId(1), new Note("Test"))));
+        assertFalse(command.equals(new NoteCommand(new CandidateId(2), new Note("Test"))));
+        assertFalse(command.equals(new NoteCommand(new CandidateId(1), new Note(""))));
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
     }
 
     @Test
     public void toStringMethod() {
-        NoteCommand command = new NoteCommand(INDEX_FIRST_PERSON, new Note("Likes baseball"));
+        NoteCommand command = new NoteCommand(new CandidateId(1), new Note("Likes baseball"));
         String expected = NoteCommand.class.getCanonicalName()
-                + "{index=" + INDEX_FIRST_PERSON + ", note=" + new Note("Likes baseball") + "}";
+                + "{targetId=" + new CandidateId(1) + ", note=" + new Note("Likes baseball") + "}";
         assertEquals(expected, command.toString());
     }
 
     private void assertNoteSuccess(String value) {
         Person original = model.getFilteredPersonList().get(0);
+        CandidateId targetId = original.getCandidateId().orElseThrow();
         Person edited = new PersonBuilder(original).withNote(value).build();
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
         expectedModel.setPerson(original, edited);
         String message = value.isEmpty() ? NoteCommand.MESSAGE_DELETE_NOTE_SUCCESS
                 : NoteCommand.MESSAGE_ADD_NOTE_SUCCESS;
-        assertCommandSuccess(new NoteCommand(INDEX_FIRST_PERSON, new Note(value)), model,
+        assertCommandSuccess(new NoteCommand(targetId, new Note(value)), model,
                 String.format(message, Messages.format(edited)), expectedModel);
     }
 }

@@ -3,6 +3,7 @@ package seedu.hirebase.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -10,6 +11,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.job.JobOpening;
 
@@ -74,6 +76,12 @@ public class ModelManager implements Model {
     public boolean hasPerson(Person person) {
         requireNonNull(person);
         return addressBook.hasPerson(person);
+    }
+
+    @Override
+    public Optional<Person> getPersonByCandidateId(CandidateId candidateId) {
+        requireNonNull(candidateId);
+        return addressBook.getPersonByCandidateId(candidateId);
     }
 
     @Override

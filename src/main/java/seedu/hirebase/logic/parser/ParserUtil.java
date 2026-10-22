@@ -10,6 +10,7 @@ import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.StringUtil;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.Address;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
@@ -67,6 +68,20 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses {@code candidateId} into a {@code CandidateId} and returns it. Leading and trailing
+     * whitespace will be trimmed.
+     *
+     * @throws ParseException if the specified ID is not a positive integer.
+     */
+    public static CandidateId parseCandidateId(String candidateId) throws ParseException {
+        String trimmedId = candidateId.trim();
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
+            throw new ParseException(CandidateId.MESSAGE_CONSTRAINTS);
+        }
+        return new CandidateId(Integer.parseInt(trimmedId));
     }
 
     /**

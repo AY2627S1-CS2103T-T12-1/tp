@@ -145,6 +145,24 @@ public class HireBaseTest {
     }
 
     @Test
+    public void getPersonByCandidateId_nullId_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.getPersonByCandidateId(null));
+    }
+
+    @Test
+    public void getPersonByCandidateId_idNotPresent_returnsEmpty() {
+        addressBook.addPerson(ALICE); // assigned ID 1
+        assertTrue(addressBook.getPersonByCandidateId(new CandidateId(2)).isEmpty());
+    }
+
+    @Test
+    public void getPersonByCandidateId_idPresent_returnsPerson() {
+        addressBook.addPerson(ALICE); // assigned ID 1
+        assertEquals(addressBook.getPersonList().get(0),
+                addressBook.getPersonByCandidateId(new CandidateId(1)).orElseThrow());
+    }
+
+    @Test
     public void getPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getPersonList().remove(0));
     }

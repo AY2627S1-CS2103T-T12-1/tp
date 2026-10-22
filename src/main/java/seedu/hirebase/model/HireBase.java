@@ -194,6 +194,13 @@ public class HireBase implements ReadOnlyHireBase {
         jobOpenings.remove(jobOpening);
     }
 
+    /**
+     * Replaces an existing opening without changing its position or allowing duplicates.
+     */
+    public void setJobOpening(JobOpening target, JobOpening editedJobOpening) {
+        jobOpenings.setJobOpening(target, editedJobOpening);
+    }
+
     @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return jobOpenings.asUnmodifiableObservableList();

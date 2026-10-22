@@ -5,17 +5,18 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.assertCommandFailure
 import static seedu.hirebase.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.hirebase.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_SECOND_PERSON;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.testutil.PersonBuilder;
@@ -30,19 +31,19 @@ public class AcceptCommandTest {
                 .withNote("Follow up").withTags("priority").withInterviewStage(InterviewStage.REJECTED).build();
         model.setPerson(original, candidate);
 
-        assertShortcutSuccess();
+        assertShortcutSuccess(ID_FIRST_PERSON);
         assertEquals(new PersonBuilder(candidate).withInterviewStage(InterviewStage.ACCEPTED).build(),
                 model.getFilteredPersonList().get(0));
-        assertShortcutSuccess();
+        assertShortcutSuccess(ID_FIRST_PERSON);
     }
 
     @Test
-    public void execute_filteredList_updatesDisplayedCandidateAndShowsAll() {
+    public void execute_filteredList_updatesCandidateWithGivenIdAndShowsAll() {
         Person first = model.getHireBase().getPersonList().get(0);
         Person second = model.getHireBase().getPersonList().get(1);
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
 
-        assertShortcutSuccess();
+        assertShortcutSuccess(ID_SECOND_PERSON);
 
         assertEquals(first, model.getHireBase().getPersonList().get(0));
         assertEquals(new PersonBuilder(second).withInterviewStage(InterviewStage.ACCEPTED).build(),
@@ -51,27 +52,30 @@ public class AcceptCommandTest {
     }
 
     @Test
-    public void execute_invalidIndex_leavesModelUnchanged() {
-        Index outOfBounds = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
-        assertCommandFailure(new AcceptCommand(outOfBounds), model,
-                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        assertCommandFailure(new AcceptCommand(INDEX_SECOND_PERSON), model,
-                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    public void execute_candidateHiddenByFilter_success() {
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        assertShortcutSuccess(ID_FIRST_PERSON);
     }
 
     @Test
-    public void constructor_nullIndex_throwsNullPointerException() {
+    public void execute_unknownCandidateId_leavesModelUnchanged() {
+        CandidateId unusedId = new CandidateId(model.getHireBase().getNextCandidateId());
+        assertCommandFailure(new AcceptCommand(unusedId), model,
+                String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, unusedId.getValue()));
+    }
+
+    @Test
+    public void constructor_nullId_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new AcceptCommand(null));
     }
 
-    private void assertShortcutSuccess() {
-        Person original = model.getFilteredPersonList().get(0);
+    private void assertShortcutSuccess(CandidateId id) {
+        Person original = model.getHireBase().getPersonByCandidateId(id).get();
         Person expected = new PersonBuilder(original).withInterviewStage(InterviewStage.ACCEPTED).build();
         Model expectedModel = new ModelManager(model.getHireBase(), new UserPrefs());
         expectedModel.setPerson(original, expected);
         String message = String.format(StageCommand.MESSAGE_STAGE_CANDIDATE_SUCCESS,
-                INDEX_FIRST_PERSON.getOneBased(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED);
-        assertCommandSuccess(new AcceptCommand(INDEX_FIRST_PERSON), model, message, expectedModel);
+                id.getValue(), expected.getName(), expected.getEmail(), InterviewStage.ACCEPTED);
+        assertCommandSuccess(new AcceptCommand(id), model, message, expectedModel);
     }
 }

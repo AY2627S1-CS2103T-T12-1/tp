@@ -4,7 +4,7 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +22,7 @@ public class StageCommandParserTest {
     @Test
     public void parse_allStages_returnsStageCommand() {
         for (InterviewStage stage : InterviewStage.values()) {
-            StageCommand expected = new StageCommand(INDEX_FIRST_PERSON, stage);
+            StageCommand expected = new StageCommand(ID_FIRST_PERSON, stage);
             assertParseSuccess(parser, "candidate 1 " + stage.name(), expected);
             assertParseSuccess(parser, "candidate 1 " + stage.name().toLowerCase(Locale.ROOT), expected);
         }
@@ -31,7 +31,7 @@ public class StageCommandParserTest {
     @Test
     public void parse_extraWhitespaceAndMixedCase_returnsStageCommand() {
         assertParseSuccess(parser, "  candidate\t  1   aCcEpTeD  ",
-                new StageCommand(INDEX_FIRST_PERSON, InterviewStage.ACCEPTED));
+                new StageCommand(ID_FIRST_PERSON, InterviewStage.ACCEPTED));
     }
 
     @Test

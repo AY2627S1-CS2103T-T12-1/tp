@@ -5,18 +5,17 @@ import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.hirebase.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Arrays;
-import java.util.List;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.Messages;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.model.Model;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
 
 /**
- * Changes the interview stage of a candidate identified by their displayed index.
+ * Changes the interview stage of a candidate identified by their CANDIDATE_ID.
  */
 public class StageCommand extends Command {
 
@@ -25,34 +24,33 @@ public class StageCommand extends Command {
     public static final String MESSAGE_INVALID_STAGE = "Interview stage must be one of "
             + Arrays.toString(InterviewStage.values()) + " (case-insensitive).";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Updates the interview stage of a candidate in the displayed list.\n"
-            + "Parameters: " + RECORD_TYPE_CANDIDATE + " INDEX STAGE (INDEX must be a positive integer)\n"
+            + ": Updates the interview stage of the candidate identified by their CANDIDATE_ID.\n"
+            + "Parameters: " + RECORD_TYPE_CANDIDATE
+            + " CANDIDATE_ID STAGE (CANDIDATE_ID must be a positive integer)\n"
             + MESSAGE_INVALID_STAGE + "\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1 SCREENING";
     public static final String MESSAGE_STAGE_CANDIDATE_SUCCESS =
             "Updated interview stage for candidate %1$d: %2$s (%3$s) to %4$s";
 
-    private final Index index;
+    private final CandidateId candidateId;
     private final InterviewStage interviewStage;
 
     /**
-     * Creates a command that sets the stage of the candidate at {@code index} in the displayed list.
+     * Creates a command that sets the stage of the candidate with the given {@code candidateId}.
      */
-    public StageCommand(Index index, InterviewStage interviewStage) {
-        requireAllNonNull(index, interviewStage);
-        this.index = index;
+    public StageCommand(CandidateId candidateId, InterviewStage interviewStage) {
+        requireAllNonNull(candidateId, interviewStage);
+        this.candidateId = candidateId;
         this.interviewStage = interviewStage;
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
-        if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
 
-        Person candidate = lastShownList.get(index.getZeroBased());
+        Person candidate = model.getHireBase().getPersonByCandidateId(candidateId)
+                .orElseThrow(() -> new CommandException(
+                        String.format(Messages.MESSAGE_CANDIDATE_ID_NOT_FOUND, candidateId.getValue())));
         Person updatedCandidate = new Person(candidate.getName(), candidate.getPhone(), candidate.getEmail(),
                 candidate.getAddress(), candidate.getNote(), candidate.getTags(),
                 candidate.getSkills(), candidate.getRole().orElse(null), interviewStage,
@@ -60,7 +58,7 @@ public class StageCommand extends Command {
         model.setPerson(candidate, updatedCandidate);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 
-        return new CommandResult(String.format(MESSAGE_STAGE_CANDIDATE_SUCCESS, index.getOneBased(),
+        return new CommandResult(String.format(MESSAGE_STAGE_CANDIDATE_SUCCESS, candidateId.getValue(),
                 updatedCandidate.getName(), updatedCandidate.getEmail(), interviewStage));
     }
 
@@ -72,13 +70,14 @@ public class StageCommand extends Command {
         if (!(other instanceof StageCommand otherStageCommand)) {
             return false;
         }
-        return index.equals(otherStageCommand.index) && interviewStage == otherStageCommand.interviewStage;
+        return candidateId.equals(otherStageCommand.candidateId)
+                && interviewStage == otherStageCommand.interviewStage;
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
+                .add("candidateId", candidateId)
                 .add("interviewStage", interviewStage)
                 .toString();
     }

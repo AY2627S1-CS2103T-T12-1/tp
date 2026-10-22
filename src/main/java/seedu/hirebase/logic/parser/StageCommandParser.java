@@ -5,13 +5,13 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.Locale;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.StageCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
 
 /**
- * Parses arguments for {@code stage candidate INDEX STAGE}.
+ * Parses arguments for {@code stage candidate CANDIDATE_ID STAGE}.
  */
 public class StageCommandParser implements Parser<StageCommand> {
 
@@ -23,9 +23,9 @@ public class StageCommandParser implements Parser<StageCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StageCommand.MESSAGE_USAGE));
         }
 
-        Index index;
+        CandidateId candidateId;
         try {
-            index = ParserUtil.parseIndex(parts[1]);
+            candidateId = ParserUtil.parseCandidateId(parts[1]);
         } catch (ParseException e) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, StageCommand.MESSAGE_USAGE), e);
         }
@@ -36,6 +36,6 @@ public class StageCommandParser implements Parser<StageCommand> {
         } catch (IllegalArgumentException e) {
             throw new ParseException(StageCommand.MESSAGE_INVALID_STAGE, e);
         }
-        return new StageCommand(index, stage);
+        return new StageCommand(candidateId, stage);
     }
 }

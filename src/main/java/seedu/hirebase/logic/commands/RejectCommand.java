@@ -1,6 +1,6 @@
 package seedu.hirebase.logic.commands;
 
-import seedu.hirebase.commons.core.index.Index;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
 
 /**
@@ -9,14 +9,14 @@ import seedu.hirebase.model.candidate.InterviewStage;
 public class RejectCommand extends StageCommand {
     public static final String COMMAND_WORD = "reject";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Sets the interview stage of a candidate in the displayed list to REJECTED.\n"
-            + "Parameters: " + RECORD_TYPE_CANDIDATE + " INDEX (INDEX must be a positive integer)\n"
+            + ": Sets the interview stage of the candidate identified by their CANDIDATE_ID to REJECTED.\n"
+            + "Parameters: " + RECORD_TYPE_CANDIDATE + " CANDIDATE_ID (CANDIDATE_ID must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1";
 
     /**
-     * Creates a command for the candidate at {@code index} in the displayed list.
+     * Creates a command for the candidate with the given {@code candidateId}.
      */
-    public RejectCommand(Index index) {
-        super(index, InterviewStage.REJECTED);
+    public RejectCommand(CandidateId candidateId) {
+        super(candidateId, InterviewStage.REJECTED);
     }
 }

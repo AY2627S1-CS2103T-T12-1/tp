@@ -3,12 +3,12 @@ package seedu.hirebase.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
-import seedu.hirebase.commons.core.index.Index;
 import seedu.hirebase.logic.commands.AcceptCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.CandidateId;
 
 /**
- * Parses arguments for {@code accept candidate INDEX}.
+ * Parses arguments for {@code accept candidate CANDIDATE_ID}.
  */
 public class AcceptCommandParser implements Parser<AcceptCommand> {
     @Override
@@ -19,8 +19,8 @@ public class AcceptCommandParser implements Parser<AcceptCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AcceptCommand.MESSAGE_USAGE));
         }
         try {
-            Index index = ParserUtil.parseIndex(parts[1]);
-            return new AcceptCommand(index);
+            CandidateId candidateId = ParserUtil.parseCandidateId(parts[1]);
+            return new AcceptCommand(candidateId);
         } catch (ParseException e) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AcceptCommand.MESSAGE_USAGE), e);
         }

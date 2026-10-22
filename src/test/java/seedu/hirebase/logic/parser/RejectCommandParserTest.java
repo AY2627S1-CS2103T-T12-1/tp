@@ -4,7 +4,7 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.hirebase.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.hirebase.testutil.TypicalCandidateIds.ID_FIRST_PERSON;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public class RejectCommandParserTest {
 
     @Test
     public void parse_validArgsAndWhitespace_returnsCommand() {
-        assertParseSuccess(parser, "candidate 1", new RejectCommand(INDEX_FIRST_PERSON));
-        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new RejectCommand(INDEX_FIRST_PERSON));
+        assertParseSuccess(parser, "candidate 1", new RejectCommand(ID_FIRST_PERSON));
+        assertParseSuccess(parser, " \t candidate  \n 1 \t ", new RejectCommand(ID_FIRST_PERSON));
     }
 
     @Test

@@ -2,6 +2,7 @@ package seedu.hirebase.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -15,7 +16,9 @@ import org.junit.jupiter.api.Test;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.InterviewStage;
+import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.testutil.PersonBuilder;
 
 public class PersonCardTest {
@@ -38,7 +41,7 @@ public class PersonCardTest {
     public void constructor_note_isDisplayed() throws Exception {
         runOnFxThread(() -> {
             for (String value : new String[] {"Likes baseball", ""}) {
-                PersonCard card = new PersonCard(new PersonBuilder().withNote(value).build(), 1);
+                PersonCard card = new PersonCard(new PersonBuilder().withNote(value).build());
                 Label note = (Label) card.getRoot().lookup("#note");
                 assertEquals(value, note.getText());
             }
@@ -49,7 +52,7 @@ public class PersonCardTest {
     public void constructor_recruitmentDetails_displaysSortedSkillsAndRole() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().withSkills("SQL", "C++", "Java")
-                    .withRole("Backend Engineer").build(), 2);
+                    .withRole("Backend Engineer").build());
             FlowPane skills = (FlowPane) card.getRoot().lookup("#skills");
             Label role = (Label) card.getRoot().lookup("#role");
             List<String> skillPills = skills.getChildren().stream()
@@ -63,14 +66,26 @@ public class PersonCardTest {
             assertTrue(skills.isManaged());
             assertTrue(role.isVisible());
             assertTrue(role.isManaged());
-            assertEquals("2. ", ((Label) card.getRoot().lookup("#id")).getText());
+        });
+    }
+
+    @Test
+    public void constructor_candidateId_isDisplayedInsteadOfListPosition() throws Exception {
+        runOnFxThread(() -> {
+            Person candidate = new PersonBuilder().build().withCandidateId(new CandidateId(7));
+            PersonCard card = new PersonCard(candidate);
+            assertEquals("#7 ", ((Label) card.getRoot().lookup("#candidateId")).getText());
+            assertNull(card.getRoot().lookup("#id"));
+
+            PersonCard withoutId = new PersonCard(new PersonBuilder().build());
+            assertEquals("", ((Label) withoutId.getRoot().lookup("#candidateId")).getText());
         });
     }
 
     @Test
     public void constructor_absentRecruitmentDetails_hidesLabelsAndTheirLayoutSpace() throws Exception {
         runOnFxThread(() -> {
-            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            PersonCard card = new PersonCard(new PersonBuilder().build());
             FlowPane skills = (FlowPane) card.getRoot().lookup("#skills");
             Label role = (Label) card.getRoot().lookup("#role");
             assertTrue(skills.getChildren().isEmpty());
@@ -84,7 +99,7 @@ public class PersonCardTest {
     @Test
     public void constructor_defaultInterviewStage_displaysScreeningWithoutRecruitmentDetails() throws Exception {
         runOnFxThread(() -> {
-            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            PersonCard card = new PersonCard(new PersonBuilder().build());
             Label stage = (Label) card.getRoot().lookup("#interviewStage");
             assertEquals("Screening", stage.getText());
             assertTrue(stage.getStyleClass().contains("stage-badge"));
@@ -102,7 +117,7 @@ public class PersonCardTest {
                     InterviewStage.REJECTED, "Rejected");
             expectedLabels.forEach((value, expectedText) -> {
                 PersonCard card = new PersonCard(new PersonBuilder().withInterviewStage(value)
-                        .withSkills("Java").withRole("Backend Engineer").build(), 1);
+                        .withSkills("Java").withRole("Backend Engineer").build());
                 Label stage = (Label) card.getRoot().lookup("#interviewStage");
                 assertEquals(expectedText, stage.getText());
                 assertTrue(stage.getStyleClass().contains("stage-badge"));

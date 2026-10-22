@@ -390,9 +390,8 @@ Shows the full details of one candidate in the result display and collapses the 
 Format: `view candidate CANDIDATE_ID`
 
 - The `candidate` record-type keyword is required and case-sensitive.
-- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `ID: N`. Unlike the `INDEX` used by
-  `edit`, `delete`, and `stage`, a candidate's ID never changes when the list is filtered, reordered, or when other
-  candidates are deleted.
+- `CANDIDATE_ID` is the candidate's **permanent ID**, shown on each card as `ID: N`. It never changes when the list is
+  filtered, reordered, or when other candidates are deleted.
 - Because the ID is permanent, you can view any candidate by their ID even while a `find` filter is hiding them.
 - `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
 - The result display lists the candidate's name, interview stage, phone, email, address, target role, skills, and note.
@@ -405,14 +404,23 @@ Examples:
 - `view candidate 1` shows the full details of the candidate whose ID is `1` and collapses the list to that candidate.
 - `find Betsy` followed by `view candidate 3` still shows candidate `3` even if the search filtered them out.
 
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `view candidate 1` | Candidate `1`'s full details (name, stage, phone, email, address, role, skills, note); the list collapses to that candidate. |
+| `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
+| `view 1`, `view person 1` | `Invalid command format!` followed by the `view candidate` usage (the `candidate` keyword is required). |
+
 ### Adding or updating a candidate's note: `note`
 
 Adds, updates, or clears the free-text screening note of an existing candidate. Any existing note is overwritten.
 
 Format: `note CANDIDATE_ID [NOTE]`
 
-- `CANDIDATE_ID` is the candidate's **permanent ID** (`ID: N` on the card), the same ID used by `view candidate` —
-  not the displayed list index. It **must be a positive integer**.
+- `CANDIDATE_ID` is the candidate's **permanent ID** (`ID: N` on the card), the same ID used by `view candidate`.
+  It **must be a positive integer**.
 - The note replaces any existing note. **Omit `NOTE` to clear** the candidate's note.
 - Leading and trailing whitespace is trimmed; spacing and punctuation inside the note are preserved. The note is plain
   text — there is no prefix to type.
@@ -427,6 +435,15 @@ Examples:
 - `note 1 Strong system-design round; follow up re: availability` sets the note on candidate `1`; HireBase replies
   `Added note to candidate: …`.
 - `note 1` clears candidate `1`'s note; HireBase replies `Removed note from candidate: …`.
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `note 1 Strong SQL round` | `Added note to candidate: ` followed by candidate `1`'s updated details. |
+| `note 1` | `Removed note from candidate: ` followed by candidate `1`'s updated details. |
+| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `note 0 x`, `note abc x`, `note` | `Invalid command format!` followed by the `note` usage (the ID must be a positive integer). |
 
 ### Changing a candidate's interview stage: `stage candidate`
 

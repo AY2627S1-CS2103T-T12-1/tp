@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import seedu.hirebase.commons.exceptions.IllegalValueException;
 import seedu.hirebase.commons.util.JsonUtil;
 import seedu.hirebase.model.candidate.Address;
+import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
@@ -56,6 +57,48 @@ public class JsonAdaptedPersonTest {
         assertEquals("Benson Meier", person.getName().fullName);
         assertEquals(java.util.Collections.emptySet(), person.getSkills());
         assertEquals(java.util.Optional.empty(), person.getRole());
+    }
+
+    @Test
+    public void toModelType_storedCandidateId_isRestored() throws Exception {
+        Person benson = new PersonBuilder(BENSON).build().withCandidateId(new CandidateId(4));
+
+        Person restored = new JsonAdaptedPerson(benson).toModelType();
+
+        assertEquals(new CandidateId(4), restored.getCandidateId().get());
+    }
+
+    @Test
+    public void fromJson_missingCandidateId_returnsPersonWithoutId() throws Exception {
+        String json = """
+                {
+                  "name": "Benson Meier",
+                  "phone": "98765432",
+                  "email": "benson@example.com",
+                  "address": "311, Clementi Ave 2, #02-25",
+                  "tags": []
+                }
+                """;
+        Person person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertEquals(java.util.Optional.empty(), person.getCandidateId());
+    }
+
+    @Test
+    public void fromJson_nonPositiveCandidateId_throwsIllegalValueException() {
+        for (int invalidId : new int[] {0, -3}) {
+            String json = """
+                    {
+                      "name": "Benson Meier",
+                      "phone": "98765432",
+                      "email": "benson@example.com",
+                      "address": "311, Clementi Ave 2, #02-25",
+                      "tags": [],
+                      "candidateId": %d
+                    }
+                    """.formatted(invalidId);
+            assertThrows(IllegalValueException.class, CandidateId.MESSAGE_CONSTRAINTS, () ->
+                    JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
+        }
     }
 
     @Test

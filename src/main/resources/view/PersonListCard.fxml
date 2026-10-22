@@ -29,6 +29,7 @@
         <Region HBox.hgrow="ALWAYS" />
         <Label fx:id="interviewStage" styleClass="stage-badge" />
       </HBox>
+      <Label fx:id="candidateId" styleClass="cell_small_label" />
       <Label fx:id="role" styleClass="cell_small_label" wrapText="true" />
       <FlowPane fx:id="skills" hgap="4" vgap="4" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />

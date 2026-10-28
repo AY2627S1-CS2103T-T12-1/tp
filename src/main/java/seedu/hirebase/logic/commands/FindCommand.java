@@ -3,7 +3,6 @@ package seedu.hirebase.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
-import seedu.hirebase.logic.Messages;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 
@@ -17,7 +16,7 @@ public class FindCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Finds candidates whose names or emails match any "
-            + "keyword (case-insensitive) and displays them as a list with index numbers. "
+            + "keyword (case-insensitive) and displays them in the candidate list. "
             + "Names match whole words; emails match substrings.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: " + COMMAND_WORD + " alice bob@example.com";
@@ -36,8 +35,7 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+        return new CommandResult(ListCommand.getResultMessage(model.getFilteredPersonList().size()));
     }
 
     @Override

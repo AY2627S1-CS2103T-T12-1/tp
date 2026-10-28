@@ -110,6 +110,31 @@ public class EventTest {
     }
 
     @Test
+    public void withEventId_eventWithoutId_assignsId() {
+        Event assigned = interview.withEventId(new EventId(3));
+        assertEquals(Optional.of(new EventId(3)), assigned.getEventId());
+        assertEquals(interview.getName(), assigned.getName());
+    }
+
+    @Test
+    public void withEventId_nullId_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> interview.withEventId(null));
+    }
+
+    @Test
+    public void withEventId_idAlreadyAssigned_throwsIllegalStateException() {
+        // a different ID cannot replace the assigned one
+        assertThrows(IllegalStateException.class, () -> stored.withEventId(new EventId(2)));
+
+        // re-assigning, even with the same ID, is also rejected
+        assertThrows(IllegalStateException.class, () -> stored.withEventId(new EventId(1)));
+
+        // the ID survives other edits, so the edited copy cannot be re-assigned either
+        Event renamed = stored.withName(new EventName("Panel"));
+        assertThrows(IllegalStateException.class, () -> renamed.withEventId(new EventId(2)));
+    }
+
+    @Test
     public void overlapsWith() {
         Event touchingAfter = new Event(new EventName("y"), EventDescription.EMPTY, ELEVEN, ELEVEN.plusHours(1),
                 false, List.of());
@@ -183,7 +208,7 @@ public class EventTest {
         assertFalse(stored.equals(5));
 
         // each differing field -> returns false
-        assertNotEquals(stored, stored.withEventId(new EventId(2)));
+        assertNotEquals(stored, interview.withEventId(new EventId(2)));
         assertNotEquals(stored, interview); // ID present versus absent
         assertNotEquals(stored, stored.withName(new EventName("Other")));
         assertNotEquals(stored, stored.withDescription(new EventDescription("Other")));

@@ -9,6 +9,8 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.hirebase.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.model.Model;
@@ -16,6 +18,8 @@ import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.event.Event;
+import seedu.hirebase.testutil.EventBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -96,6 +100,20 @@ public class DeleteCommandTest {
         expectedModel.deletePerson(nowFirst);
 
         assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_candidateInEvent_keepsCandidateIdInEvent() throws Exception {
+        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        CandidateId id = personToDelete.getCandidateId().get();
+        Event event = model.addEvent(new EventBuilder().withCandidateIds(id.getValue()).build());
+
+        new DeleteCommand(id).execute(model);
+
+        // Events keep the IDs of deleted candidates, so viewing the event can show them as deleted.
+        assertTrue(model.getHireBase().getPersonByCandidateId(id).isEmpty());
+        assertEquals(List.of(event), model.getEventList());
+        assertEquals(List.of(id), model.getEventList().get(0).getCandidateIds());
     }
 
     @Test

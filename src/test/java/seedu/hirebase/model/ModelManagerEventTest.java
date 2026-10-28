@@ -190,6 +190,17 @@ public class ModelManagerEventTest {
     }
 
     @Test
+    public void getConflictingEvents_editedCopyWithSameId_excludesOriginalButNotOthers() {
+        Event original = model.addEvent(event(FOURTEEN, FIFTEEN));
+        Event other = model.addEvent(event(at(15, 0), at(16, 0)));
+
+        // An edit keeps the event's ID, so moving it must not report a clash with its old self.
+        Event moved = new EventBuilder(original).withTimes(at(14, 30), at(15, 30)).build();
+
+        assertEquals(List.of(other), model.getConflictingEvents(moved));
+    }
+
+    @Test
     public void getConflictingEvents_multipleConflicts_returnedInListOrder() {
         Event first = model.addEvent(event(at(13, 0), at(14, 30)));
         model.addEvent(event(at(16, 0), at(17, 0)));

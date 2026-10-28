@@ -18,7 +18,7 @@ public class UsageMessageTest {
 
     @Test
     public void clearAndExitMessages_useHireBaseWording() {
-        assertEquals("All candidates and job openings have been cleared!", ClearCommand.MESSAGE_SUCCESS);
+        assertEquals("All candidates, job openings and events have been cleared!", ClearCommand.MESSAGE_SUCCESS);
         assertFalse(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT.toLowerCase().contains("address book"));
         assertTrue(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT.contains("HireBase"));
     }

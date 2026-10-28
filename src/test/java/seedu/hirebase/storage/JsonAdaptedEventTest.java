@@ -19,6 +19,7 @@ import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.event.Event;
 import seedu.hirebase.model.event.EventDescription;
 import seedu.hirebase.model.event.EventId;
+import seedu.hirebase.model.event.EventName;
 import seedu.hirebase.testutil.EventBuilder;
 
 public class JsonAdaptedEventTest {
@@ -117,6 +118,19 @@ public class JsonAdaptedEventTest {
     public void toModelType_blankName_rejected() {
         assertInvalid(json("   ", VALID_START, VALID_END));
         assertInvalid(json("", VALID_START, VALID_END));
+    }
+
+    @Test
+    public void toModelType_nameAtLengthLimit_success() throws Exception {
+        String longestName = "a".repeat(EventName.MAX_LENGTH);
+
+        assertEquals(longestName, load(json(longestName, VALID_START, VALID_END)).getName().toString());
+    }
+
+    @Test
+    public void toModelType_nameOverLengthLimit_rejected() {
+        Exception e = assertInvalid(json("a".repeat(EventName.MAX_LENGTH + 1), VALID_START, VALID_END));
+        assertEquals(EventName.MESSAGE_CONSTRAINTS, e.getMessage());
     }
 
     @Test

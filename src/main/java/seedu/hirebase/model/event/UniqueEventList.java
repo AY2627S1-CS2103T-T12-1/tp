@@ -52,9 +52,10 @@ public final class UniqueEventList implements Iterable<Event> {
     /**
      * Replaces the event {@code target} with {@code editedEvent}. {@code target} must exist in the list.
      * An event never changes its permanent ID: {@code editedEvent} must either have no ID, in which case it
-     * keeps the ID of {@code target}, or have the same ID as {@code target}.
+     * keeps the ID of {@code target}, or have the same ID as {@code target}. Any other ID is rejected,
+     * whether or not another event in the list already uses it.
      *
-     * @throws DuplicateEventException if {@code editedEvent} has the ID of another event in the list.
+     * @throws EventNotFoundException if {@code target} is not in the list.
      * @throws IllegalArgumentException if {@code editedEvent} has a different ID from {@code target}.
      */
     public void setEvent(Event target, Event editedEvent) {
@@ -65,10 +66,8 @@ public final class UniqueEventList implements Iterable<Event> {
             throw new EventNotFoundException();
         }
 
-        if (!target.isSameEvent(editedEvent) && contains(editedEvent)) {
-            throw new DuplicateEventException();
-        }
-
+        // Checked first so that every ID change is rejected the same way.
+        // Afterwards, editedEvent has either no ID or target's ID, so it cannot clash with another event.
         Optional<EventId> targetId = target.getEventId();
         Optional<EventId> editedId = editedEvent.getEventId();
         if (editedId.isPresent() && !editedId.equals(targetId)) {
@@ -92,6 +91,9 @@ public final class UniqueEventList implements Iterable<Event> {
         }
     }
 
+    /**
+     * Replaces the contents of this list with the events in {@code replacement}.
+     */
     public void setEvents(UniqueEventList replacement) {
         requireNonNull(replacement);
         internalList.setAll(List.copyOf(replacement.internalList));

@@ -156,10 +156,11 @@ public class UniqueEventListTest {
     }
 
     @Test
-    public void setEvent_editedEventHasOtherEventsId_throwsDuplicateEventException() {
+    public void setEvent_editedEventHasOtherEventsId_throwsIllegalArgumentException() {
         list.add(first);
         list.add(second);
-        assertThrows(DuplicateEventException.class, () -> list.setEvent(first, second.withName(new EventName("X"))));
+        assertThrows(IllegalArgumentException.class, () -> list.setEvent(first, second.withName(new EventName("X"))));
+        assertEquals(List.of(first, second), list.asUnmodifiableObservableList());
     }
 
     @Test

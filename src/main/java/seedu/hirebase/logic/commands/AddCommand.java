@@ -38,7 +38,8 @@ public class AddCommand extends Command {
             + PREFIX_ADDRESS + "311, Clementi Ave 2, #02-25 "
             + PREFIX_SKILL + "Java "
             + PREFIX_SKILL + "SQL "
-            + PREFIX_ROLE + "Backend Engineer";
+            + PREFIX_ROLE + "Backend Engineer\n"
+            + "To add a job opening, use: " + AddJobCommand.MESSAGE_USAGE;
 
     public static final String MESSAGE_SUCCESS = "New candidate added: %1$s; Email: %2$s.";
     public static final String MESSAGE_DUPLICATE_PERSON =

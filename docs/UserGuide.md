@@ -589,14 +589,53 @@ IDs 1, 3, and 5. The command shows the full candidate list again and uses the sa
 message as `stage candidate` for each selected candidate, ending in `to REJECTED`.
 Candidates stay in HireBase; rejecting already rejected candidates is allowed, and their stages can be changed later.
 
+### Adding an event: `add event`
+
+Adds an event, such as an interview or a meeting, to your calendar.
+
+Format: `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`
+
+* `n/`, `from/` and `to/` are required exactly once. `desc/` is optional and may appear at most once. Fields may appear in any order.
+* The event name is 1 to 100 characters long. Surrounding spaces are not counted.
+* Dates and times use a 24-hour clock with two-digit day, month, hour and minute, e.g. `05/11/2026 14:00`. Dates that do not exist, such as `31/04/2026`, are rejected.
+* The event must start before it ends, and both must be on the same day. Split an event that runs past midnight into two events.
+* Add the candidates involved with one `c/` per [candidate ID](#about-candidate-ids). Every ID must belong to an existing candidate; repeating an ID adds the candidate once.
+* The new event is given the next unused event ID, shown as `#N` in the result. Event IDs are separate from candidate and job IDs, and are never reused, even after `clear`.
+
+**Overlapping events:** if the new event overlaps any existing event, HireBase still adds it and lists the events it
+overlaps, with their IDs, so you can reschedule or cancel one of them. Cancelled events do not count, and an event that
+starts exactly when another ends does not overlap it. Past events still count.
+
+**Caution:** `d/` is not a parameter of `add event` (it is a job's department). Use `desc/` for the description.
+Like other commands, a value cannot contain a parameter prefix after a space: in `n/Talk to/Bob`, ` to/` starts a
+new field.
+
+Examples:
+
+* `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 desc/Round 2 c/1`
+* `add event n/Hiring sync from/06/11/2026 09:30 to/06/11/2026 10:00`
+
+Adding an overlapping event, when event `#1` is the interview above:
+
+```
+add event n/Team sync from/05/11/2026 14:30 to/05/11/2026 15:30
+Added event: #2 Team sync (05/11/2026 14:30 to 05/11/2026 15:30)
+Warning: this event overlaps with 1 existing event(s). It was still added:
+#1 Interview with Alex (05/11/2026 14:00 to 05/11/2026 15:00)
+```
+
+The event is saved before it is shown. If saving fails, HireBase reports `Could not save changes. The event was not
+added. Check storage permissions and available disk space, then try again.` and nothing changes; the event ID is not
+used up.
+
 ### Clearing all entries: `clear`
 
-Clears all candidates and job openings from HireBase.
+Clears all candidates, job openings and events from HireBase.
 
 Format: `clear`
 
-Candidate IDs and job IDs used before `clear` are not reused. New candidates and job openings continue from the
-next unused ID.
+Candidate IDs, job IDs and event IDs used before `clear` are not reused. New candidates, job openings and events
+continue from the next unused ID.
 
 ### Exiting the program: `exit`
 
@@ -610,6 +649,7 @@ HireBase automatically saves data after commands, except the read-only `list job
 Candidate records and any stored job openings are saved together in the same data
 file and loaded on the next launch.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
+Events are saved in the same file. Older data files without an `events` field load normally, with no events.
 
 ### Editing the data file
 
@@ -644,8 +684,26 @@ Openings with the same title and department, ignoring case and normalized whites
 descriptions differ. Invalid or duplicate openings cause the data file to fail loading; they are not silently skipped.
 Use `add job` to create openings and `list jobs` to view their cards and full details.
 
+The `events` array stores each event's `id`, `name`, `description`, `start`, `end`, `cancelled` and `candidateIds`,
+for example:
+
+```json
+{ "id": 1, "name": "Interview with Alex", "description": "Round 2", "start": "2026-11-05T14:00",
+  "end": "2026-11-05T15:00", "cancelled": false, "candidateIds": [1] }
+```
+
+* `start` and `end` use the format `YYYY-MM-DDTHH:MM` (note: this is different from the `DD/MM/YYYY HH:MM` format
+  used in commands). The date must exist, the event must start before it ends, and both must be on the same day.
+* `name` is required and follows the same rule as in `add event`. A missing `description` loads as empty, a
+  missing `cancelled` loads as `false`, and a missing `candidateIds` loads as no candidates.
+* `cancelled` must be `true` or `false`, and `candidateIds` must be an array of positive whole numbers. An ID in
+  `candidateIds` that no candidate has is kept, so an event still remembers a candidate who was deleted.
+* Event IDs must be unique positive integers from 1 to 2147483647. The top-level `nextEventId` counter works like
+  `nextJobId`: do not lower it or change assigned IDs manually. Events with no `id` are given new IDs in file order,
+  starting after every stored ID. A missing `events` array loads as no events.
+
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -687,6 +745,7 @@ _Details coming soon ..._
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
+| **Add event** | `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`<br> e.g., `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

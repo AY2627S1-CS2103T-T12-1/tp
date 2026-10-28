@@ -19,6 +19,7 @@ import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
@@ -40,6 +41,7 @@ class JsonAdaptedPerson {
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
     private final String interviewStage;
     private final Integer candidateId;
+    private final String priorityScore;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -70,13 +72,22 @@ class JsonAdaptedPerson {
     /**
      * Reads the permanent candidate ID as well. Older files have no ID; the model assigns one when they are loaded.
      */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, String note,
+            List<JsonAdaptedTag> tags, List<String> skills, String role, String interviewStage, Integer candidateId) {
+        this(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId, null);
+    }
+
+    /**
+     * Reads priority scores while accepting older files without them, which default to low priority.
+     */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("note") String note, @JsonProperty("tags") List<JsonAdaptedTag> tags,
             @JsonProperty("skills") List<String> skills,
             @JsonProperty("role") String role, @JsonProperty("interviewStage") String interviewStage,
-            @JsonProperty("candidateId") Integer candidateId) {
+            @JsonProperty("candidateId") Integer candidateId,
+            @JsonProperty("priorityScore") String priorityScore) {
         this.skills = skills == null ? new ArrayList<>() : new ArrayList<>(skills);
         this.role = role;
         this.name = name;
@@ -89,6 +100,7 @@ class JsonAdaptedPerson {
         }
         this.interviewStage = interviewStage;
         this.candidateId = candidateId;
+        this.priorityScore = priorityScore;
     }
 
     /**
@@ -107,6 +119,7 @@ class JsonAdaptedPerson {
                 .collect(Collectors.toList()));
         interviewStage = source.getInterviewStage().name();
         candidateId = source.getCandidateId().map(CandidateId::getValue).orElse(null);
+        priorityScore = String.valueOf(source.getPriorityScore().getValue());
     }
 
     /**
@@ -179,9 +192,14 @@ class JsonAdaptedPerson {
         if (candidateId != null && !CandidateId.isValidCandidateId(candidateId)) {
             throw new IllegalValueException(CandidateId.MESSAGE_CONSTRAINTS);
         }
+        if (priorityScore != null && !PriorityScore.isValidPriorityScore(priorityScore)) {
+            throw new IllegalValueException(PriorityScore.MESSAGE_CONSTRAINTS);
+        }
+        PriorityScore modelPriorityScore = priorityScore == null ? PriorityScore.DEFAULT
+                : new PriorityScore(priorityScore);
         return new Person(modelName, modelPhone, modelEmail, modelAddress, modelNote, modelTags,
                 modelSkills, role == null ? null : new Role(role), modelInterviewStage,
-                candidateId == null ? null : new CandidateId(candidateId));
+                candidateId == null ? null : new CandidateId(candidateId), modelPriorityScore);
     }
 
 }

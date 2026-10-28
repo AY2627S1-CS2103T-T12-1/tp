@@ -2,7 +2,6 @@ package seedu.hirebase.model.calendar;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -83,19 +83,20 @@ public class CalendarTest {
         Calendar calendar = Calendar.of(OCT_25, OCT_27, List.of(interview, meeting, outside));
         assertEquals(List.of(OCT_25, OCT_26, OCT_27),
                 calendar.getDays().stream().map(Day::getDate).toList());
-        assertTrue(calendar.getDay(OCT_25).isEmpty());
-        assertEquals(List.of(meeting, interview), calendar.getDay(OCT_26).getEvents());
-        assertTrue(calendar.getDay(OCT_27).isEmpty());
+        assertTrue(calendar.getDay(OCT_25).orElseThrow().isEmpty());
+        assertEquals(List.of(meeting, interview), calendar.getDay(OCT_26).orElseThrow().getEvents());
+        assertTrue(calendar.getDay(OCT_27).orElseThrow().isEmpty());
         assertEquals(2, calendar.getEventCount());
     }
 
     @Test
     public void of_sortsByStartTimeAndKeepsGivenOrderForTies() {
         Calendar calendar = Calendar.of(OCT_26, OCT_26, List.of(interview, sameStartAsInterview, meeting));
-        assertEquals(List.of(meeting, interview, sameStartAsInterview), calendar.getDay(OCT_26).getEvents());
+        assertEquals(List.of(meeting, interview, sameStartAsInterview),
+                calendar.getDay(OCT_26).orElseThrow().getEvents());
 
         Calendar reversed = Calendar.of(OCT_26, OCT_26, List.of(sameStartAsInterview, interview));
-        assertEquals(List.of(sameStartAsInterview, interview), reversed.getDay(OCT_26).getEvents());
+        assertEquals(List.of(sameStartAsInterview, interview), reversed.getDay(OCT_26).orElseThrow().getEvents());
     }
 
     @Test
@@ -115,8 +116,12 @@ public class CalendarTest {
     public void getDay() {
         Calendar calendar = Calendar.of(OCT_25, OCT_26, List.of(interview));
         assertThrows(NullPointerException.class, () -> calendar.getDay(null));
-        assertEquals(OCT_26, calendar.getDay(OCT_26).getDate());
-        assertNull(calendar.getDay(OCT_27));
+
+        // date inside the calendar -> returns that day
+        assertEquals(OCT_26, calendar.getDay(OCT_26).orElseThrow().getDate());
+
+        // date outside the calendar -> returns empty
+        assertEquals(Optional.empty(), calendar.getDay(OCT_27));
     }
 
     @Test

@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import seedu.hirebase.model.event.Event;
@@ -63,11 +64,11 @@ public class Calendar {
     }
 
     /**
-     * Returns the day for {@code date}, or null if the date is outside this calendar.
+     * Returns the day for {@code date}, or an empty {@code Optional} if the date is outside this calendar.
      */
-    public Day getDay(LocalDate date) {
+    public Optional<Day> getDay(LocalDate date) {
         requireNonNull(date);
-        return days.stream().filter(day -> day.getDate().equals(date)).findFirst().orElse(null);
+        return days.stream().filter(day -> day.getDate().equals(date)).findFirst();
     }
 
     /**

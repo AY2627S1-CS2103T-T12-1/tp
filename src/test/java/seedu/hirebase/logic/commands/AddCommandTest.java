@@ -21,6 +21,7 @@ import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.ReadOnlyUserPrefs;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.event.Event;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.testutil.PersonBuilder;
 
@@ -114,6 +115,26 @@ public class AddCommandTest {
 
         @Override
         public ObservableList<JobOpening> getJobOpeningList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Event addEvent(Event event) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setEvent(Event target, Event editedEvent) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void deleteEvent(Event target) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Event> getEventList() {
             throw new AssertionError("This method should not be called.");
         }
 

@@ -1,6 +1,7 @@
 package seedu.hirebase.model;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,10 @@ import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.UniquePersonList;
+import seedu.hirebase.model.event.Event;
+import seedu.hirebase.model.event.EventId;
+import seedu.hirebase.model.event.UniqueEventList;
+import seedu.hirebase.model.event.exceptions.DuplicateEventException;
 import seedu.hirebase.model.job.JobId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.model.job.UniqueJobOpeningList;
@@ -20,6 +25,8 @@ import seedu.hirebase.model.job.UniqueJobOpeningList;
  */
 public class HireBase implements ReadOnlyHireBase {
     public static final String MESSAGE_JOB_IDS_EXHAUSTED = "No more job IDs are available.";
+    public static final String MESSAGE_EVENT_IDS_EXHAUSTED = "No more event IDs are available.";
+    public static final String MESSAGE_INVALID_NEXT_EVENT_ID = "Next event ID is out of range.";
 
 
     private final UniquePersonList persons = new UniquePersonList();
@@ -27,6 +34,9 @@ public class HireBase implements ReadOnlyHireBase {
     // Only ever increases, so the ID of a deleted candidate is never given to another candidate.
     private int nextCandidateId = 1;
     private long nextJobId = 1;
+    private final UniqueEventList events = new UniqueEventList();
+    // Only ever increases, so the ID of a deleted event is never given to another event.
+    private long nextEventId = 1;
 
     public HireBase() {}
 
@@ -60,9 +70,15 @@ public class HireBase implements ReadOnlyHireBase {
         UniqueJobOpeningList newJobOpenings = new UniqueJobOpeningList();
         newJobOpenings.setJobOpenings(withAssignedJobIds(newData.getJobOpeningList(),
                 Math.max(nextJobId, newData.getNextJobId())));
+        UniqueEventList newEvents = new UniqueEventList();
+        newEvents.setEvents(withAssignedEventIds(newData.getEventList(),
+                Math.max(nextEventId, newData.getNextEventId())));
         persons.setPersons(newPersons);
         jobOpenings.setJobOpenings(newJobOpenings);
+        events.setEvents(newEvents);
         nextJobId = Math.max(Math.max(nextJobId, newData.getNextJobId()), nextIdAfter(getJobOpeningList()));
+        // Like candidates and jobs, the event counter never moves backwards, so deleted IDs stay retired.
+        nextEventId = Math.max(Math.max(nextEventId, newData.getNextEventId()), nextEventIdAfter(getEventList()));
         // Never move the counter backwards, so IDs of removed candidates stay retired.
         nextCandidateId = Math.max(nextCandidateId, newData.getNextCandidateId());
     }
@@ -242,6 +258,96 @@ public class HireBase implements ReadOnlyHireBase {
         return result;
     }
 
+    //// event operations
+
+    /**
+     * Adds an event and returns it as stored. An event without an ID is given the next event ID;
+     * an event with an ID keeps it. The counter only moves after the event is added successfully.
+     *
+     * @throws DuplicateEventException if an event with the same ID already exists.
+     * @throws IllegalStateException if no event IDs are left.
+     */
+    public Event addEvent(Event event) {
+        requireNonNull(event);
+        Event stored = event;
+        if (stored.getEventId().isEmpty()) {
+            if (nextEventId > Integer.MAX_VALUE) {
+                throw new IllegalStateException(MESSAGE_EVENT_IDS_EXHAUSTED);
+            }
+            stored = stored.withEventId(new EventId((int) nextEventId));
+        }
+        events.add(stored);
+        nextEventId = Math.max(nextEventId, (long) stored.getEventId().orElseThrow().getValue() + 1);
+        return stored;
+    }
+
+    /**
+     * Ensures that the next event ID is at least {@code minimum}.
+     * Used when loading saved data so that IDs of previously deleted events are not reused.
+     */
+    public void reserveEventIdsUpTo(long minimum) {
+        if (minimum < 1 || minimum > (long) Integer.MAX_VALUE + 1) {
+            throw new IllegalArgumentException(MESSAGE_INVALID_NEXT_EVENT_ID);
+        }
+        nextEventId = Math.max(nextEventId, minimum);
+    }
+
+    /**
+     * Replaces the given event {@code target} with {@code editedEvent}, keeping the target's ID.
+     * {@code target} must exist in HireBase.
+     */
+    public void setEvent(Event target, Event editedEvent) {
+        events.setEvent(target, editedEvent);
+    }
+
+    /**
+     * Removes {@code key}, which must exist in HireBase. Its ID is never given to another event.
+     */
+    public void removeEvent(Event key) {
+        events.remove(key);
+    }
+
+    /**
+     * Replaces all events. Events without an ID are numbered after every stored ID.
+     * Rejects null or duplicate-ID entries without changing existing data.
+     */
+    public void setEvents(List<Event> newEvents) {
+        this.events.setEvents(withAssignedEventIds(newEvents, nextEventId));
+        nextEventId = Math.max(nextEventId, nextEventIdAfter(getEventList()));
+    }
+
+    @Override
+    public ObservableList<Event> getEventList() {
+        return events.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public long getNextEventId() {
+        return nextEventId;
+    }
+
+    private static long nextEventIdAfter(List<Event> events) {
+        return events.stream().flatMap(event -> event.getEventId().stream())
+                .mapToLong(EventId::getValue).max().orElse(0) + 1;
+    }
+
+    private static List<Event> withAssignedEventIds(List<Event> events, long minimum) {
+        requireAllNonNull(events);
+        long next = Math.max(minimum, nextEventIdAfter(events));
+        List<Event> result = new ArrayList<>();
+        for (Event event : events) {
+            if (event.getEventId().isPresent()) {
+                result.add(event);
+            } else {
+                if (next > Integer.MAX_VALUE) {
+                    throw new IllegalStateException(MESSAGE_EVENT_IDS_EXHAUSTED);
+                }
+                result.add(event.withEventId(new EventId((int) next++)));
+            }
+        }
+        return result;
+    }
+
     //// util methods
 
     @Override
@@ -249,6 +355,7 @@ public class HireBase implements ReadOnlyHireBase {
         return new ToStringBuilder(this)
                 .add("persons", persons)
                 .add("jobOpenings", jobOpenings)
+                .add("events", events)
                 .toString();
     }
 
@@ -268,11 +375,12 @@ public class HireBase implements ReadOnlyHireBase {
             return false;
         }
 
-        return persons.equals(otherHireBase.persons) && jobOpenings.equals(otherHireBase.jobOpenings);
+        return persons.equals(otherHireBase.persons) && jobOpenings.equals(otherHireBase.jobOpenings)
+                && events.equals(otherHireBase.events);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(persons, jobOpenings);
+        return Objects.hash(persons, jobOpenings, events);
     }
 }

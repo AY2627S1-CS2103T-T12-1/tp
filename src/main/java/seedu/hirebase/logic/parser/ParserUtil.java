@@ -14,6 +14,7 @@ import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
@@ -177,5 +178,19 @@ public class ParserUtil {
      */
     private static String normaliseSpaces(String value) {
         return value.trim().replaceAll("\\s+", " ");
+    }
+
+    /**
+     * Parses a priority score, trimming surrounding whitespace.
+     *
+     * @throws ParseException if the score is not 1, 2 or 3.
+     */
+    public static PriorityScore parsePriorityScore(String value) throws ParseException {
+        requireNonNull(value);
+        String trimmedValue = value.trim();
+        if (!PriorityScore.isValidPriorityScore(trimmedValue)) {
+            throw new ParseException(PriorityScore.MESSAGE_CONSTRAINTS);
+        }
+        return new PriorityScore(trimmedValue);
     }
 }

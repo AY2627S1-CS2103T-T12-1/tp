@@ -5,6 +5,7 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PRIORITY;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 
@@ -30,7 +31,8 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_ADDRESS + "ADDRESS "
             + PREFIX_SKILL + "SKILL [" + PREFIX_SKILL + "SKILL]... "
-            + PREFIX_ROLE + "ROLE\n"
+            + PREFIX_ROLE + "ROLE "
+            + "[" + PREFIX_PRIORITY + "SCORE (1-Low, 2-Medium, 3-High; default 1)]\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "

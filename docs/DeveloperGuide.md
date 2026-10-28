@@ -295,6 +295,34 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 Both `view` and `note` rely on the shared `HireBase#getPersonByCandidateId(CandidateId)` lookup described in
 [Candidate ID](#candidate-id), which is the single point where a `CandidateId` is resolved to a `Person`.
 
+### Candidate priority score
+
+Each candidate has a `PriorityScore`: `1 (Low)`, `2 (Medium)`, or `3 (High)`. New candidates and legacy records
+without a score default to Low. Scores are independent of candidate identity, permanent IDs and interview stages.
+They do not change list order.
+
+#### Implementation
+
+`PriorityScore` is an immutable value class in `seedu.hirebase.model.candidate`. It accepts exactly one digit
+from `1` to `3`, exposes the numeric value and label, and formats itself as, for example, `3 (High)`.
+`Person` stores a non-null score, includes it in full equality and hashing, and preserves it when copying an ID.
+Email-based duplicate detection continues to ignore the score.
+
+`CliSyntax#PREFIX_PRIORITY` defines `priority/`. `ParserUtil#parsePriorityScore(String)` trims the value and
+validates it. `AddCommandParser` accepts an optional score and otherwise uses `PriorityScore.DEFAULT`;
+`EditCommandParser` stores a supplied score in `EditPersonDescriptor`. Both reject repeated priority prefixes.
+`EditCommand` uses the old score when that field is omitted, and `NoteCommand` and `StageCommand` copy the old
+score when rebuilding the immutable candidate. Accept and reject commands retain that stage-update behavior.
+
+`ListCommandParser` accepts an optional score alongside skill, role and stage. `ListCommand` compares scores
+for equality and combines all supplied filters with AND, filtering the full candidate list without sorting it.
+`PersonCard` and `PersonDetailWindow` show a plain `Priority: SCORE (LABEL)` label, while `ViewCommand`
+includes a `Priority score` line in its full-details feedback.
+
+`JsonAdaptedPerson` saves `priorityScore` as the digit string `"1"`, `"2"`, or `"3"`. A missing or null field
+loads as Low for backward compatibility. Other invalid values reject the data file through the existing storage
+validation path. The score survives edits, note/stage changes, saving and restarting.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -750,7 +778,7 @@ The following requirements describe the intended quality attributes and operatin
 
 **Mainstream OS (Operating System):** For HireBase's compatibility requirements, Windows, Linux, or macOS.
 
-**Priority score:** A value used to indicate the relative attention a recruiter intends to give a candidate.
+**Priority score:** A candidate's attention level: `1 (Low)`, `2 (Medium)`, or `3 (High)`. The default is Low.
 
 **Private contact detail:** Contact information that is not intended to be shared with other people.
 
@@ -841,6 +869,78 @@ testers are expected to do more *exploratory* testing.
 
    1. Close HireBase and launch it again.<br>
       Expected: Every candidate shows the same ID as before.
+
+### Candidate priority scores
+
+Use a separate test copy of the data file. Add the following candidates in this order and note each permanent
+ID from its card. In the commands below, replace `LOW_ID`, `MEDIUM_ID`, and `HIGH_ID` with those IDs.
+
+```text
+add candidate n/Low Priority p/91234567 e/priority.low@example.com a/Singapore s/Java r/Backend Engineer
+add candidate n/Medium Priority p/91234567 e/priority.medium@example.com a/Singapore s/Java r/Backend Engineer priority/2
+add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore s/Java r/Backend Engineer priority/3
+```
+
+1. Adding and displaying scores
+
+   1. Expected: The cards show `Priority: 1 (Low)`, `Priority: 2 (Medium)`, and `Priority: 3 (High)` respectively.
+      Clicking each card shows the same score in the full-details popup. `view candidate HIGH_ID` includes
+      `Priority score: 3 (High)` in the result display.
+
+   1. Add `add candidate n/Explicit Low p/91234567 e/priority.explicit@example.com a/Singapore s/Python r/Analyst priority/1`.<br>
+      Expected: Its priority is explicitly Low. Candidate order follows creation order, rather than priority.
+
+1. Editing and preserving scores
+
+   1. Run `edit candidate LOW_ID priority/3`, then `edit candidate LOW_ID priority/2`.<br>
+      Expected: The score changes to High and then Medium on the card, popup and `view candidate` output.
+      Contact details, skills, role, note, stage and permanent ID are unchanged. The candidate stays in place.
+
+   1. Run each of `edit candidate HIGH_ID p/98765432`, `note HIGH_ID Strong candidate`, `note HIGH_ID`,
+      `stage candidate HIGH_ID SCREENING`, `accept candidate HIGH_ID`, and `reject candidate HIGH_ID`.<br>
+      Expected: After every command, the High candidate retains `3 (High)` and its permanent ID.
+      Restore `stage candidate HIGH_ID SCREENING` for the following filter tests.
+
+1. Filtering scores
+
+   1. Try `list candidates priority/1`, `list candidates priority/2`, and `list candidates priority/3`.<br>
+      Expected: Each result contains only candidates with that exact score, in their original relative order.
+      The score and ID of every candidate remain unchanged.
+
+   1. Run `list candidates s/Java r/Backend Engineer stage/SCREENING priority/3`.<br>
+      Expected: The High test candidate appears; candidates failing any supplied filter are hidden.
+      Reorder the prefixes and repeat the command; results are identical.
+
+   1. Run `list candidates s/Python priority/3`, then `list candidates`.<br>
+      Expected: The first command has no matches for the test candidates. The second restores all candidates
+      in their original order. Neither command changes any score.
+
+1. Invalid priority input
+
+   1. Try `edit candidate HIGH_ID priority/0`, repeating with `4`, `03`, `+3`, `2.0`, `High`, and no value
+      after `priority/`. Also try `edit candidate HIGH_ID priority/1 priority/3`.<br>
+      Expected: Every command reports invalid input and preserves the entire candidate record.
+
+   1. Try the same invalid values, an empty value, and repeated prefixes with `list candidates priority/0`.<br>
+      Expected: Each invalid command reports an error and leaves the previous list and all records unchanged.
+
+   1. Run `add candidate n/Invalid Priority p/91234567 e/priority.invalid@example.com a/Singapore s/Java r/Engineer priority/0`.
+      Repeat with each invalid value above and with `priority/1 priority/3` instead of `priority/0`.<br>
+      Expected: No candidate is added. A valid command with surrounding spaces around a single score succeeds.
+
+1. Saving and legacy data
+
+   1. Close and restart HireBase.<br>
+      Expected: All scores and IDs persist, including the edited Medium score. The JSON file stores, for example,
+      `"priorityScore": "3"` for the High candidate.
+
+   1. With the app closed, remove `priorityScore` from one candidate in the test data file and set another
+      candidate's field to `null`. Relaunch.<br>
+      Expected: Both candidates load as Low without losing other details. Set a non-default score with an edit,
+      restart again, and check that it persists.
+
+   1. In a separate copy of the saved file, replace a score with `"4"` or `"High"` and launch using that copy.<br>
+      Expected: The invalid data file is rejected through the documented invalid-file recovery behavior.
 
 ### Saving data
 

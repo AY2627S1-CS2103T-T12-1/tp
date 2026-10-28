@@ -40,5 +40,9 @@ Recruiters can assign Low, Medium or High priority using `priority/1`, `priority
 commands, and filter candidates by score with the existing list command. Scores survive restarts and unrelated edits;
 older records default to Low. Candidate cards and details display the score using the existing plain styling.
 
-Validation results will be recorded after the implementation is complete. This is a local PR preparation;
-no remote branch or pull request is created or pushed.
+Validation: `gradlew.bat build check --offline` passed on JDK 25 with 733 tests, zero failures/errors/skips and both
+Checkstyle checks. The final run executed test compilation, tests, test Checkstyle and coverage; production compilation,
+packaging and production Checkstyle were up to date from the preceding run. JavaFX used software rendering.
+The first checks found two test-formatting violations; both were corrected before the successful full run.
+
+This is a local PR preparation; no remote branch or pull request is created or pushed.

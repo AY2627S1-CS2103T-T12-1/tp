@@ -5,6 +5,7 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PRIORITY;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_TAG;
@@ -27,6 +28,7 @@ import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
@@ -50,7 +52,8 @@ public class EditCommand extends Command {
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_SKILL + "SKILL]... "
-            + "[" + PREFIX_ROLE + "ROLE]\n"
+            + "[" + PREFIX_ROLE + "ROLE] "
+            + "[" + PREFIX_PRIORITY + "SCORE (1-Low, 2-Medium, 3-High)]\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com\n"
@@ -107,9 +110,10 @@ public class EditCommand extends Command {
 
         Set<Skill> updatedSkills = editPersonDescriptor.getSkills().orElse(personToEdit.getSkills());
         Role updatedRole = editPersonDescriptor.getRole().orElse(personToEdit.getRole().orElse(null));
+        PriorityScore updatedPriority = editPersonDescriptor.getPriorityScore().orElse(personToEdit.getPriorityScore());
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, personToEdit.getNote(),
                 updatedTags, updatedSkills, updatedRole, personToEdit.getInterviewStage(),
-                personToEdit.getCandidateId().orElse(null));
+                personToEdit.getCandidateId().orElse(null), updatedPriority);
     }
 
     @Override
@@ -148,6 +152,7 @@ public class EditCommand extends Command {
         private Set<Tag> tags;
         private Set<Skill> skills;
         private Role role;
+        private PriorityScore priorityScore;
 
         public EditPersonDescriptor() {
         }
@@ -164,13 +169,22 @@ public class EditCommand extends Command {
             setTags(toCopy.tags);
             setSkills(toCopy.skills);
             setRole(toCopy.role);
+            setPriorityScore(toCopy.priorityScore);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, skills, role);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, skills, role, priorityScore);
+        }
+
+        public void setPriorityScore(PriorityScore priorityScore) {
+            this.priorityScore = priorityScore;
+        }
+
+        public Optional<PriorityScore> getPriorityScore() {
+            return Optional.ofNullable(priorityScore);
         }
 
         public void setSkills(Set<Skill> skills) {
@@ -256,7 +270,8 @@ public class EditCommand extends Command {
                     && Objects.equals(address, otherEditPersonDescriptor.address)
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(skills, otherEditPersonDescriptor.skills)
-                    && Objects.equals(role, otherEditPersonDescriptor.role);
+                    && Objects.equals(role, otherEditPersonDescriptor.role)
+                    && Objects.equals(priorityScore, otherEditPersonDescriptor.priorityScore);
         }
 
         @Override
@@ -269,6 +284,7 @@ public class EditCommand extends Command {
                     .add("tags", tags)
                     .add("skills", skills)
                     .add("role", role)
+                    .add("priorityScore", priorityScore)
                     .toString();
         }
     }

@@ -15,7 +15,7 @@ import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.SamePersonPredicate;
 
 /**
- * Views the full details of a candidate identified by the index in the displayed candidate list.
+ * Views the full details of a candidate identified by their permanent candidate ID.
  * Shows the details in the result display and collapses the list to only that candidate.
  */
 public class ViewCommand extends Command {
@@ -77,6 +77,7 @@ public class ViewCommand extends Command {
         String note = person.getNote().value.isEmpty() ? EMPTY_PLACEHOLDER : person.getNote().value;
         return "Name:    " + person.getName().fullName + "\n"
                 + "Stage:   " + stage + "\n"
+                + "Priority score: " + person.getPriorityScore() + "\n"
                 + "Phone:   " + person.getPhone().value + "\n"
                 + "Email:   " + person.getEmail().value + "\n"
                 + "Address: " + person.getAddress().value + "\n"

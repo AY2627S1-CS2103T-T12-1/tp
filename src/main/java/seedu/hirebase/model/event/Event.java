@@ -1,5 +1,6 @@
 package seedu.hirebase.model.event;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.hirebase.commons.util.AppUtil.checkArgument;
 import static seedu.hirebase.commons.util.CollectionUtil.requireAllNonNull;
 
@@ -21,9 +22,10 @@ public final class Event {
 
     public static final String MESSAGE_TIME_CONSTRAINTS =
             "Event start must be before its end, and both must be on the same day.";
+    public static final String MESSAGE_ID_ALREADY_ASSIGNED = "An event's ID cannot be changed once assigned.";
     public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    // Assigned by the model when the event is added; null until then.
+    // Assigned by the model when the event is added; null until then. Permanent once assigned.
     private final EventId eventId;
     private final EventName name;
     private final EventDescription description;
@@ -66,6 +68,9 @@ public final class Event {
                 && start.toLocalDate().equals(end.toLocalDate());
     }
 
+    /**
+     * Returns the permanent event ID, or empty if the model has not assigned one yet.
+     */
     public Optional<EventId> getEventId() {
         return Optional.ofNullable(eventId);
     }
@@ -119,9 +124,16 @@ public final class Event {
     }
 
     /**
-     * Copies this event's fields with the supplied ID.
+     * Returns a copy of this event with the given {@code id}.
+     * Only an event without an ID can be given one, so an assigned ID can never be changed.
+     *
+     * @throws IllegalStateException if this event already has an ID.
      */
     public Event withEventId(EventId id) {
+        requireNonNull(id);
+        if (eventId != null) {
+            throw new IllegalStateException(MESSAGE_ID_ALREADY_ASSIGNED);
+        }
         return new Event(name, description, start, end, isCancelled, candidateIds, id);
     }
 

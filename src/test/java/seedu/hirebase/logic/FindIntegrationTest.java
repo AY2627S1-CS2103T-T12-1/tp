@@ -1,7 +1,6 @@
 package seedu.hirebase.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static seedu.hirebase.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.hirebase.testutil.TypicalPersons.ALICE;
 import static seedu.hirebase.testutil.TypicalPersons.BENSON;
 import static seedu.hirebase.testutil.TypicalPersons.getTypicalHireBase;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
@@ -46,7 +46,7 @@ public class FindIntegrationTest {
     public void execute_mixedNameAndEmailKeywords_listsEachMatchOnce() throws Exception {
         CommandResult result = logic.execute("find Alice JOHND@ alice@example.com Alice");
 
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
+        assertEquals(ListCommand.getResultMessage(2), result.getFeedbackToUser());
         assertEquals(List.of(ALICE, BENSON), logic.getFilteredPersonList());
         assertEquals(getTypicalHireBase(), model.getHireBase());
         assertEquals(getTypicalHireBase(), hireBaseStorage.readHireBase().orElseThrow());

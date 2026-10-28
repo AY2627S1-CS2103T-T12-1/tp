@@ -127,11 +127,25 @@ public class UniqueEventListTest {
     }
 
     @Test
-    public void setEvent_keepsPermanentId() {
+    public void setEvent_editedEventWithSameId_keepsPermanentId() {
         list.add(first);
-        list.setEvent(first, event("Renamed", 99));
+        list.setEvent(first, first.withName(new EventName("Renamed")));
         assertEquals(Optional.of(new EventId(1)), list.asUnmodifiableObservableList().get(0).getEventId());
         assertEquals("Renamed", list.asUnmodifiableObservableList().get(0).getName().value);
+    }
+
+    @Test
+    public void setEvent_editedEventWithDifferentId_throwsIllegalArgumentException() {
+        list.add(first);
+        assertThrows(IllegalArgumentException.class, () -> list.setEvent(first, event("Renamed", 99)));
+        assertEquals(List.of(first), list.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void setEvent_targetWithoutIdAndEditedEventWithId_throwsIllegalArgumentException() {
+        Event withoutId = eventWithoutId("One");
+        list.add(withoutId);
+        assertThrows(IllegalArgumentException.class, () -> list.setEvent(withoutId, first));
     }
 
     @Test
@@ -142,10 +156,11 @@ public class UniqueEventListTest {
     }
 
     @Test
-    public void setEvent_editedEventHasOtherEventsId_throwsDuplicateEventException() {
+    public void setEvent_editedEventHasOtherEventsId_throwsIllegalArgumentException() {
         list.add(first);
         list.add(second);
-        assertThrows(DuplicateEventException.class, () -> list.setEvent(first, second.withName(new EventName("X"))));
+        assertThrows(IllegalArgumentException.class, () -> list.setEvent(first, second.withName(new EventName("X"))));
+        assertEquals(List.of(first, second), list.asUnmodifiableObservableList());
     }
 
     @Test

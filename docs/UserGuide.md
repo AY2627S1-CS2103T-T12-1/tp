@@ -645,7 +645,7 @@ descriptions differ. Invalid or duplicate openings cause the data file to fail l
 Use `add job` to create openings and `list jobs` to view their cards and full details.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. The invalid file remains on disk until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with empty candidate and job-opening lists at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

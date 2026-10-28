@@ -6,12 +6,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+import seedu.hirebase.commons.core.LogsCenter;
 
 /**
  * Writes and reads files
  */
 public class FileUtil {
 
+    private static final Logger logger = LogsCenter.getLogger(FileUtil.class);
     private static final String CHARSET = "UTF-8";
     private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
@@ -80,6 +85,28 @@ public class FileUtil {
         }
         Files.copy(file, backup);
         return backup;
+    }
+
+    /**
+     * Backs up {@code file} as described in {@link #backUpInvalidFile(Path, LocalDateTime)}, using the current time.
+     * Does nothing if the file does not exist, and only logs a warning if the copy fails, so that it never
+     * stops the app from starting.
+     *
+     * @return the path of the backup copy, or empty if no copy was made.
+     */
+    public static Optional<Path> tryBackUpInvalidFile(Path file) {
+        requireNonNull(file);
+        if (!Files.exists(file)) {
+            return Optional.empty();
+        }
+        try {
+            Path backup = backUpInvalidFile(file, LocalDateTime.now());
+            logger.warning("The invalid data file was copied to " + backup + " so that it can be recovered.");
+            return Optional.of(backup);
+        } catch (IOException e) {
+            logger.warning("Could not make a backup copy of the invalid data file: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
 }

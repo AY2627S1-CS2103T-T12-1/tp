@@ -1,6 +1,7 @@
 package seedu.hirebase.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,4 +67,37 @@ public class FileUtilTest {
 
         assertEquals(testFolder.resolve("hirebase-invalid-20261027-090507"), backup);
     }
+
+    @Test
+    public void tryBackUpInvalidFile_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> FileUtil.tryBackUpInvalidFile(null));
+    }
+
+    @Test
+    public void tryBackUpInvalidFile_missingFile_returnsEmpty() {
+        assertFalse(FileUtil.tryBackUpInvalidFile(testFolder.resolve("hirebase.json")).isPresent());
+    }
+
+    @Test
+    public void tryBackUpInvalidFile_existingFile_copiesFile() throws IOException {
+        Path file = testFolder.resolve("hirebase.json");
+        Files.writeString(file, "bad");
+
+        Path backup = FileUtil.tryBackUpInvalidFile(file).orElseThrow();
+
+        assertEquals("bad", Files.readString(backup));
+        assertTrue(backup.getFileName().toString().startsWith("hirebase-invalid-"));
+        assertTrue(Files.exists(file));
+    }
+
+    @Test
+    public void tryBackUpInvalidFile_copyFails_returnsEmpty() throws IOException {
+        // the backup name would exceed the file system's file name length limit
+        Path file = testFolder.resolve("a".repeat(250) + ".json");
+        Files.writeString(file, "bad");
+
+        assertFalse(FileUtil.tryBackUpInvalidFile(file).isPresent());
+        assertTrue(Files.exists(file));
+    }
+
 }

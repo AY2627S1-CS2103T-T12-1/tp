@@ -1,10 +1,8 @@
 package seedu.hirebase;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -86,27 +84,11 @@ public class MainApp extends Application {
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getHireBaseFilePath() + " could not be loaded."
                     + " Will be starting with an empty HireBase.");
-            backUpInvalidDataFile(storage.getHireBaseFilePath());
+            FileUtil.tryBackUpInvalidFile(storage.getHireBaseFilePath());
             initialData = new HireBase();
         }
 
         return new ModelManager(initialData, userPrefs);
-    }
-
-    /**
-     * Keeps a copy of a data file that could not be loaded, because the next command that saves data
-     * replaces the file with the (empty) data the app starts with.
-     */
-    private void backUpInvalidDataFile(Path dataFile) {
-        if (!Files.exists(dataFile)) {
-            return;
-        }
-        try {
-            Path backup = FileUtil.backUpInvalidFile(dataFile, LocalDateTime.now());
-            logger.warning("The invalid data file was copied to " + backup + " so that it can be recovered.");
-        } catch (IOException e) {
-            logger.warning("Could not make a backup copy of the invalid data file: " + e.getMessage());
-        }
     }
 
     /**

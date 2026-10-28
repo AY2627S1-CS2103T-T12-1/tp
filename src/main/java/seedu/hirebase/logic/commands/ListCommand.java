@@ -23,7 +23,8 @@ public class ListCommand extends Command {
             + "Parameters: " + RECORD_TYPE_CANDIDATE + " [s/SKILL] [r/ROLE] [stage/STAGE]\n"
             + "Skills and roles match complete names, ignoring case. Filters combine with AND.\n"
             + "Stages: SCREENING, ACCEPTED, REJECTED (ignoring case).\n"
-            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " s/Java";
+            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " s/Java\n"
+            + "To list job openings, use: " + ListJobsCommand.MESSAGE_USAGE;
 
     public static final String MESSAGE_SUCCESS = "Listed %d candidate%s.";
     public static final String MESSAGE_NO_CANDIDATES = "No candidates found.";
@@ -68,12 +69,14 @@ public class ListCommand extends Command {
         model.updateFilteredPersonList(person -> (skill == null || person.getSkills().contains(skill))
                 && (role == null || role.equals(person.getRole().orElse(null)))
                 && (interviewStage == null || person.getInterviewStage() == interviewStage));
-        int sz = model.getFilteredPersonList().size();
-        if (sz == 0) {
-            return new CommandResult(MESSAGE_NO_CANDIDATES);
-        } else {
-            return new CommandResult(String.format(MESSAGE_SUCCESS, sz, sz == 1 ? "" : "s"));
-        }
+        return new CommandResult(getResultMessage(model.getFilteredPersonList().size()));
+    }
+
+    /**
+     * Returns the message reporting how many candidates are shown, shared by the commands that filter the list.
+     */
+    public static String getResultMessage(int count) {
+        return count == 0 ? MESSAGE_NO_CANDIDATES : String.format(MESSAGE_SUCCESS, count, count == 1 ? "" : "s");
     }
 
     @Override

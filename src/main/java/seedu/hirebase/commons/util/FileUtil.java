@@ -1,15 +1,25 @@
 package seedu.hirebase.commons.util;
+import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+import seedu.hirebase.commons.core.LogsCenter;
 
 /**
  * Writes and reads files
  */
 public class FileUtil {
 
+    private static final Logger logger = LogsCenter.getLogger(FileUtil.class);
     private static final String CHARSET = "UTF-8";
+    private static final DateTimeFormatter BACKUP_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
     /**
      * Creates a file if it does not exist along with its missing parent directories.
@@ -49,6 +59,54 @@ public class FileUtil {
      */
     public static void writeToFile(Path file, String content) throws IOException {
         Files.write(file, content.getBytes(CHARSET));
+    }
+
+    /**
+     * Copies {@code file} next to itself under a new name that includes {@code timestamp}, for example
+     * {@code hirebase.json} becomes {@code hirebase-invalid-20261027-183000.json}. A number is appended if that
+     * name is already taken, so an earlier backup is never overwritten. The original file is left in place.
+     *
+     * @return the path of the backup copy.
+     * @throws IOException if the file cannot be copied.
+     */
+    public static Path backUpInvalidFile(Path file, LocalDateTime timestamp) throws IOException {
+        requireNonNull(file);
+        requireNonNull(timestamp);
+
+        String fileName = file.getFileName().toString();
+        int dot = fileName.lastIndexOf('.');
+        String baseName = dot > 0 ? fileName.substring(0, dot) : fileName;
+        String extension = dot > 0 ? fileName.substring(dot) : "";
+        String stamp = timestamp.format(BACKUP_TIMESTAMP_FORMAT);
+
+        Path backup = file.resolveSibling(baseName + "-invalid-" + stamp + extension);
+        for (int copy = 1; Files.exists(backup); copy++) {
+            backup = file.resolveSibling(baseName + "-invalid-" + stamp + "-" + copy + extension);
+        }
+        Files.copy(file, backup);
+        return backup;
+    }
+
+    /**
+     * Backs up {@code file} as described in {@link #backUpInvalidFile(Path, LocalDateTime)}, using the current time.
+     * Does nothing if the file does not exist, and only logs a warning if the copy fails, so that it never
+     * stops the app from starting.
+     *
+     * @return the path of the backup copy, or empty if no copy was made.
+     */
+    public static Optional<Path> tryBackUpInvalidFile(Path file) {
+        requireNonNull(file);
+        if (!Files.exists(file)) {
+            return Optional.empty();
+        }
+        try {
+            Path backup = backUpInvalidFile(file, LocalDateTime.now());
+            logger.warning("The invalid data file was copied to " + backup + " so that it can be recovered.");
+            return Optional.of(backup);
+        } catch (IOException e) {
+            logger.warning("Could not make a backup copy of the invalid data file: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
 }

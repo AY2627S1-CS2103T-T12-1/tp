@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.commons.exceptions.DataLoadingException;
+import seedu.hirebase.commons.util.FileUtil;
 import seedu.hirebase.commons.util.StringUtil;
 import seedu.hirebase.logic.Logic;
 import seedu.hirebase.logic.LogicManager;
@@ -83,6 +84,7 @@ public class MainApp extends Application {
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getHireBaseFilePath() + " could not be loaded."
                     + " Will be starting with an empty HireBase.");
+            FileUtil.tryBackUpInvalidFile(storage.getHireBaseFilePath());
             initialData = new HireBase();
         }
 

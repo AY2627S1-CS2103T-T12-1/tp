@@ -35,6 +35,8 @@ public class AddEventCommand extends Command {
     public static final String MESSAGE_UNKNOWN_CANDIDATES =
             "No candidate has ID(s): %1$s. Use list to view candidate IDs. The event was not added.";
     public static final String MESSAGE_EVENT_HAS_ID = "A new event must not have an ID yet.";
+    public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. The event was not added. "
+            + "Check storage permissions and available disk space, then try again.";
 
     private static final Logger logger = LogsCenter.getLogger(AddEventCommand.class);
 

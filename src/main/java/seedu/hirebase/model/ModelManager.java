@@ -11,6 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.event.Event;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
@@ -117,6 +118,31 @@ public class ModelManager implements Model {
     @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return addressBook.getJobOpeningList();
+    }
+
+    //=========== Events =====================================================================================
+
+    @Override
+    public Event addEvent(Event event) {
+        Event stored = addressBook.addEvent(event);
+        logger.fine("Added event " + stored.getEventId().orElseThrow());
+        return stored;
+    }
+
+    @Override
+    public void setEvent(Event target, Event editedEvent) {
+        requireAllNonNull(target, editedEvent);
+        addressBook.setEvent(target, editedEvent);
+    }
+
+    @Override
+    public void deleteEvent(Event target) {
+        addressBook.removeEvent(target);
+    }
+
+    @Override
+    public ObservableList<Event> getEventList() {
+        return addressBook.getEventList();
     }
 
     //=========== Filtered Person List Accessors =============================================================

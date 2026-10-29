@@ -10,6 +10,7 @@ import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.tag.Tag;
@@ -35,6 +36,7 @@ public class PersonBuilder {
     private Set<Skill> skills = new HashSet<>();
     private Role role;
     private InterviewStage interviewStage;
+    private PriorityScore priorityScore;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -47,6 +49,7 @@ public class PersonBuilder {
         note = new Note(DEFAULT_NOTE);
         tags = new HashSet<>();
         interviewStage = InterviewStage.SCREENING;
+        priorityScore = PriorityScore.DEFAULT;
     }
 
     /**
@@ -62,6 +65,7 @@ public class PersonBuilder {
         note = personToCopy.getNote();
         tags = new HashSet<>(personToCopy.getTags());
         interviewStage = personToCopy.getInterviewStage();
+        priorityScore = personToCopy.getPriorityScore();
     }
 
     /**
@@ -125,7 +129,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage);
+        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage, null, priorityScore);
     }
 
     /**
@@ -141,6 +145,14 @@ public class PersonBuilder {
      */
     public PersonBuilder withInterviewStage(InterviewStage interviewStage) {
         this.interviewStage = interviewStage;
+        return this;
+    }
+
+    /**
+     * Sets the {@code PriorityScore} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withPriorityScore(String priorityScore) {
+        this.priorityScore = new PriorityScore(priorityScore);
         return this;
     }
 }

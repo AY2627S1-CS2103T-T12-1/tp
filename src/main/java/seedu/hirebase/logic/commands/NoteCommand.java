@@ -60,7 +60,7 @@ public class NoteCommand extends Command {
         Person editedPerson = new Person(personToEdit.getName(), personToEdit.getPhone(), personToEdit.getEmail(),
                 personToEdit.getAddress(), note, personToEdit.getTags(),
                 personToEdit.getSkills(), personToEdit.getRole().orElse(null), personToEdit.getInterviewStage(),
-                personToEdit.getCandidateId().orElse(null));
+                personToEdit.getCandidateId().orElse(null), personToEdit.getPriorityScore());
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);

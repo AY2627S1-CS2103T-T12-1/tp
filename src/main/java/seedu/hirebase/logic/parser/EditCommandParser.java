@@ -6,6 +6,7 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_PRIORITY;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_ROLE;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_TAG;
@@ -41,7 +42,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE));
         }
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(parts[1], PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
-                PREFIX_ADDRESS, PREFIX_TAG, PREFIX_SKILL, PREFIX_ROLE);
+                PREFIX_ADDRESS, PREFIX_TAG, PREFIX_SKILL, PREFIX_ROLE, PREFIX_PRIORITY);
 
         CandidateId candidateId;
 
@@ -51,7 +52,8 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_ROLE);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
+                PREFIX_ROLE, PREFIX_PRIORITY);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -77,6 +79,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         if (argMultimap.getValue(PREFIX_ROLE).isPresent()) {
             editPersonDescriptor.setRole(ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get()));
+        }
+
+        if (argMultimap.getValue(PREFIX_PRIORITY).isPresent()) {
+            editPersonDescriptor.setPriorityScore(
+                    ParserUtil.parsePriorityScore(argMultimap.getValue(PREFIX_PRIORITY).get()));
         }
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {

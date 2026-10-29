@@ -1,0 +1,49 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+Package "Event and calendar classes" <<Rectangle>>{
+Class Event {
+    -start : LocalDateTime
+    -end : LocalDateTime
+    -isCancelled : boolean
+}
+Class EventId {
+    -value : int
+}
+Class EventName
+Class EventDescription
+Class CandidateId
+Class Calendar
+Class Day {
+    -date : LocalDate
+}
+Class CalendarViewOptions {
+    -cancelledOnly : boolean
+    -upcomingOnly : boolean
+}
+Class "<<enumeration>>\nPeriod" as Period
+}
+
+show Event fields
+show EventId fields
+show Day fields
+show CalendarViewOptions fields
+
+Class HiddenOutside #FFFFFF
+HiddenOutside ..> Event
+
+Event *--> "0..1" EventId
+Event *--> "1" EventName
+Event *--> "1" EventDescription
+Event --> "*" CandidateId
+
+Calendar *--> "*" Day
+Day --> "*" Event
+CalendarViewOptions *--> "1" Period
+CalendarViewOptions ..> Calendar : <<create>>
+@enduml

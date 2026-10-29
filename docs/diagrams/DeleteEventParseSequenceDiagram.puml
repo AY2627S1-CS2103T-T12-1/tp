@@ -1,0 +1,56 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":HireBaseParser" as HireBaseParser LOGIC_COLOR
+participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
+participant ":DeleteEventCommandParser" as DeleteEventCommandParser LOGIC_COLOR
+participant "d:DeleteEventCommand" as DeleteEventCommand LOGIC_COLOR
+end box
+
+[-> HireBaseParser : parseCommand("delete event 1")
+activate HireBaseParser
+
+create DeleteCommandParser
+HireBaseParser -> DeleteCommandParser
+activate DeleteCommandParser
+
+DeleteCommandParser --> HireBaseParser
+deactivate DeleteCommandParser
+
+HireBaseParser -> DeleteCommandParser : parse("event 1")
+activate DeleteCommandParser
+
+create DeleteEventCommandParser
+DeleteCommandParser -> DeleteEventCommandParser
+activate DeleteEventCommandParser
+
+DeleteEventCommandParser --> DeleteCommandParser
+deactivate DeleteEventCommandParser
+
+DeleteCommandParser -> DeleteEventCommandParser : parse("1")
+activate DeleteEventCommandParser
+
+create DeleteEventCommand
+DeleteEventCommandParser -> DeleteEventCommand : DeleteEventCommand(targetId)
+activate DeleteEventCommand
+
+DeleteEventCommand --> DeleteEventCommandParser
+deactivate DeleteEventCommand
+
+DeleteEventCommandParser --> DeleteCommandParser : d
+deactivate DeleteEventCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+DeleteEventCommandParser -[hidden]-> DeleteCommandParser
+destroy DeleteEventCommandParser
+
+DeleteCommandParser --> HireBaseParser : d
+deactivate DeleteCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+DeleteCommandParser -[hidden]-> HireBaseParser
+destroy DeleteCommandParser
+
+[<-- HireBaseParser : d
+deactivate HireBaseParser
+@enduml

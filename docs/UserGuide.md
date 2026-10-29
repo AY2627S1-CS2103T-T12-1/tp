@@ -37,6 +37,10 @@ the management of high-volume candidate tracking for tech recruiters through an 
 
    - `delete candidate 3` : Deletes the candidate with permanent ID `3`, regardless of their position in the list.
 
+   - `add event n/Team meeting from/05/11/2026 14:00 to/05/11/2026 15:00` : Adds an event to the calendar.
+
+   - `view calendar period/month` : Opens the Calendar tab and shows the current month.
+
    - `clear` : Deletes all candidates, job openings and events.
 
    - `exit` : Exits the app.
@@ -202,13 +206,16 @@ across lines; scroll the list to read additional content. An empty jobs tab show
 Cards update after adding, editing, deleting or clearing records. After a deletion, all remaining openings keep their IDs.
 
 Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
-the Candidates tab. Adding an event successfully selects Calendar and keeps its current period and filters.
+the Candidates tab. Adding an event successfully selects Calendar and keeps its current period and filters. `view calendar` also
+selects Calendar, and sets the period and filters that you give it.
 Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active tab and removes
 all candidates, job openings and events. On launch, the Candidates tab is selected.
 
 ### Viewing the calendar
 
-Open **Calendar** to browse saved events. Choose **Today**, **Week** or **Month** from the dropdown:
+Open **Calendar** to browse saved events. Choose **Today**, **Week** or **Month** from the dropdown. You can also set
+the same period and filters from the command box with
+[`view calendar`](#viewing-the-calendar-from-the-command-box-view-calendar):
 
 ![Calendar showing a Sunday-to-Saturday week](images/calendar-week.png)
 
@@ -227,6 +234,7 @@ The calendar starts in **Week** with both checkboxes clear each time you launch 
 Dates and times follow your computer's local clock, and the displayed period updates automatically as the date changes.
 
 - With **Cancelled only** clear, cancelled events are hidden. Select it to show only cancelled events instead.
+  Cancel an event with [`edit event`](#editing-or-cancelling-an-event-edit-event), for example `edit event 1 cancel/true`.
 - With **Upcoming only** clear, past events remain visible. Select it to hide events whose end time has been reached.
   An event in progress is still upcoming until it ends.
 - Selecting both checkboxes shows only cancelled events that have not ended, within the selected period.
@@ -555,7 +563,7 @@ Sample feedback:
 | `view candidate 1` | Candidate `1`'s full details (name, stage, priority score, phone, email, address, role, skills, note); the list collapses to that candidate. |
 | `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
-| `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate` and `view event` (a record-type keyword is required). |
+| `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate`, `view event` and `view calendar` (a record-type keyword is required). |
 
 ### Viewing the calendar from the command box: `view calendar`
 
@@ -577,6 +585,16 @@ Examples:
 - `view calendar` selects the current week with both filters cleared.
 
 The calendar still displays only the current day, week or month; this command does not navigate to another date range.
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `view calendar`, `view calendar period/TODAY cancelled/FALSE` | `Showing calendar.` The Calendar tab is selected with the requested period and filters. |
+| `view calendar period/year`, `view calendar cancelled/maybe`, `view calendar upcoming/yes` | `Invalid command format!` followed by the `view calendar` usage (the period must be `today`, `week` or `month`, and the filters must be `true` or `false`). |
+| `view calendar x`, `view calendar period/today period/week` | `Invalid command format!` followed by the `view calendar` usage (text before the first prefix, or a repeated prefix, is not accepted). |
+
+An invalid command leaves the Calendar tab, its period and its filters unchanged.
 
 ### Adding or updating a candidate's note: `note`
 
@@ -704,8 +722,8 @@ Format: `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRI
 * The new event is given the next unused event ID, shown as `#N` in the result. Event IDs are separate from candidate and job IDs, and are never reused, even after `clear`.
 
 **Overlapping events:** if the new event overlaps any existing event, HireBase still adds it and lists the events it
-overlaps, with their IDs, so you can reschedule or cancel one of them. Cancelled events do not count, and an event that
-starts exactly when another ends does not overlap it. Past events still count.
+overlaps, with their IDs, so you can reschedule one of theso you can move or cancel one of them with [`edit event`](#editing-or-cancelling-an-event-edit-event), or remove it with [`delete event`](#deleting-an-event-delete-event).m or remove it with [`delete event`](#deleting-an-event-delete-event). 
+Cancelled events do not count, and an event that starts exactly when another ends does not overlap it. Past events still count.
 
 **Caution:** `d/` is not a parameter of `add event` (it is a job's department). Use `desc/` for the description.
 Like other commands, a value cannot contain a parameter prefix after a space: in `n/Talk to/Bob`, ` to/` starts a
@@ -772,7 +790,7 @@ Sample feedback:
 | --- | --- |
 | `view event 999` | `Event ID "999" does not exist.` |
 | `view event 0`, `view event abc`, `view event` | `Invalid command format!` followed by the `view event` usage (the ID must be a positive integer). |
-| `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists both `view candidate` and `view event`. |
+| `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate`, `view event` and `view calendar`. |
 
 ### Editing or cancelling an event: `edit event`
 
@@ -877,11 +895,13 @@ Format: `exit`
 
 ### Saving the data
 
-HireBase automatically saves data after commands, except the read-only `list jobs` and `view event` commands. You do not need to save manually.
+HireBase automatically saves data after commands, except the read-only `list jobs`, `view event` and `view calendar` commands. You do not need to save manually.
 Candidate records, job openings and events are saved together in the same data file and loaded on the next launch.
 Changing calendar controls does not save the data file; the selected calendar period and filters are temporary.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 Events are saved in the same file. Older data files without an `events` field load normally, with no events.
+If HireBase cannot read the data file when it starts, it copies the file to `hirebase-invalid-<yyyyMMdd-HHmmss>.json`
+in the same folder before it starts with an empty HireBase. See [Editing the data file](#editing-the-data-file).
 
 ### Editing the data file
 
@@ -939,7 +959,7 @@ for example:
   starting after every stored ID. A missing `events` array loads as no events.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (read-only commands such as `list jobs`, `view event` and `view calendar` do not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -960,6 +980,9 @@ _Details coming soon ..._
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+3. **The calendar only shows the current day, week or month.** An event on another date is saved but cannot be seen
+   in the Calendar tab, and neither `view calendar` nor the checkboxes widen the range. Use `view event EVENT_ID` to read
+   such an event. Navigation to other periods is planned.
 
 ---
 

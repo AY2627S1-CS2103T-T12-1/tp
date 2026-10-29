@@ -6,6 +6,7 @@ import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.event.Event;
 import seedu.hirebase.model.job.JobOpening;
 
 /**
@@ -24,6 +25,9 @@ public interface Logic {
 
     /** Returns a live, unmodifiable view of all openings in creation order. */
     ObservableList<JobOpening> getJobOpeningList();
+
+    /** Returns a live, unmodifiable view of all calendar events. */
+    ObservableList<Event> getEventList();
 
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();

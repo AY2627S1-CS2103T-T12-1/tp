@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10" styleClass="calendar-panel" minWidth="0"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <FlowPane hgap="12" vgap="8" prefWrapLength="500">
+    <ComboBox fx:id="periodSelector" accessibleText="Calendar period" prefWidth="120" />
+    <CheckBox fx:id="cancelledOnly" text="Cancelled only" />
+    <CheckBox fx:id="upcomingOnly" text="Upcoming only" />
+  </FlowPane>
+  <Label fx:id="rangeHeading" styleClass="calendar-day-heading" wrapText="true" />
+  <Label fx:id="emptyMessage" text="No matching events in this period." wrapText="true" />
+  <ScrollPane fx:id="calendarScroll" fitToWidth="true" pannable="true" minWidth="0" VBox.vgrow="ALWAYS">
+    <content>
+      <GridPane fx:id="calendarGrid" hgap="8" vgap="8" />
+    </content>
+  </ScrollPane>
+</VBox>

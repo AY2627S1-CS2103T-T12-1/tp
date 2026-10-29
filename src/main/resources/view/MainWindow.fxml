@@ -59,6 +59,9 @@
               <Tab fx:id="jobsTab" text="Job openings">
                 <StackPane fx:id="jobListPanelPlaceholder" />
               </Tab>
+              <Tab fx:id="calendarTab" text="Calendar">
+                <StackPane fx:id="calendarPanelPlaceholder" />
+              </Tab>
             </tabs>
           </TabPane>
         </VBox>

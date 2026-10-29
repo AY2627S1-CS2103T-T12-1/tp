@@ -73,7 +73,9 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
+`CalendarPanel` and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`
+class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -82,7 +84,7 @@ The `UI` component,
 * executes user commands using the `Logic` component.
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* depends on some classes in the `Model` component because it displays candidates, job openings and events from the model.
 
 ### Logic component
 
@@ -123,8 +125,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the HireBase data i.e., all `Person` (candidate) objects (which are contained in a `UniquePersonList` object) and all `JobOpening` objects (which are contained in a `UniqueJobOpeningList` object).
+* stores the HireBase data: candidates in `UniquePersonList`, job openings in `UniqueJobOpeningList`, and events in `UniqueEventList`.
 * gives every candidate a permanent `CandidateId` when they are added, and keeps the `nextCandidateId` counter in `HireBase` so that an ID is never reused (see [Candidate ID](#candidate-id)).
+* stores all calendar `Event` objects in a `UniqueEventList`, gives each new event a permanent `EventId` from the `nextEventId` counter, and finds the events that overlap a given event (see [Add event feature](#add-event-feature)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -145,6 +148,7 @@ The `Model` component,
 The `Storage` component,
 * can save both HireBase data and user preference data in JSON format, and read them back into corresponding objects.
 * saves each candidate's `candidateId` in `JsonAdaptedPerson`, and the `nextCandidateId` counter in `JsonSerializableHireBase`, so that candidate IDs stay the same across restarts.
+* saves each event in `JsonAdaptedEvent`, and the `nextEventId` counter in `JsonSerializableHireBase`, in the same data file as candidates and job openings.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonHireBaseStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -322,6 +326,148 @@ includes a `Priority score` line in its full-details feedback.
 `JsonAdaptedPerson` saves `priorityScore` as the digit string `"1"`, `"2"`, or `"3"`. A missing or null field
 loads as Low for backward compatibility. Other invalid values reject the data file through the existing storage
 validation path. The score survives edits, note/stage changes, saving and restarting.
+### Add event feature
+
+The `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...` command adds
+an event, such as an interview, to the calendar. Each event gets a permanent `EventId`. If the new event overlaps
+existing events, HireBase still adds it but warns the user and lists the overlapping events.
+
+#### Implementation
+
+**Parsing.** `HireBaseParser` sends `add event ...` to `AddEventCommandParser`. The parser uses `ArgumentTokenizer`
+with the `n/`, `from/`, `to/`, `desc/` and `c/` prefixes from `CliSyntax`, and:
+
+* rejects text before the first prefix, a missing required prefix, or a repeated `n/`, `from/`, `to/` or `desc/`;
+* rejects `d/` with a hint to use `desc/`, because `d/` is a job's department;
+* parses both times with `ParserUtil#parseDateTime(String)`, which uses the pattern `dd/MM/uuuu HH:mm` with
+  `ResolverStyle.STRICT`, so a date that does not exist (e.g. `31/04/2026`) is rejected instead of being changed to
+  the nearest valid date;
+* checks `Event#isValidTimeRange(...)`, so the event must start before it ends, on the same day;
+* parses each `c/` value with `ParserUtil#parseCandidateId(String)`.
+
+It returns an `AddEventCommand` holding an `Event` with no `EventId` yet.
+
+**Executing.** `AddEventCommand#execute(Model)`:
+
+1. rejects the command, listing every unknown ID, if any `c/` ID does not belong to a candidate;
+1. rejects the command if all event IDs have been used;
+1. calls `Model#getConflictingEvents(toAdd)` *before* adding, so the new event is not compared with itself;
+1. calls `Model#addEvent(toAdd)`, which returns the stored event with its new `EventId`;
+1. builds the result: the new event, then a warning and one line per overlapping event, if there are any.
+
+**Assigning an ID.** As with [candidate IDs](#candidate-id), `HireBase#addEvent(Event)` assigns the ID, from its
+`nextEventId` counter. The counter only moves forward: deleting an event or running `clear` does not lower it, and
+adding an event that already has an ID (e.g. when loading) moves it past that ID. `nextEventId` is a `long` so that
+it can hold `Integer.MAX_VALUE + 1`, which means that every ID has been used.
+
+**Finding conflicts.** `Model#getConflictingEvents(Event)` returns every event that:
+
+* is not cancelled,
+* is not the same event (`Event#isSameEvent(...)`, which compares IDs), and
+* overlaps the given event (`Event#overlapsWith(...)`). An event that starts exactly when another ends does not
+  overlap it.
+
+A cancelled event has no conflicts. Past events are still compared. The check lives in `Model`, not in the command,
+so that a later command that changes an event's time can reuse it.
+
+**Saving before showing.** `LogicManager` handles `AddEventCommand` in `executeAddEvent(...)`, which saves the new
+event *before* the real model (and therefore the UI) sees it. The sequence diagram below shows a successful
+`add event`.
+
+![Interactions inside the Logic, Model and Storage components for an `add event` command](images/AddEventSequenceDiagram.png)
+
+1. `LogicManager` copies the model into `pending` and runs the command on the copy. If the command fails, the
+   real model and the data file are unchanged.
+1. The copy started from the real model's counter, so the new event's ID is the real model's `nextEventId`.
+   `LogicManager` looks up that `saved` event in `pending`.
+1. `LogicManager` saves `pending`. If saving fails, it throws a `CommandException` and the real model is unchanged,
+   so the event ID is not used up.
+1. Only then does `LogicManager` call `model.addEvent(saved)`. `saved` already has its ID, so `HireBase` keeps it.
+   The app and the data file therefore always show the same ID.
+
+**Saving and loading.** `JsonAdaptedEvent` stores the start and end times in ISO format (`uuuu-MM-dd'T'HH:mm`),
+not the command format, so changing how dates are typed or shown later cannot break old data files. It reads `id`,
+`cancelled` and `candidateIds` as `JsonNode`s to reject values of the wrong JSON type (e.g. `"cancelled": "yes"`)
+instead of letting Jackson convert them. When loading, `JsonSerializableHireBase`:
+
+* rejects the file if an event is invalid or `null`, two events share an ID, or `nextEventId` is out of range;
+* reserves IDs up to the saved `nextEventId` before adding the events;
+* gives events with no ID new IDs in file order, after every stored ID;
+* loads a file with no `events` field as having no events, so older data files still load.
+
+A candidate ID in an event is kept even if no candidate has it, for example after `delete candidate`. Deleting a
+candidate does not change any event.
+
+#### Design considerations
+
+**Aspect: What to do when a new event overlaps existing events**
+
+* **Alternative 1 (current choice):** Add the event, and warn with the IDs of the events it overlaps.
+  * Pros: Recruiters sometimes double-book on purpose (e.g. a panel interview during a team meeting). The warning
+    still tells them about the overlap and which events to look at.
+  * Cons: An overlap that was a mistake is only warned about, so the user must fix it themselves.
+* **Alternative 2:** Reject the event.
+  * Pros: The calendar never has overlaps.
+  * Cons: The user cannot record events that really do overlap, and must move or cancel an event first.
+
+**Aspect: How to keep the app and the data file in step when saving fails**
+
+* **Alternative 1 (current choice):** Run the command on a copy, save the copy, then add the exact saved event to
+  the real model.
+  * Pros: A failed save changes nothing. The event shown in the app is the same object, with the same ID, as the
+    one in the file.
+  * Cons: Copies the whole `HireBase` for each `add event`. This is fast enough for the expected data size.
+* **Alternative 2:** Add the event to the real model, then save, as most AddressBook-Level3 commands do.
+  * Pros: Simpler.
+  * Cons: If saving fails, the event is shown but not saved, and it disappears on the next launch.
+* **Alternative 3:** Save the copy, then run the command again on the real model, as `add job` does.
+  * Pros: Reuses the command.
+  * Cons: Relies on both runs giving the same ID. Adding the saved event guarantees it.
+
+### Calendar view
+
+The Calendar tab displays saved events using a period selector and independent cancellation and upcoming filters.
+The controls change a temporary view; they never mutate events or call storage. The intended typed-command
+access remains an integration point for the calendar command; this implementation exposes the GUI controls.
+In v1.5, every range is anchored to the supplied current local time. There is no navigation to another week or
+month: on 31 October 2026, an event on 2 November is saved but lies outside Today, Week and Month. The filters
+do not widen those ranges. Navigation to other periods is tracked in
+[issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202) for coordination with calendar-command integration.
+
+#### Implementation
+
+1. `MainWindow` creates one `CalendarPanel` with the live, unmodifiable event list exposed by `Logic#getEventList()`.
+   The panel observes that list, so published additions, replacements, deletions and `clear` update the view.
+1. Each control change creates immutable `CalendarViewOptions`. Its default is `WEEK` with both filters false.
+   `createCalendar(events, now)` uses one captured local `LocalDateTime` for the range and both filters.
+1. Today covers one date, Week covers Sunday through Saturday, and Month covers its first through last date.
+   An event must have `isCancelled() == cancelledOnly`; when upcoming-only is selected its end must be after `now`.
+   Ongoing events qualify; events ending exactly at `now` do not. Both filters apply together.
+1. `Calendar.of(...)` groups the matching events by start date and sorts each day by start time, preserving input
+   order for equal starts. Empty days remain present. `CalendarPanel` stacks every event, including overlaps,
+   in the scrollable grid and exposes `visibleEventCountProperty()` for the footer's Calendar count.
+1. An injectable `Clock` makes boundary tests deterministic. A one-second JavaFX `Timeline` checks for a date
+   change or the next displayed upcoming event's end before rebuilding. This keeps an idle panel and count current
+   without rebuilding every second. `start()` and `stop()` manage the timer and event-list subscription.
+
+`MainWindow` retains the same panel when switching tabs, preserving calendar options and the candidate filter.
+A successful event addition returns `CommandResult.ListView.CALENDAR` after persistence, selecting this tab without
+resetting its options. `CommandResult#getAddedEvent()` carries the saved event as typed metadata. After refreshing
+the calendar, `MainWindow` checks `CalendarPanel#isEventVisible(Event)` and appends the following hint only when
+that newly added event is hidden by the range or filters:
+
+`Saved successfully, but not shown in the current calendar view. Check the selected period and filters.`
+
+The original success and overlap feedback remain intact. A visible addition or a view-only request has no such
+hint. Failed additions keep the current tab. Options are not part of `UserPrefs` or the saved event data and reset at launch.
+
+#### Design considerations
+
+Keep date/filter selection in `CalendarViewOptions` and rendering in `CalendarPanel`. This gives GUI controls and
+future command integration the same selection rules, while preserving `Calendar` and `Day` as display-independent
+groupings. Use the model's observable list for record changes and a clock for time changes: observing the list alone
+would leave upcoming events and the current period stale while the app is idle. Native JavaFX controls provide
+keyboard focus, arrow-key selection and checkbox toggling without a separate shortcut grammar.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -720,6 +866,48 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 *{More to be added}*
 
+**Use case: UC10 - Add an interview event**
+
+**MSS**
+
+1.  User submits add event command with the event's name, start, end, and the IDs of the candidates involved
+2.  HireBase adds the event with a unique event ID
+3.  HireBase displays a success message showing the event and its ID
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The command has missing or invalid parameters, or a date that does not exist
+
+    * 1a1. HireBase displays an error message showing the correct format.
+
+      Use case ends.
+
+* 1b. The event does not start before it ends, or starts and ends on different days
+
+    * 1b1. HireBase displays an error message.
+
+      Use case ends.
+
+* 1c. A candidate ID does not belong to any candidate
+
+    * 1c1. HireBase displays an error message listing the unknown IDs. The event is not added.
+
+      Use case ends.
+
+* 2a. The event overlaps one or more existing events that are not cancelled
+
+    * 2a1. HireBase adds the event, and displays a warning listing the overlapping events and their IDs.
+
+      Use case resumes at step 3.
+
+* 2b. HireBase cannot save the event
+
+    * 2b1. HireBase displays an error message. The event is not added.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
@@ -941,6 +1129,42 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
    1. In a separate copy of the saved file, replace a score with `"4"` or `"High"` and launch using that copy.<br>
       Expected: The invalid data file is rejected through the documented invalid-file recovery behavior.
+### Adding an event
+
+1. Adding events, with and without overlaps
+
+   1. Prerequisites: Run `clear`, then add one candidate with `add candidate`. Note their ID, say `#N`. The steps
+      below assume the next event ID is `#1`; after an earlier `clear`, the IDs are higher but follow the same pattern.
+      These fixed-date examples also produce the saved-but-hidden hint if their date or the current filters hide them.
+
+   1. Test case: `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/N`<br>
+      Expected: `Added event: #1 Interview (05/11/2026 14:00 to 05/11/2026 15:00)`.
+
+   1. Test case: `add event n/Team sync from/05/11/2026 14:30 to/05/11/2026 15:30`<br>
+      Expected: Event `#2` is added. A warning says it overlaps 1 existing event, and lists `#1 Interview`.
+
+   1. Test case: `add event n/Debrief from/05/11/2026 15:30 to/05/11/2026 16:00`<br>
+      Expected: Event `#3` is added with no warning, because it starts exactly when `#2` ends.
+
+1. Invalid events
+
+   1. Test case: `add event n/Interview from/31/04/2026 14:00 to/31/04/2026 15:00`<br>
+      Expected: No event is added. The error says the date must be a real date in the format `DD/MM/YYYY HH:MM`.
+
+   1. Test case: `add event n/Late from/05/11/2026 23:00 to/06/11/2026 01:00`<br>
+      Expected: No event is added. The error says the event must start before it ends, on the same day.
+
+   1. Test case: `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/999` (no candidate `#999`)<br>
+      Expected: No event is added. The error lists `999` as an unknown candidate ID.
+
+   1. Other incorrect commands to try: `add event`, `add event n/X from/05/11/2026 14:00`,
+      `add event n/X from/5/11/2026 14:00 to/5/11/2026 15:00`, `add event n/X d/Y from/05/11/2026 14:00 to/05/11/2026 15:00`<br>
+      Expected: No event is added, and an error message is shown.
+
+1. Event IDs are kept and not reused
+
+   1. Close HireBase and launch it again, then add another event.<br>
+      Expected: The new event's ID is one more than the largest ID used before, even if you ran `clear` in between.
 
 ### Saving data
 
@@ -949,3 +1173,23 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases …​ }_
+
+### Calendar view
+
+Use a disposable data file with active and cancelled events, past, ongoing and future events, and several overlaps.
+Include dates inside and outside the current week/month and at Sunday/Saturday, month and year boundaries.
+Prepare cancelled fixtures with `cancelled: true` while the app is closed; the calendar does not provide a cancel action.
+For exact end-time, leap-day and midnight boundaries, repeat the corresponding automated tests with an injected clock.
+
+| Check | Actions and expected result |
+| --- | --- |
+| Defaults and periods | Open Calendar: Week is selected and both filters are clear. Select Today, Week and Month; verify the heading and every date: one day, Sunday-Saturday, and first-last of the month respectively. Empty days stay visible. |
+| Current-period limit | With an injected local date of 31 October 2026, save an event on 2 November. Verify that Today, Week and Month all exclude it and no other-week/month navigation is available. Its saved record remains present; toggling the filters does not extend the range. |
+| Cancellation | With both filters clear, active past/future events appear and cancelled events do not. Select Cancelled only: only cancelled events appear, including past ones. Clear it to restore active events. |
+| Upcoming boundary | Select Upcoming only: past events disappear, an ongoing event remains, and one ending at or before the current time is excluded. Leave the app idle through an event's end; the entry and footer count update automatically. |
+| Combined filters | Select both checkboxes: only cancelled events with an end after now in the chosen period appear. Each checkbox and the period selector retain the other selections. |
+| Dense and empty views | Put more overlapping events on one day than fit on screen. Scroll through all IDs; none is capped or replaced by an overflow summary. An empty selection shows its dates, the no-match message and a count of zero. |
+| Record changes and hidden-add feedback | Add an event with the existing `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM` syntax. Success selects Calendar and retains its options. For a visible event, the original feedback/warnings have no extra hint. For an event outside the range or hidden by either filter, the saved-but-hidden hint follows the unchanged success/overlap feedback, and the count reflects only visible events. Test save failure: records and the current tab remain unchanged and no saved-success hint appears. |
+| Tabs, counts and read-only controls | Start with a candidate search, change calendar controls and switch between all three tabs. The search and calendar options survive; the footer counts the active view. Compare the data file before/after view-only actions: contents and modification time do not change. |
+| Rollover and model updates | Leave Calendar open across midnight, including a Sunday/month/year transition, or advance the injected test clock. Dates and count move to the current period. Published event replacement/deletion and `clear` refresh the panel; clear leaves the active tab selected with zero events. |
+| Keyboard and restart | Use Tab/Shift+Tab, arrows on tab headers/dropdown and Space on checkboxes. Repeat at a small window size and scroll both axes. Restart: saved events remain, but Calendar returns to Week with both filters clear. |

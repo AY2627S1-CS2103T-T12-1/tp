@@ -17,6 +17,7 @@ import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -81,6 +82,40 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(new CandidateId(12), ParserUtil.parseCandidateId("  12  "));
+    }
+
+    @Test
+    public void parseEventId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseEventId(null));
+    }
+
+    @Test
+    public void parseEventId_invalidInput_throwsParseException() {
+        // Not a positive integer: blank, words, several numbers, zero and below, signs, decimals.
+        for (String invalid : new String[] {"", "   ", "a", "1a", "1 2", "0", "-1", "+1", "1.5"}) {
+            assertThrows(ParseException.class, EventId.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseEventId(invalid));
+        }
+    }
+
+    @Test
+    public void parseEventId_outOfRangeInput_throwsParseException() {
+        // Just above the largest event ID, and far above it.
+        for (String invalid : new String[] {Long.toString((long) Integer.MAX_VALUE + 1), "99999999999999999999"}) {
+            assertThrows(ParseException.class, EventId.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseEventId(invalid));
+        }
+    }
+
+    @Test
+    public void parseEventId_validInput_success() throws Exception {
+        // Smallest and largest IDs.
+        assertEquals(new EventId(1), ParserUtil.parseEventId("1"));
+        assertEquals(new EventId(Integer.MAX_VALUE), ParserUtil.parseEventId(Integer.toString(Integer.MAX_VALUE)));
+
+        // Leading zeros and surrounding whitespace are accepted, as for candidate IDs.
+        assertEquals(new EventId(7), ParserUtil.parseEventId("007"));
+        assertEquals(new EventId(12), ParserUtil.parseEventId(" \t 12 \n"));
     }
 
     @Test

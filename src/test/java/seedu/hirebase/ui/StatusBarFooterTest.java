@@ -12,9 +12,12 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
+import seedu.hirebase.logic.commands.CommandResult.ListView;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
@@ -80,6 +83,29 @@ public class StatusBarFooterTest {
 
             showingJobs.set(false);
             assertEquals("1 candidate", count.getText());
+        });
+    }
+
+    @Test
+    public void recordCount_calendarTab_tracksVisibleEventsAndOtherTabs() throws Exception {
+        runOnFxThread(() -> {
+            ObservableList<Person> persons = FXCollections.observableArrayList(new PersonBuilder().build());
+            ObservableList<JobOpening> jobs = FXCollections.observableArrayList();
+            SimpleObjectProperty<ListView> selectedView = new SimpleObjectProperty<>(ListView.CALENDAR);
+            SimpleIntegerProperty visibleEvents = new SimpleIntegerProperty(2);
+            StatusBarFooter footer = new StatusBarFooter(DUMMY_PATH, persons, jobs, selectedView, visibleEvents);
+            Label count = (Label) footer.getRoot().lookup("#recordCountStatus");
+            assertEquals("2 events", count.getText());
+            visibleEvents.set(1);
+            assertEquals("1 event", count.getText());
+            persons.add(new PersonBuilder().withName("Bob").build());
+            assertEquals("1 event", count.getText());
+            visibleEvents.set(0);
+            assertEquals("0 events", count.getText());
+            selectedView.set(ListView.CANDIDATES);
+            assertEquals("2 candidates", count.getText());
+            selectedView.set(ListView.JOBS);
+            assertEquals("0 job openings", count.getText());
         });
     }
 

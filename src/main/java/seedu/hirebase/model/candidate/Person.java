@@ -30,6 +30,7 @@ public class Person {
     private final Note note;
     private final Set<Tag> tags = new HashSet<>();
     private final InterviewStage interviewStage;
+    private final PriorityScore priorityScore;
     // Assigned by the model when the candidate is added; null until then. Not part of equals/hashCode.
     private final CandidateId candidateId;
 
@@ -67,7 +68,16 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags,
             Set<Skill> skills, Role role, InterviewStage interviewStage, CandidateId candidateId) {
-        requireAllNonNull(name, phone, email, address, note, tags, interviewStage);
+        this(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId, PriorityScore.DEFAULT);
+    }
+
+    /**
+     * Creates a candidate with a priority score and an optional permanent candidate ID.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Note note, Set<Tag> tags,
+            Set<Skill> skills, Role role, InterviewStage interviewStage, CandidateId candidateId,
+            PriorityScore priorityScore) {
+        requireAllNonNull(name, phone, email, address, note, tags, interviewStage, priorityScore);
         this.skills = skills == null ? Collections.emptySet() : Set.copyOf(skills);
         this.role = role;
         this.name = name;
@@ -78,6 +88,7 @@ public class Person {
         this.tags.addAll(tags);
         this.interviewStage = interviewStage;
         this.candidateId = candidateId;
+        this.priorityScore = priorityScore;
     }
 
     /**
@@ -91,7 +102,20 @@ public class Person {
      * Returns a copy of this candidate with the given {@code candidateId}.
      */
     public Person withCandidateId(CandidateId candidateId) {
-        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId);
+        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId,
+                priorityScore);
+    }
+
+    /**
+     * Returns a copy of this candidate with the given priority score, preserving the candidate ID and other details.
+     */
+    public Person withPriorityScore(PriorityScore priorityScore) {
+        return new Person(name, phone, email, address, note, tags, skills, role, interviewStage, candidateId,
+                priorityScore);
+    }
+
+    public PriorityScore getPriorityScore() {
+        return priorityScore;
     }
 
     public Set<Skill> getSkills() {
@@ -170,13 +194,14 @@ public class Person {
                 && tags.equals(otherPerson.tags)
                 && skills.equals(otherPerson.skills)
                 && Objects.equals(role, otherPerson.role)
-                && interviewStage.equals(otherPerson.interviewStage);
+                && interviewStage.equals(otherPerson.interviewStage)
+                && priorityScore.equals(otherPerson.priorityScore);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, note, tags, skills, role);
+        return Objects.hash(name, phone, email, address, note, tags, skills, role, interviewStage, priorityScore);
     }
 
     @Override
@@ -192,6 +217,7 @@ public class Person {
                 .add("role", role)
                 .add("interviewStage", interviewStage)
                 .add("candidateId", candidateId)
+                .add("priorityScore", priorityScore)
                 .toString();
     }
 

@@ -23,6 +23,8 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.StageCommand;
+import seedu.hirebase.logic.commands.ViewCalendarCommand;
+import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -85,6 +87,10 @@ public class LogicManager implements Logic {
         commandResult = command.execute(model);
         if (command instanceof ListJobsCommand) {
             return commandResult.withListView(CommandResult.ListView.JOBS);
+        }
+        if (command instanceof ViewEventCommand || command instanceof ViewCalendarCommand) {
+            // Viewing changes no data, so it skips saving and a failed save cannot hide the details.
+            return commandResult;
         }
 
         try {
@@ -149,7 +155,7 @@ public class LogicManager implements Logic {
         }
         // Publish the exact event that was saved; it keeps its ID, so the app and the file agree.
         model.addEvent(saved);
-        return result;
+        return result.withAddedEvent(saved).withListView(CommandResult.ListView.CALENDAR);
     }
 
     /**
@@ -198,6 +204,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return model.getJobOpeningList();
+    }
+
+    @Override
+    public ObservableList<Event> getEventList() {
+        return model.getEventList();
     }
 
     @Override

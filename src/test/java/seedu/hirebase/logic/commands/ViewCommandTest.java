@@ -50,6 +50,16 @@ public class ViewCommandTest {
     }
 
     @Test
+    public void execute_priorityScores_showsScoreAndLabel() throws Exception {
+        String[] expectedLabels = {"1 (Low)", "2 (Medium)", "3 (High)"};
+        for (int i = 0; i < expectedLabels.length; i++) {
+            Model model = modelWith(new PersonBuilder().withPriorityScore(String.valueOf(i + 1)).build());
+            String text = new ViewCommand(ID_FIRST_PERSON).execute(model).getFeedbackToUser();
+            assertTrue(text.contains("Priority score: " + expectedLabels[i]));
+        }
+    }
+
+    @Test
     public void execute_idDiffersFromPosition_viewsCandidateWithThatId() throws Exception {
         Person alice = new PersonBuilder().withName("Alice Tan").withEmail("alice@example.com").build();
         Person bob = new PersonBuilder().withName("Bob").withEmail("bob@example.com").build();
@@ -69,6 +79,7 @@ public class ViewCommandTest {
         Model model = modelWith(bare);
 
         String text = new ViewCommand(ID_FIRST_PERSON).execute(model).getFeedbackToUser();
+        assertTrue(text.contains("Priority score: 1 (Low)"));
         assertTrue(text.contains("Role:    —"));
         assertTrue(text.contains("Skills:  —"));
         assertTrue(text.contains("Notes:   —"));

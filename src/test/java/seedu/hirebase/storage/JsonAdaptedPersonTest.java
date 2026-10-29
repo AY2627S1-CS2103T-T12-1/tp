@@ -1,6 +1,7 @@
 package seedu.hirebase.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.hirebase.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.hirebase.testutil.Assert.assertThrows;
 import static seedu.hirebase.testutil.TypicalPersons.BENSON;
@@ -23,6 +24,7 @@ import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
@@ -171,6 +173,66 @@ public class JsonAdaptedPersonTest {
             JsonAdaptedPerson person = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class);
             assertThrows(IllegalValueException.class, person::toModelType);
         }
+    }
+
+    @Test
+    public void fromJson_allPriorityScores_preservesScoreAndCandidateDetails() throws Exception {
+        for (String score : List.of("1", "2", "3")) {
+            Person expected = new PersonBuilder(BENSON).withPriorityScore(score)
+                    .withInterviewStage(InterviewStage.ACCEPTED).withSkills("Java", "SQL")
+                    .withRole("Engineer").withNote("Follow up").build().withCandidateId(new CandidateId(4));
+            String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));
+            ObjectNode stored = JsonUtil.fromJsonString(json, ObjectNode.class);
+            assertTrue(stored.get("priorityScore").isTextual());
+            assertEquals(score, stored.get("priorityScore").asText());
+
+            Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+            assertEquals(expected, loaded);
+            assertEquals(expected.getCandidateId(), loaded.getCandidateId());
+        }
+    }
+
+    @Test
+    public void fromJson_missingPriorityScore_defaultsToLow() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        json.remove("priorityScore");
+
+        Person loaded = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class).toModelType();
+        assertEquals(PriorityScore.DEFAULT, loaded.getPriorityScore());
+        assertEquals(BENSON, loaded);
+    }
+
+    @Test
+    public void fromJson_nullPriorityScore_defaultsToLow() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        json.putNull("priorityScore");
+
+        Person loaded = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class).toModelType();
+        assertEquals(PriorityScore.DEFAULT, loaded.getPriorityScore());
+        assertEquals(BENSON, loaded);
+    }
+
+    @Test
+    public void fromJson_invalidPriorityScore_throwsIllegalValueException() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        for (String score : List.of("0", "4", "-1", "1.5", "1.0", "", " ", "01", " 2 ", "High")) {
+            json.put("priorityScore", score);
+            JsonAdaptedPerson person = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class);
+            assertThrows(IllegalValueException.class, PriorityScore.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
+
+    @Test
+    public void fromJson_nonIntegralPriorityScore_throwsIllegalValueException() throws Exception {
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)), ObjectNode.class);
+        json.put("priorityScore", 1.5);
+
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json.toString(), JsonAdaptedPerson.class);
+        assertThrows(IllegalValueException.class, PriorityScore.MESSAGE_CONSTRAINTS, person::toModelType);
     }
 
     @Test

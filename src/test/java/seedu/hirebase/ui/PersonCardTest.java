@@ -38,6 +38,24 @@ public class PersonCardTest {
     }
 
     @Test
+    public void constructor_priorityScores_displaysScoreAndLabel() throws Exception {
+        runOnFxThread(() -> {
+            String[] expectedLabels = {"1 (Low)", "2 (Medium)", "3 (High)"};
+            for (int i = 0; i < expectedLabels.length; i++) {
+                PersonCard card = new PersonCard(new PersonBuilder().withPriorityScore(String.valueOf(i + 1)).build());
+                Label priorityScore = (Label) card.getRoot().lookup("#priorityScore");
+                assertEquals("Priority: " + expectedLabels[i], priorityScore.getText());
+                assertTrue(priorityScore.isVisible());
+                assertTrue(priorityScore.isManaged());
+                assertTrue(priorityScore.getStyleClass().contains("cell_small_label"));
+            }
+            PersonCard defaultCard = new PersonCard(new PersonBuilder().build());
+            Label defaultPriorityScore = (Label) defaultCard.getRoot().lookup("#priorityScore");
+            assertEquals("Priority: 1 (Low)", defaultPriorityScore.getText());
+        });
+    }
+
+    @Test
     public void constructor_note_isDisplayed() throws Exception {
         runOnFxThread(() -> {
             for (String value : new String[] {"Likes baseball", ""}) {

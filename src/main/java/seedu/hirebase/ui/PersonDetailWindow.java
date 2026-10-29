@@ -25,6 +25,8 @@ public class PersonDetailWindow extends UiPart<Stage> {
     @FXML
     private Label stage;
     @FXML
+    private Label priorityScore;
+    @FXML
     private Label phone;
     @FXML
     private Label email;
@@ -68,6 +70,7 @@ public class PersonDetailWindow extends UiPart<Stage> {
 
         name.setText(person.getName().fullName);
         setStageBadge(person);
+        priorityScore.setText("Priority: " + person.getPriorityScore());
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
         address.setText(person.getAddress().value);

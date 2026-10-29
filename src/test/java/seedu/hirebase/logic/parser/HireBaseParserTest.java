@@ -23,11 +23,13 @@ import seedu.hirebase.logic.commands.HelpCommand;
 import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.ViewCommand;
+import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.NameOrEmailContainsKeywordsPredicate;
 import seedu.hirebase.model.candidate.Note;
 import seedu.hirebase.model.candidate.Person;
+import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.testutil.EditPersonDescriptorBuilder;
 import seedu.hirebase.testutil.PersonBuilder;
 import seedu.hirebase.testutil.PersonUtil;
@@ -46,6 +48,12 @@ public class HireBaseParserTest {
     @Test
     public void parseCommand_view() throws Exception {
         assertEquals(new ViewCommand(ID_FIRST_PERSON), parser.parseCommand("view candidate 1"));
+    }
+
+    @Test
+    public void parseCommand_viewEvent() throws Exception {
+        assertEquals(new ViewEventCommand(new EventId(3)), parser.parseCommand("view event 3"));
+        assertEquals(new ViewEventCommand(new EventId(3)), parser.parseCommand("  view   event   3  "));
     }
 
     @Test

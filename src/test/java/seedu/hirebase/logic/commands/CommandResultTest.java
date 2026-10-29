@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.model.calendar.CalendarViewOptions;
 import seedu.hirebase.model.calendar.CalendarViewOptions.Period;
+import seedu.hirebase.model.event.Event;
+import seedu.hirebase.testutil.EventBuilder;
 
 public class CommandResultTest {
     @Test
@@ -89,12 +91,33 @@ public class CommandResultTest {
     }
 
     @Test
+    public void withAddedEvent_preservesOutcomeWhenViewOptionsChange() {
+        Event event = new EventBuilder().withEventId(1).build();
+        CommandResult original = new CommandResult("feedback", true, true);
+        CalendarViewOptions options = new CalendarViewOptions(Period.MONTH, true, true);
+        CommandResult result = original.withCalendarViewOptions(options).withAddedEvent(event);
+
+        assertTrue(original.getAddedEvent().isEmpty());
+        assertEquals(event, result.getAddedEvent().orElseThrow());
+        assertEquals("feedback", result.getFeedbackToUser());
+        assertTrue(result.isShowHelp());
+        assertTrue(result.isExit());
+        assertEquals(result, original.withAddedEvent(event).withCalendarViewOptions(options));
+        assertEquals(result.hashCode(), original.withAddedEvent(event).withCalendarViewOptions(options).hashCode());
+        assertEquals(event, result.withListView(CommandResult.ListView.JOBS).getAddedEvent().orElseThrow());
+        assertEquals(event, result.withCalendarViewOptions(CalendarViewOptions.DEFAULT).getAddedEvent().orElseThrow());
+        assertNotEquals(result, original.withCalendarViewOptions(options));
+        assertNotEquals(result, result.withAddedEvent(new EventBuilder().withEventId(2).build()));
+        assertThrows(NullPointerException.class, () -> original.withAddedEvent(null));
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
                 + ", exit=" + commandResult.isExit() + ", listView=" + commandResult.getListView()
-                + ", calendarViewOptions=null}";
+                + ", calendarViewOptions=null, addedEvent=null}";
         assertEquals(expected, commandResult.toString());
     }
 }

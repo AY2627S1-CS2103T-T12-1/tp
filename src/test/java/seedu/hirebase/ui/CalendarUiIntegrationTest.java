@@ -1,6 +1,7 @@
 package seedu.hirebase.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,6 +30,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
+import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ModelManager;
@@ -45,6 +47,9 @@ import seedu.hirebase.testutil.PersonBuilder;
 public class CalendarUiIntegrationTest {
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"), ZoneOffset.UTC);
     private static final LocalDateTime NOW = LocalDateTime.now(CLOCK);
+    private static final String HIDDEN_EVENT_ADVISORY =
+            "Saved successfully, but not shown in the current calendar view. "
+            + "Check the selected period and filters.";
 
     @TempDir
     private Path temporaryFolder;
@@ -126,20 +131,147 @@ public class CalendarUiIntegrationTest {
                 assertEquals("Calendar", fixture.selectedTab());
                 assertEquals(options, fixture.window.getCalendarPanel().getOptions());
                 assertEquals("1 event", fixture.count());
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
                 fixture.submit("add event n/Overlapping interview from/26/10/2026 10:00 to/26/10/2026 12:00");
                 assertEquals("2 events", fixture.count());
-                assertTrue(((TextArea) fixture.stage.getScene().lookup("#resultDisplay")).getText()
-                        .contains("Warning: this event overlaps"));
-                assertEquals(2, fixture.storage.readHireBase().orElseThrow().getEventList().size());
+                assertTrue(fixture.feedback().contains("Warning: this event overlaps"));
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
+                fixture.submit("add event n/Future interview from/26/10/2026 13:00 to/26/10/2026 14:00");
+                assertEquals("3 events", fixture.count());
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
+                assertEquals(3, fixture.storage.readHireBase().orElseThrow().getEventList().size());
                 fixture.select("Candidates");
                 fixture.submit("add event n/Invalid from/26/10/2026 12:00 to/26/10/2026 11:00");
                 assertEquals("Candidates", fixture.selectedTab());
-                assertEquals(2, fixture.model.getEventList().size());
+                assertEquals(3, fixture.model.getEventList().size());
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
                 assertEquals(options, fixture.window.getCalendarPanel().getOptions());
                 fixture.select("Calendar");
                 fixture.submit("clear");
                 assertEquals("Calendar", fixture.selectedTab());
                 assertEquals("0 events", fixture.count());
+            } finally {
+                fixture.close();
+            }
+        });
+    }
+
+    @Test
+    public void addEvent_outsideWeekOrMonth_savesAndExplainsWhyItIsHidden() throws Exception {
+        onFxThread(() -> {
+            Clock endOctober = Clock.fixed(Instant.parse("2026-10-31T10:00:00Z"), ZoneOffset.UTC);
+            for (Period period : List.of(Period.WEEK, Period.MONTH)) {
+                Fixture fixture = new Fixture(endOctober);
+                try {
+                    CalendarViewOptions options = new CalendarViewOptions(period, false, false);
+                    fixture.window.getCalendarPanel().setOptions(options);
+                    fixture.select("Candidates");
+                    fixture.submit("add event n/Next month interview from/02/11/2026 14:00 to/02/11/2026 15:00");
+
+                    assertEquals("Calendar", fixture.selectedTab());
+                    assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                    assertEquals("0 events", fixture.count());
+                    assertEquals(1, fixture.model.getEventList().size());
+                    assertEquals(fixture.model.getEventList(),
+                            fixture.storage.readHireBase().orElseThrow().getEventList());
+                    assertTrue(fixture.feedback().startsWith("Added event: #1 Next month interview"));
+                    assertTrue(fixture.feedback().endsWith(HIDDEN_EVENT_ADVISORY));
+                    assertEquals(1, fixture.storage.saves);
+                } finally {
+                    fixture.close();
+                }
+            }
+        });
+    }
+
+    @Test
+    public void addEvent_hiddenByCancelledFilter_preservesSuccessAndOverlapWarning() throws Exception {
+        onFxThread(() -> {
+            Fixture fixture = new Fixture();
+            try {
+                fixture.model.addEvent(event("Existing interview", 9, 11, false));
+                CalendarViewOptions options = new CalendarViewOptions(Period.TODAY, true, false);
+                fixture.window.getCalendarPanel().setOptions(options);
+                fixture.select("Job openings");
+                fixture.submit("add event n/New interview from/26/10/2026 10:00 to/26/10/2026 12:00");
+
+                assertEquals("Calendar", fixture.selectedTab());
+                assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                assertEquals("0 events", fixture.count());
+                assertEquals(2, fixture.model.getEventList().size());
+                assertEquals(fixture.model.getEventList(),
+                        fixture.storage.readHireBase().orElseThrow().getEventList());
+                assertTrue(fixture.feedback().startsWith("Added event: #2 New interview"));
+                assertTrue(fixture.feedback().contains("Warning: this event overlaps"));
+                assertTrue(fixture.feedback().contains("#1 Existing interview"));
+                assertTrue(fixture.feedback().endsWith(HIDDEN_EVENT_ADVISORY));
+            } finally {
+                fixture.close();
+            }
+        });
+    }
+
+    @Test
+    public void addEvent_hiddenByUpcomingFilter_includesExactEndBoundaryInAdvisory() throws Exception {
+        onFxThread(() -> {
+            for (String times : List.of("from/26/10/2026 08:00 to/26/10/2026 09:00",
+                    "from/26/10/2026 09:00 to/26/10/2026 10:00")) {
+                Fixture fixture = new Fixture();
+                try {
+                    CalendarViewOptions options = new CalendarViewOptions(Period.TODAY, false, true);
+                    fixture.window.getCalendarPanel().setOptions(options);
+                    fixture.select("Job openings");
+                    fixture.submit("add event n/Completed interview " + times);
+
+                    assertEquals("Calendar", fixture.selectedTab());
+                    assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                    assertEquals("0 events", fixture.count());
+                    assertEquals(1, fixture.model.getEventList().size());
+                    assertEquals(fixture.model.getEventList(),
+                            fixture.storage.readHireBase().orElseThrow().getEventList());
+                    assertTrue(fixture.feedback().startsWith("Added event: #1 Completed interview"));
+                    assertTrue(fixture.feedback().endsWith(HIDDEN_EVENT_ADVISORY));
+                } finally {
+                    fixture.close();
+                }
+            }
+        });
+    }
+
+    @Test
+    public void addEvent_saveFailureOrInvalidInput_keepsTabAndDataWithoutSuccessAdvisory() throws Exception {
+        onFxThread(() -> {
+            Fixture fixture = new Fixture();
+            try {
+                fixture.model.addEvent(event("Existing interview", 11, 12, false));
+                fixture.storage.saveHireBase(fixture.model.getHireBase());
+                fixture.storage.saves = 0;
+                List<Event> original = List.copyOf(fixture.model.getEventList());
+                String saved = Files.readString(fixture.storage.getHireBaseFilePath());
+                long nextEventId = fixture.model.getHireBase().getNextEventId();
+                CalendarViewOptions options = new CalendarViewOptions(Period.MONTH, true, true);
+                fixture.window.getCalendarPanel().setOptions(options);
+                fixture.select("Job openings");
+                fixture.storage.failure = new IOException("disk full");
+                fixture.submit("add event n/Unsaved interview from/02/11/2026 14:00 to/02/11/2026 15:00");
+
+                assertTrue(fixture.feedback().contains(AddEventCommand.MESSAGE_SAVE_FAILURE));
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
+                assertEquals("Job openings", fixture.selectedTab());
+                assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                assertEquals(original, fixture.model.getEventList());
+                assertEquals(nextEventId, fixture.model.getHireBase().getNextEventId());
+                assertEquals(saved, Files.readString(fixture.storage.getHireBaseFilePath()));
+                assertEquals(1, fixture.storage.saves);
+
+                fixture.storage.failure = null;
+                fixture.submit("add event n/Invalid interview from/26/10/2026 12:00 to/26/10/2026 11:00");
+                assertFalse(fixture.feedback().contains(HIDDEN_EVENT_ADVISORY));
+                assertEquals("Job openings", fixture.selectedTab());
+                assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                assertEquals(original, fixture.model.getEventList());
+                assertEquals(saved, Files.readString(fixture.storage.getHireBaseFilePath()));
+                assertEquals(1, fixture.storage.saves);
             } finally {
                 fixture.close();
             }
@@ -208,9 +340,14 @@ public class CalendarUiIntegrationTest {
         private final CountingStorage storage = new CountingStorage();
         private final LogicManager logic = new LogicManager(model, storage);
         private final Stage stage = new Stage();
-        private final MainWindow window = new MainWindow(stage, logic, temporaryFolder.resolve("data.json"), CLOCK);
+        private final MainWindow window;
 
         Fixture() {
+            this(CLOCK);
+        }
+
+        Fixture(Clock clock) {
+            window = new MainWindow(stage, logic, temporaryFolder.resolve("data.json"), clock);
             window.fillInnerParts();
         }
 
@@ -231,6 +368,10 @@ public class CalendarUiIntegrationTest {
             return ((Label) stage.getScene().lookup("#recordCountStatus")).getText();
         }
 
+        String feedback() {
+            return ((TextArea) stage.getScene().lookup("#resultDisplay")).getText();
+        }
+
         void submit(String input) {
             TextField command = (TextField) stage.getScene().lookup("#commandTextField");
             command.setText(input);
@@ -245,6 +386,7 @@ public class CalendarUiIntegrationTest {
 
     private class CountingStorage extends StorageManager {
         private int saves;
+        private IOException failure;
 
         CountingStorage() {
             super(new JsonHireBaseStorage(temporaryFolder.resolve("data.json")),
@@ -254,6 +396,9 @@ public class CalendarUiIntegrationTest {
         @Override
         public void saveHireBase(ReadOnlyHireBase data) throws IOException {
             saves++;
+            if (failure != null) {
+                throw failure;
+            }
             super.saveHireBase(data);
         }
     }

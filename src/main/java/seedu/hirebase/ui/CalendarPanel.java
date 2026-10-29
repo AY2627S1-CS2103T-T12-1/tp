@@ -55,6 +55,7 @@ public class CalendarPanel extends UiPart<Region> {
     private final ListChangeListener<Event> eventListener = change -> refresh();
 
     private CalendarViewOptions options = CalendarViewOptions.DEFAULT;
+    private Calendar displayedCalendar;
     private LocalDate displayedDate;
     private LocalDateTime lastCheckedTime;
     private LocalDateTime nextUpcomingEnd;
@@ -130,6 +131,15 @@ public class CalendarPanel extends UiPart<Region> {
     }
 
     /**
+     * Returns whether the event is included in the currently rendered period and filters.
+     */
+    public boolean isEventVisible(Event event) {
+        requireNonNull(event);
+        return displayedCalendar.getDay(event.getStart().toLocalDate())
+                .map(day -> day.getEvents().contains(event)).orElse(false);
+    }
+
+    /**
      * Rebuilds the view using one captured current time, without writing to the event list or storage.
      */
     public void refresh() {
@@ -181,6 +191,7 @@ public class CalendarPanel extends UiPart<Region> {
 
     private void renderCalendar(LocalDateTime now) {
         Calendar calendar = options.createCalendar(events, now);
+        displayedCalendar = calendar;
         List<Day> days = calendar.getDays();
         displayedDate = now.toLocalDate();
         lastCheckedTime = now;

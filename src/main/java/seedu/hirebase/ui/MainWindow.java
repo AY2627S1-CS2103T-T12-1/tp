@@ -33,6 +33,8 @@ import seedu.hirebase.logic.parser.exceptions.ParseException;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final String MESSAGE_EVENT_NOT_VISIBLE = "Saved successfully, but not shown in the current "
+            + "calendar view. Check the selected period and filters.";
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -265,9 +267,6 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-            resultDisplay.setStyleToIndicateSuccess();
 
             switch (commandResult.getListView()) {
                 case CALENDAR:
@@ -284,6 +283,16 @@ public class MainWindow extends UiPart<Stage> {
                 default:
                     break;
             }
+
+            String feedback = commandResult.getFeedbackToUser();
+            if (commandResult.getListView() == CommandResult.ListView.CALENDAR
+                    && commandResult.getAddedEvent().filter(event -> !calendarPanel.isEventVisible(event))
+                            .isPresent()) {
+                feedback += "\n" + MESSAGE_EVENT_NOT_VISIBLE;
+            }
+            logger.info("Result: " + feedback);
+            resultDisplay.setFeedbackToUser(feedback);
+            resultDisplay.setStyleToIndicateSuccess();
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

@@ -145,7 +145,7 @@ public class LogicManager implements Logic {
         }
         // Publish the exact event that was saved; it keeps its ID, so the app and the file agree.
         model.addEvent(saved);
-        return result.withListView(CommandResult.ListView.CALENDAR);
+        return result.withAddedEvent(saved).withListView(CommandResult.ListView.CALENDAR);
     }
 
     private CommandResult executeDeleteJob(DeleteJobCommand command) throws CommandException {

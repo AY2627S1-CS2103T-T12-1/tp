@@ -73,6 +73,10 @@ public class CalendarPanelTest {
             assertEquals("Week: 25/10/2026 – 31/10/2026", text(panel, "#rangeHeading"));
             assertEquals(List.of(past, ongoing), visibleEvents(panel));
             assertEquals(2, panel.getVisibleEventCount());
+            assertTrue(panel.isEventVisible(past));
+            assertTrue(panel.isEventVisible(ongoing));
+            assertFalse(panel.isEventVisible(events.get(2)));
+            assertFalse(panel.isEventVisible(event(99, "Not in the model", 10, 11, false)));
             assertFalse(panel.getRoot().lookup("#emptyMessage").isVisible());
             panel.stop();
         });

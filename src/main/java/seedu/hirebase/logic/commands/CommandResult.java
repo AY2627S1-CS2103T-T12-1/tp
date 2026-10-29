@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.model.calendar.CalendarViewOptions;
+import seedu.hirebase.model.event.Event;
 
 /**
  * Represents the result of a command execution.
@@ -19,6 +20,7 @@ public class CommandResult {
 
     private final ListView listView;
     private final CalendarViewOptions calendarViewOptions;
+    private final Event addedEvent;
 
     private final String feedbackToUser;
 
@@ -36,13 +38,14 @@ public class CommandResult {
     }
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, ListView listView) {
-        this(feedbackToUser, showHelp, exit, listView, null);
+        this(feedbackToUser, showHelp, exit, listView, null, null);
     }
 
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit, ListView listView,
-            CalendarViewOptions calendarViewOptions) {
+            CalendarViewOptions calendarViewOptions, Event addedEvent) {
         this.listView = requireNonNull(listView);
         this.calendarViewOptions = calendarViewOptions;
+        this.addedEvent = addedEvent;
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
@@ -68,18 +71,33 @@ public class CommandResult {
     }
 
     /**
+     * Returns the newly saved event, when this result follows a successful event addition.
+     */
+    public Optional<Event> getAddedEvent() {
+        return Optional.ofNullable(addedEvent);
+    }
+
+    /**
      * Returns a result with the same feedback and flags, requesting the specified list.
      */
     public CommandResult withListView(ListView listView) {
         return new CommandResult(feedbackToUser, showHelp, exit, listView,
-                listView == ListView.CALENDAR ? calendarViewOptions : null);
+                listView == ListView.CALENDAR ? calendarViewOptions : null, addedEvent);
     }
 
     /**
      * Returns a result requesting the calendar with typed options, preserving feedback and command flags.
      */
     public CommandResult withCalendarViewOptions(CalendarViewOptions options) {
-        return new CommandResult(feedbackToUser, showHelp, exit, ListView.CALENDAR, requireNonNull(options));
+        return new CommandResult(feedbackToUser, showHelp, exit, ListView.CALENDAR,
+                requireNonNull(options), addedEvent);
+    }
+
+    /**
+     * Returns a result carrying the newly saved event, preserving feedback, flags and view options.
+     */
+    public CommandResult withAddedEvent(Event event) {
+        return new CommandResult(feedbackToUser, showHelp, exit, listView, calendarViewOptions, requireNonNull(event));
     }
 
     public String getFeedbackToUser() {
@@ -109,12 +127,13 @@ public class CommandResult {
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
                 && listView == otherCommandResult.listView
-                && Objects.equals(calendarViewOptions, otherCommandResult.calendarViewOptions);
+                && Objects.equals(calendarViewOptions, otherCommandResult.calendarViewOptions)
+                && Objects.equals(addedEvent, otherCommandResult.addedEvent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, listView, calendarViewOptions);
+        return Objects.hash(feedbackToUser, showHelp, exit, listView, calendarViewOptions, addedEvent);
     }
 
     @Override
@@ -125,6 +144,7 @@ public class CommandResult {
                 .add("exit", exit)
                 .add("listView", listView)
                 .add("calendarViewOptions", calendarViewOptions)
+                .add("addedEvent", addedEvent)
                 .toString();
     }
 

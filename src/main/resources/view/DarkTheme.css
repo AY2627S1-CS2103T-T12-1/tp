@@ -175,6 +175,16 @@
     -fx-border-radius: 8;
 }
 
+.detail-scroll-pane,
+.detail-scroll-pane > .viewport {
+    -fx-background-color: #34383c;
+}
+
+.detail-scroll-pane {
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
 .detail-name {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 15px;

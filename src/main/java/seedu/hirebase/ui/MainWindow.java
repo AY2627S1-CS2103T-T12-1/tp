@@ -25,6 +25,7 @@ import seedu.hirebase.logic.Logic;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
+import seedu.hirebase.model.candidate.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -50,6 +51,8 @@ public class MainWindow extends UiPart<Stage> {
     private CalendarPanel calendarPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+    private Person displayedPerson;
+    private boolean isExecutingCommand;
 
     @FXML
     private TabPane recordTabs;
@@ -166,8 +169,15 @@ public class MainWindow extends UiPart<Stage> {
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
         personListPanel.setSelectionListener(person -> {
+            if (isExecutingCommand) {
+                return;
+            }
+            displayedPerson = person;
             if (person != null) {
                 personDetailWindow.showPerson(person);
+            } else {
+                personDetailWindow.setPerson(null);
+                personDetailWindow.hide();
             }
         });
         // Clearing the selection when the popup closes lets re-clicking the same
@@ -265,6 +275,7 @@ public class MainWindow extends UiPart<Stage> {
      * @see seedu.hirebase.logic.Logic#execute(String)
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        isExecutingCommand = true;
         try {
             CommandResult commandResult = logic.execute(commandText);
 
@@ -308,6 +319,28 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(e.getMessage());
             resultDisplay.setStyleToIndicateError();
             throw e;
+        } finally {
+            isExecutingCommand = false;
+            refreshPersonDetailWindow();
+        }
+    }
+
+    private void refreshPersonDetailWindow() {
+        if (displayedPerson == null || !personDetailWindow.isShowing()) {
+            displayedPerson = null;
+            return;
+        }
+        Person currentPerson = logic.getFilteredPersonList().stream()
+                .filter(person -> person.getCandidateId().equals(displayedPerson.getCandidateId()))
+                .findFirst().orElse(null);
+        if (currentPerson == displayedPerson) {
+            return;
+        }
+        displayedPerson = currentPerson;
+        personDetailWindow.setPerson(currentPerson);
+        if (currentPerson == null) {
+            personDetailWindow.hide();
+            personListPanel.clearSelection();
         }
     }
 }

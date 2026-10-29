@@ -589,14 +589,47 @@ IDs 1, 3, and 5. The command shows the full candidate list again and uses the sa
 message as `stage candidate` for each selected candidate, ending in `to REJECTED`.
 Candidates stay in HireBase; rejecting already rejected candidates is allowed, and their stages can be changed later.
 
+### Deleting an event: `delete event`
+
+Permanently deletes one event using its event ID.
+
+Format: `delete event EVENT_ID`
+
+- `delete` and the required `event` keyword are case-sensitive. Supply exactly one positive integer ID.
+  Surrounding whitespace and multiple spaces between arguments are accepted.
+- Use the permanent event ID shown as `#N` in the feedback when the event was added. Type only the number:
+  for example, use `delete event 3` for event `#3`. This is an event ID, not a candidate ID or a list position.
+- Deleting another event does not change the remaining events' IDs. Deleted IDs are never reused, including
+  after restarting HireBase.
+- Both active and cancelled events can be deleted. Deletion removes the event rather than marking it cancelled.
+- Candidate records, linked candidates, job openings, the current tab, and candidate search filters are preserved.
+- The deletion is saved automatically. If saving fails, the event remains in the application.
+- Missing, malformed, multiple, or nonexistent event IDs leave all records unchanged.
+
+Success shows `Deleted event: ` followed by the event's ID, name, and start and end times.
+For example: `Deleted event: #1 Interview (05/11/2026 14:00 to 05/11/2026 15:00)`.
+
+A nonexistent ID, such as `delete event 999`, reports `Event ID "999" does not exist.`
+Omitting the ID reports `Missing event ID. Usage: delete event EVENT_ID`.
+An invalid ID, such as `delete event 0` or `delete event abc`, reports
+`Event ID must be a positive integer. Usage: delete event EVENT_ID`.
+Supplying multiple IDs, such as `delete event 1 2`, reports
+`Expected exactly one event ID. Usage: delete event EVENT_ID`.
+
+Examples:
+
+- `delete event 1` deletes event `#1`.
+- If events `#1` and `#2` exist, `delete event 1` followed by `delete event 2` deletes both;
+  event `#2` keeps its ID after event `#1` is removed.
+
 ### Clearing all entries: `clear`
 
-Clears all candidates and job openings from HireBase.
+Clears all candidates, job openings, and events from HireBase.
 
 Format: `clear`
 
-Candidate IDs and job IDs used before `clear` are not reused. New candidates and job openings continue from the
-next unused ID.
+Candidate IDs, job IDs, and event IDs used before `clear` are not reused. New records continue from the next
+unused ID for their record type.
 
 ### Exiting the program: `exit`
 
@@ -607,9 +640,10 @@ Format: `exit`
 ### Saving the data
 
 HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
-Candidate records and any stored job openings are saved together in the same data
+Candidate records, job openings, and events are saved together in the same data
 file and loaded on the next launch.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
+Older data files without an `events` field load with an empty event list.
 
 ### Editing the data file
 
@@ -687,6 +721,7 @@ _Details coming soon ..._
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
+| **Delete event** | `delete event EVENT_ID`<br> e.g., `delete event 1` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

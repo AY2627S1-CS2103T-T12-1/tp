@@ -8,7 +8,7 @@
   <padding><Insets top="12" right="12" bottom="12" left="15" /></padding>
   <Label fx:id="title" styleClass="cell_big_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
   <HBox>
-    <Label fx:id="department" styleClass="dept-pill" minHeight="-Infinity" />
+    <Label fx:id="department" styleClass="dept-pill" wrapText="true" minWidth="0" minHeight="-Infinity" />
   </HBox>
   <Label fx:id="description" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
   <Label fx:id="skills" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />

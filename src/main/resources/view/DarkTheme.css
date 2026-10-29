@@ -468,3 +468,43 @@
 .tab-pane .tab .tab-label {
     -fx-text-fill: white;
 }
+
+.calendar-panel {
+    -fx-background-color: #383838;
+}
+
+.calendar-panel .combo-box {
+    -fx-background-color: #42464b;
+}
+
+.calendar-panel .label,
+.calendar-panel .check-box,
+.calendar-period-cell {
+    -fx-text-fill: #e9ebe5;
+}
+
+.calendar-panel .scroll-pane,
+.calendar-panel .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.calendar-day,
+.calendar-event {
+    -fx-padding: 8;
+    -fx-background-color: #42464b;
+    -fx-border-color: #565b61;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.calendar-event {
+    -fx-background-color: #4a4f55;
+}
+
+.calendar-event:focused {
+    -fx-border-color: #7fd6a9;
+}
+
+.calendar-day-heading {
+    -fx-font-family: "Segoe UI Semibold";
+}

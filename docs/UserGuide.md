@@ -589,6 +589,49 @@ IDs 1, 3, and 5. The command shows the full candidate list again and uses the sa
 message as `stage candidate` for each selected candidate, ending in `to REJECTED`.
 Candidates stay in HireBase; rejecting already rejected candidates is allowed, and their stages can be changed later.
 
+### Updating or cancelling an event: `update event`
+
+Updates one event using its permanent event ID. Cancellation keeps the event and its linked candidates for reference.
+
+Format: `update event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true|false]`
+
+- `update`, `event`, and the prefixes are case-sensitive. Supply exactly one positive event ID and at least one field.
+  Use the number from the event's `#N` identifier, without the `#`. This is an event ID, not a candidate ID or list position.
+- Omitted fields retain their existing values. Supplied fields can appear in any order.
+  Each prefix may appear once, except `c/`, which can appear multiple times.
+- `n/NAME` replaces the event name. The name must be nonblank and at most 100 characters long.
+- `desc/DESCRIPTION` replaces the description; `desc/` with no text clears it.
+- `from/` and `to/` replace the start and end times using `DD/MM/YYYY HH:MM` in 24-hour time.
+  The resulting start must be strictly before the end, and both must be on the same day.
+  When changing dates, supply both fields so that the resulting event stays on one day.
+- `c/CANDIDATE_ID` replaces the entire list of linked candidates. All supplied candidate IDs must exist;
+  repeated IDs are kept only once. Use a single empty `c/` to remove all candidate links.
+- `cancel/true` marks the event cancelled; `cancel/false` restores it to active status.
+  The values `true` and `false` are case-insensitive. Repeating a cancellation or restoration is allowed.
+  Other values, including an empty `cancel/`, are rejected.
+- Cancelled events keep their name, description, times, permanent ID, and linked candidates unless you also update
+  those fields. They do not contribute to overlap warnings.
+- If an updated active event overlaps another active event, a warning is shown and the update still succeeds.
+  The event is not counted as overlapping with itself. Restoring a cancelled event checks overlaps too.
+- The permanent event ID and event order are preserved, as are candidate records, job openings, the current tab,
+  and candidate search filters. Updates are saved automatically and retained after restarting HireBase.
+- Invalid fields, unknown prefixes, duplicate single-value prefixes, nonexistent event or candidate IDs, and invalid
+  resulting times leave the event unchanged. A failed save also leaves the original event in the application.
+
+Success shows `Updated event: ` followed by the event's ID, name, and times, ending with `Status: Cancelled.`
+or `Status: Active.`. Overlapping active events are listed after a warning.
+A nonexistent event reports `Event ID "EVENT_ID" does not exist.`
+An invalid cancellation value reports `cancel/ must be true or false.`
+
+Examples:
+
+- `update event 1 cancel/true` cancels event `#1` while keeping its details and linked candidates.
+- `update event 1 desc/Applicant requested postponement cancel/true` records a reason and cancels the event.
+- `update event 1 cancel/false` restores event `#1` to active status.
+- `update event 1 from/06/11/2026 14:00 to/06/11/2026 15:00` moves the event to that date and time.
+- `update event 1 n/Final interview c/2 c/3` renames the event and replaces its candidate links with IDs 2 and 3.
+- `update event 1 desc/ c/` clears the description and candidate links, preserving its other fields.
+
 ### Clearing all entries: `clear`
 
 Clears all candidates and job openings from HireBase.
@@ -687,6 +730,7 @@ _Details coming soon ..._
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
+| **Update or cancel event** | `update event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true\|false]`<br> e.g., `update event 1 cancel/true` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

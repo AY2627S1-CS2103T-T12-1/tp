@@ -22,6 +22,7 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.StageCommand;
+import seedu.hirebase.logic.commands.UpdateEventCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -71,6 +72,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof AddEventCommand addEventCommand) {
             return executeAddEvent(addEventCommand);
+        }
+        if (command instanceof UpdateEventCommand updateEventCommand) {
+            return executeUpdateEvent(updateEventCommand);
         }
         if (command instanceof DeleteJobCommand deleteJobCommand) {
             return executeDeleteJob(deleteJobCommand);
@@ -145,6 +149,23 @@ public class LogicManager implements Logic {
         }
         // Publish the exact event that was saved; it keeps its ID, so the app and the file agree.
         model.addEvent(saved);
+        return result;
+    }
+
+    /**
+     * Saves an updated event before publishing it, preserving the original event on a failed save.
+     */
+    private CommandResult executeUpdateEvent(UpdateEventCommand command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (AccessDeniedException e) {
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException e) {
+            throw new CommandException(UpdateEventCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        command.execute(model);
         return result;
     }
 

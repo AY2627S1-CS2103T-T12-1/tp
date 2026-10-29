@@ -21,6 +21,7 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.RejectCommand;
 import seedu.hirebase.logic.commands.StageCommand;
+import seedu.hirebase.logic.commands.UpdateEventCommand;
 import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 
@@ -77,6 +78,7 @@ public class HireBaseParser {
                 yield new EditCommandParser().parse(arguments);
             }
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
+            case UpdateEventCommand.COMMAND_WORD -> new UpdateEventCommandParser().parse(arguments);
             case StageCommand.COMMAND_WORD -> new StageCommandParser().parse(arguments);
             case AcceptCommand.COMMAND_WORD -> new AcceptCommandParser().parse(arguments);
             case RejectCommand.COMMAND_WORD -> new RejectCommandParser().parse(arguments);

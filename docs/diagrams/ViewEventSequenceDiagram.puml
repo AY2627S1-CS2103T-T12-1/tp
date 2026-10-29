@@ -1,0 +1,93 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":HireBaseParser" as HireBaseParser LOGIC_COLOR
+participant ":ViewCommandParser" as ViewCommandParser LOGIC_COLOR
+participant "v:ViewEventCommand" as ViewEventCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "hb:HireBase" as HireBase MODEL_COLOR
+end box
+
+[-> LogicManager : execute("view event 1")
+activate LogicManager
+
+LogicManager -> HireBaseParser : parseCommand("view event 1")
+activate HireBaseParser
+
+create ViewCommandParser
+HireBaseParser -> ViewCommandParser
+activate ViewCommandParser
+
+ViewCommandParser --> HireBaseParser
+deactivate ViewCommandParser
+
+HireBaseParser -> ViewCommandParser : parse("event 1")
+activate ViewCommandParser
+
+ViewCommandParser -> ViewCommandParser : parseEvent("1")
+activate ViewCommandParser
+
+create ViewEventCommand
+ViewCommandParser -> ViewEventCommand
+activate ViewEventCommand
+
+ViewEventCommand --> ViewCommandParser
+deactivate ViewEventCommand
+
+ViewCommandParser --> ViewCommandParser
+deactivate ViewCommandParser
+
+ViewCommandParser --> HireBaseParser : v
+deactivate ViewCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+ViewCommandParser -[hidden]-> HireBaseParser
+destroy ViewCommandParser
+
+HireBaseParser --> LogicManager : v
+deactivate HireBaseParser
+
+LogicManager -> ViewEventCommand : execute(m)
+activate ViewEventCommand
+
+ViewEventCommand -> Model : findEvent(targetId)
+activate Model
+Model --> ViewEventCommand : eventToView
+deactivate Model
+
+ViewEventCommand -> Model : getHireBase()
+activate Model
+Model --> ViewEventCommand : hb
+deactivate Model
+
+loop each candidate ID in eventToView
+    ViewEventCommand -> HireBase : getPersonByCandidateId(id)
+    activate HireBase
+    HireBase --> ViewEventCommand : person, or empty if deleted
+    deactivate HireBase
+end
+
+create CommandResult
+ViewEventCommand -> CommandResult
+activate CommandResult
+CommandResult --> ViewEventCommand
+deactivate CommandResult
+
+ViewEventCommand --> LogicManager : r
+deactivate ViewEventCommand
+
+note right of LogicManager
+  Returns without calling
+  Storage#saveHireBase(...),
+  since viewing changes no data.
+end note
+
+[<--LogicManager
+deactivate LogicManager
+@enduml

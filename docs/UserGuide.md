@@ -35,7 +35,7 @@ the management of high-volume candidate tracking for tech recruiters through an 
 
    - `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer` : Adds a contact named `John Doe` to HireBase.
 
-   - `delete candidate 3` : Deletes the 3rd candidate shown in the current list.
+   - `delete candidate 3` : Deletes the candidate with permanent ID `3`, regardless of their position in the list.
 
    - `clear` : Deletes all candidates, job openings and events.
 
@@ -497,6 +497,9 @@ Examples:
 ### Viewing a candidate's full details: `view candidate`
 
 Shows the full details of one candidate in the result display and collapses the candidate list to only that candidate.
+
+Click a candidate card to open **Candidate Details**. Scroll vertically to read long notes and other details.
+Deleting the displayed candidate or running `clear` closes the details window.
 
 Format: `view candidate CANDIDATE_ID`
 

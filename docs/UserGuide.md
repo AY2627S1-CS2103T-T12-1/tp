@@ -534,12 +534,13 @@ Format: `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`
 - `period/` accepts `today`, `week` or `month` (case-insensitive). If omitted, the period is `week`.
 - `cancelled/` controls **Cancelled only**, and `upcoming/` controls **Upcoming only**. Each accepts `true` or
   `false` (case-insensitive); omitted filters default to `false`.
-- Each parameter can appear at most once. Surrounding spaces and spaces after a prefix are accepted.
+- Each parameter can appear at most once. Write each prefix directly before its value, as in `period/month`;
+  surrounding spaces and extra spaces after `/` are also accepted.
 
 Examples:
 
 - `view calendar period/month upcoming/true` shows the current month and only events that have not ended.
-- `view calendar period/ today cancelled/ true` shows today's cancelled events.
+- `view calendar period/today cancelled/true` shows today's cancelled events.
 - `view calendar` selects the current week with both filters cleared.
 
 The calendar still displays only the current day, week or month; this command does not navigate to another date range.

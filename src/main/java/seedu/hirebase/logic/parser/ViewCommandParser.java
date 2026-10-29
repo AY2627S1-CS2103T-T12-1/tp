@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.logic.commands.Command;
+import seedu.hirebase.logic.commands.ViewCalendarCommand;
 import seedu.hirebase.logic.commands.ViewCommand;
 import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -15,7 +16,8 @@ import seedu.hirebase.model.event.EventId;
 
 /**
  * Parses input arguments and creates the matching view command.
- * Syntax: {@code view candidate CANDIDATE_ID} or {@code view event EVENT_ID}.
+ * Syntax: {@code view candidate CANDIDATE_ID}, {@code view event EVENT_ID},
+ * or {@code view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]}.
  */
 public class ViewCommandParser implements Parser<Command> {
 
@@ -36,6 +38,7 @@ public class ViewCommandParser implements Parser<Command> {
         return switch (parts[0]) {
             case ViewCommand.RECORD_TYPE_CANDIDATE -> parseCandidate(idArgs);
             case ViewEventCommand.RECORD_TYPE_EVENT -> parseEvent(idArgs);
+            case ViewCalendarCommand.RECORD_TYPE_CALENDAR -> new ViewCalendarCommandParser().parse(idArgs);
             default -> throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
         };

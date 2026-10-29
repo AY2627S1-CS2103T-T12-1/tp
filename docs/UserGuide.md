@@ -374,7 +374,8 @@ Changing only capitalisation or supplying the existing values is allowed.
 To tag an existing opening, use `edit job 2 s/Java s/SQL`. Supplied skills **replace the entire required-skill set**;
 include every skill you want to keep. Omitting `s/` preserves existing skills, including when editing the title,
 department or description. A single empty `s/`, as in `edit job 2 s/`, clears all skills. Combining an empty `s/`
-with other `s/` fields is rejected. Skills use the same validation and duplicate rules as `add job`.
+with other `s/` fields is rejected with `An empty s/ clears all skills and cannot be combined with other s/ values.`
+Skills use the same validation and duplicate rules as `add job`.
 Tagging skills preserves the opening's ID and does not change candidate skills or filter candidates automatically.
 
 Success shows `Edited job opening ID: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
@@ -462,7 +463,8 @@ For example, `edit candidate 1 priority/3` changes only the candidate's priority
 Omitting `priority/` preserves the existing score; an empty `priority/` is invalid and cannot clear it.
 
 For example, `edit candidate 1 s/` removes all skills from the candidate with ID 1. Mixing an empty skill with a
-non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
+non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected with the same message and leaves the candidate's
+entire record unchanged.
 To replace all existing skills with just "new skill", use `edit candidate 1 s/new skill`.
 Omitting `s/` entirely preserves the candidate's existing skills.
 

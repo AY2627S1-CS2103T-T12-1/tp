@@ -17,6 +17,7 @@ import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.Skill;
 import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.tag.Tag;
 
@@ -254,5 +255,27 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseSkillsForEdit_singleEmptyValue_returnsEmptySet() throws Exception {
+        assertEquals(Set.of(), ParserUtil.parseSkillsForEdit(List.of("")));
+        assertEquals(Set.of(), ParserUtil.parseSkillsForEdit(List.of("   ")));
+    }
+
+    @Test
+    public void parseSkillsForEdit_emptyValueWithSkill_throwsParseException() {
+        assertThrows(ParseException.class, ParserUtil.MESSAGE_EMPTY_SKILL_COMBINED, () ->
+                ParserUtil.parseSkillsForEdit(List.of("", "Java")));
+        assertThrows(ParseException.class, ParserUtil.MESSAGE_EMPTY_SKILL_COMBINED, () ->
+                ParserUtil.parseSkillsForEdit(List.of("Java", " ")));
+    }
+
+    @Test
+    public void parseSkillsForEdit_skills_returnsSkillSet() throws Exception {
+        assertEquals(Set.of(new Skill("Java"), new Skill("SQL")),
+                ParserUtil.parseSkillsForEdit(List.of("Java", "SQL")));
+        assertThrows(ParseException.class, Skill.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseSkillsForEdit(List.of("Java!")));
     }
 }

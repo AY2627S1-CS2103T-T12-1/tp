@@ -237,4 +237,9 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "candidate 1 s/Java note/hello",
                 String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "note/"));
     }
+
+    @Test
+    public void parse_emptySkillWithOtherSkill_failure() {
+        assertParseFailure(parser, "candidate 1 s/ s/Java", ParserUtil.MESSAGE_EMPTY_SKILL_COMBINED);
+    }
 }

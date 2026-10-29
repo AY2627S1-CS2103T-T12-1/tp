@@ -32,6 +32,8 @@ import seedu.hirebase.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_EMPTY_SKILL_COMBINED =
+            "An empty s/ clears all skills and cannot be combined with other s/ values.";
     public static final String MESSAGE_INVALID_DATE_TIME =
             "Date and time must be a real date in the format DD/MM/YYYY HH:MM (24-hour), e.g. 05/11/2026 14:00.";
 
@@ -54,6 +56,21 @@ public class ParserUtil {
             result.add(new Skill(normalized));
         }
         return result;
+    }
+
+    /**
+     * Parses the skills of an edit command. A single empty {@code s/} clears all skills, so it returns an empty set;
+     * an empty value combined with other skills is rejected.
+     */
+    public static Set<Skill> parseSkillsForEdit(Collection<String> skills) throws ParseException {
+        requireNonNull(skills);
+        if (skills.stream().anyMatch(String::isBlank)) {
+            if (skills.size() > 1) {
+                throw new ParseException(MESSAGE_EMPTY_SKILL_COMBINED);
+            }
+            return new HashSet<>();
+        }
+        return parseSkills(skills);
     }
 
     /**

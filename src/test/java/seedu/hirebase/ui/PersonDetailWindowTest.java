@@ -77,6 +77,21 @@ public class PersonDetailWindowTest {
     }
 
     @Test
+    public void setPerson_priorityChanges_updatesScoreAndLabel() throws Exception {
+        runOnFxThread(() -> {
+            PersonDetailWindow window = new PersonDetailWindow(new Stage());
+            window.setPerson(new PersonBuilder().build());
+            assertEquals("Priority: 1 (Low)", text(window, "#priorityScore"));
+            window.setPerson(new PersonBuilder().withPriorityScore("3").build());
+            assertEquals("Priority: 3 (High)", text(window, "#priorityScore"));
+            window.setPerson(new PersonBuilder().withPriorityScore("2").build());
+            assertEquals("Priority: 2 (Medium)", text(window, "#priorityScore"));
+            assertTrue(lookup(window, "#priorityScore").getStyleClass().contains("cell_small_label"));
+            assertTrue(lookup(window, "#priorityScore").getStyleClass().contains("detail-value"));
+        });
+    }
+
+    @Test
     public void setPerson_missingOptionalFields_showsEmPlaceholders() throws Exception {
         runOnFxThread(() -> {
             PersonDetailWindow window = new PersonDetailWindow(new Stage());

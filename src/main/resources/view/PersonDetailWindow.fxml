@@ -36,6 +36,7 @@
               <Label fx:id="stage" styleClass="stage-badge" />
             </HBox>
 
+            <Label fx:id="priorityScore" styleClass="cell_small_label, detail-value" wrapText="true" />
             <HBox spacing="10">
               <Label styleClass="detail-key" text="Phone" minWidth="80" />
               <Label fx:id="phone" styleClass="detail-value" wrapText="true" />

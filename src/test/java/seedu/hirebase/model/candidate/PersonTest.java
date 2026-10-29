@@ -2,6 +2,7 @@ package seedu.hirebase.model.candidate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
@@ -38,6 +39,58 @@ public class PersonTest {
     public void equals_ignoresCandidateId() {
         assertEquals(ALICE, ALICE.withCandidateId(new CandidateId(5)));
         assertEquals(ALICE.hashCode(), ALICE.withCandidateId(new CandidateId(5)).hashCode());
+    }
+
+    @Test
+    public void priorityScore_legacyConstructor_defaultsToLow() {
+        Person candidate = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+                ALICE.getNote(), ALICE.getTags(), ALICE.getSkills(), ALICE.getRole().orElse(null),
+                ALICE.getInterviewStage(), new CandidateId(5));
+
+        assertEquals(PriorityScore.DEFAULT, candidate.getPriorityScore());
+    }
+
+    @Test
+    public void withPriorityScore_validScore_preservesOtherDetailsAndId() {
+        Person original = new PersonBuilder(ALICE).withSkills("Java").withRole("Engineer")
+                .withNote("Follow up").withInterviewStage(InterviewStage.ACCEPTED).build()
+                .withCandidateId(new CandidateId(5));
+
+        Person updated = original.withPriorityScore(new PriorityScore("3"));
+
+        assertEquals(new PersonBuilder(original).withPriorityScore("3").build(), updated);
+        assertEquals(original.getCandidateId(), updated.getCandidateId());
+        assertEquals(PriorityScore.DEFAULT, original.getPriorityScore());
+        assertTrue(original.isSamePerson(updated));
+    }
+
+    @Test
+    public void withPriorityScore_nullScore_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withPriorityScore(null));
+    }
+
+    @Test
+    public void withCandidateId_nonDefaultPriority_preservesPriorityScore() {
+        Person original = new PersonBuilder(ALICE).withPriorityScore("2").build();
+
+        Person updated = original.withCandidateId(new CandidateId(7));
+
+        assertEquals(new PriorityScore("2"), updated.getPriorityScore());
+        assertEquals(new CandidateId(7), updated.getCandidateId().get());
+        assertEquals(original, updated);
+    }
+
+    @Test
+    public void equals_priorityScore_distinguishesScoresWithoutChangingIdentity() {
+        Person candidate = new PersonBuilder(ALICE).withPriorityScore("3").build();
+        Person sameScore = new PersonBuilder(candidate).build();
+        Person differentScore = new PersonBuilder(candidate).withPriorityScore("2").build();
+
+        assertEquals(candidate, sameScore);
+        assertEquals(candidate.hashCode(), sameScore.hashCode());
+        assertNotEquals(candidate, differentScore);
+        assertNotEquals(candidate.hashCode(), differentScore.hashCode());
+        assertTrue(candidate.isSamePerson(differentScore));
     }
 
     @Test
@@ -140,7 +193,8 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", note=" + ALICE.getNote()
-                + ", tags=" + ALICE.getTags() + ", skills=[], role=null, interviewStage=SCREENING, candidateId=null}";
+                + ", tags=" + ALICE.getTags() + ", skills=[], role=null, interviewStage=SCREENING, candidateId=null"
+                + ", priorityScore=1 (Low)}";
         assertEquals(expected, ALICE.toString());
     }
 }

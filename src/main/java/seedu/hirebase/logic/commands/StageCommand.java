@@ -74,7 +74,7 @@ public class StageCommand extends Command {
             Person updatedCandidate = new Person(candidate.getName(), candidate.getPhone(), candidate.getEmail(),
                     candidate.getAddress(), candidate.getNote(), candidate.getTags(),
                     candidate.getSkills(), candidate.getRole().orElse(null), interviewStage,
-                    candidate.getCandidateId().orElse(null));
+                    candidate.getCandidateId().orElse(null), candidate.getPriorityScore());
             model.setPerson(candidate, updatedCandidate);
             messages.add(String.format(MESSAGE_STAGE_CANDIDATE_SUCCESS, candidateIds.get(i).getValue(),
                     updatedCandidate.getName(), updatedCandidate.getEmail(), interviewStage));

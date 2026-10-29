@@ -107,11 +107,13 @@ Format: `help`
 
 Adds a candidate to HireBase.
 
-Format: `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`
+Format: `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE [priority/SCORE]`
 
 * A candidate must have at least one skill (`s/`) and exactly one target role (`r/`).
 * A skill is 1 to 30 characters long and may contain letters, digits, spaces and `+ # . /`. Repeating `s/` adds more skills; duplicates that differ only in letter case are merged.
 * A role is 1 to 100 characters long and may contain letters, digits, spaces, hyphens and slashes.
+* `priority/` is optional. Use `1` for Low, `2` for Medium, or `3` for High. Omitting it gives the candidate
+  priority `1 (Low)`. Supply exactly one digit; empty, repeated, or invalid priority fields are rejected.
 * Candidates are identified by email. A candidate whose email matches an existing one (ignoring case) cannot be added.
 * The new candidate is given the next unused [candidate ID](#about-candidate-ids), shown as `#N` on their card. Use this ID in later commands such as `edit candidate` or `delete candidate`.
 
@@ -123,12 +125,14 @@ Examples:
 
 * `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 s/Java s/SQL r/Backend Engineer`
 * `add candidate n/Betsy Crowe e/betsycrowe@example.com a/Newgate Prison p/1234567 s/C++ s/Python r/Full-Stack Developer`
+* `add candidate n/Amy Tan p/91234567 e/amy.tan@example.com a/Singapore s/Java r/Backend Engineer priority/3`
 
 ### Listing candidates: `list candidates`
 
-Selects the Candidates tab and lists all candidates, or filters by technical skill, target role, and interview stage.
+Selects the Candidates tab and lists all candidates, or filters by technical skill, target role, interview stage,
+and priority score.
 
-Format: `list candidates [s/SKILL] [r/ROLE] [stage/STAGE]`
+Format: `list candidates [s/SKILL] [r/ROLE] [stage/STAGE] [priority/SCORE]`
 
 * `list candidates s/Java` lists candidates with the `Java` skill. Likewise, use `s/Spring` or `s/SQL`
   to match those skills. The skill can be any valid saved skill; it is not limited to these examples.
@@ -141,16 +145,38 @@ Format: `list candidates [s/SKILL] [r/ROLE] [stage/STAGE]`
   Role values follow the same length and character rules as `add candidate`; whitespace is normalized.
 * `list candidates stage/SCREENING` lists candidates at the screening stage. The other accepted stage values
   are `ACCEPTED` and `REJECTED`. Stage names are case-insensitive: `stage/accepted` is valid.
-* Supply at most one of each field (`s/`, `r/`, `stage/`), in any order.
+* `list candidates priority/3` lists candidates with High priority. Use `priority/1` for Low or `priority/2`
+  for Medium. The filter matches the exact score; it does not include lower or higher scores.
+* Supply at most one of each field (`s/`, `r/`, `stage/`, `priority/`), in any order.
   Empty, invalid, or repeated fields are rejected.
 * Combining filters requires every supplied filter to match. For example, `list candidates s/Java r/Backend Engineer`
   lists candidates who have the `Java` skill and target the `Backend Engineer` role.
   Add `stage/SCREENING` to further restrict those results to candidates at the screening stage.
+  `list candidates s/Java r/Backend Engineer stage/SCREENING priority/3` requires all four fields to match.
 * Each command filters the full candidate list, replacing any previous search or filter. Candidates retain their
   order and permanent IDs. Candidate and job records are unchanged.
 * `list candidates` without filters clears the filter and shows everyone again. No matches shows `No candidates found.`
 
 Use `list jobs` to view openings instead. The bare command `list` is not accepted.
+
+### Candidate priority scores
+
+Priority scores help you mark which candidates need attention: `1 (Low)`, `2 (Medium)`, or `3 (High)`.
+The candidate card and the full-details popup show the score, for example `Priority: 3 (High)`.
+`view candidate CANDIDATE_ID` also includes the priority score in its feedback.
+
+Set a score using the optional `priority/SCORE` field when adding a candidate, or change it with
+`edit candidate CANDIDATE_ID priority/SCORE`. For example, `edit candidate 2 priority/2` sets candidate `#2`
+to Medium. Use the single digit `1`, `2`, or `3`; labels such as `High`, padded values such as `03`, signed
+values such as `+3`, decimals, and empty values are invalid. Surrounding whitespace is trimmed.
+Each command accepts at most one `priority/` field, and invalid input leaves records unchanged.
+
+New candidates default to Low when `priority/` is omitted. Older saved records without a priority also load
+as Low. A candidate's score is saved across restarts. Editing other fields, updating or clearing a note,
+and changing an interview stage preserve the score.
+
+Use `list candidates priority/3` to filter High-priority candidates. Filtering preserves their original order
+and permanent IDs; scores do not sort or reorder candidates. `list candidates` shows everyone again.
 
 ### Managing job openings
 
@@ -417,7 +443,7 @@ Restarting HireBase retains the remaining opening; click Job openings or run `li
 Updates the candidate with the given `CANDIDATE_ID`, the candidate's permanent ID shown on each card as `#N` (for example, `#1`) before their name.
 After a successful edit, the full list is displayed again.
 
-Format: `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`
+Format: `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]… [priority/SCORE]`
 
 `candidate` is a required, case-sensitive keyword. The old keyword-less `edit ...` syntax is rejected.
 Multiple spaces between command words are accepted.
@@ -426,6 +452,9 @@ Supply at least one field. Omitted fields retain their existing values. Supplyin
 repeat it to supply multiple skills. Skills are optional: use `edit candidate CANDIDATE_ID s/` to clear them.
 When supplying multiple skills, each value must be non-blank.
 Repeated skills are combined without regard to case. A repeated single-value prefix such as `r/` is rejected.
+`priority/SCORE` sets `1 (Low)`, `2 (Medium)`, or `3 (High)` and must be supplied at most once.
+For example, `edit candidate 1 priority/3` changes only the candidate's priority to High.
+Omitting `priority/` preserves the existing score; an empty `priority/` is invalid and cannot clear it.
 
 For example, `edit candidate 1 s/` removes all skills from the candidate with ID 1. Mixing an empty skill with a
 non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
@@ -508,7 +537,8 @@ Format: `view candidate CANDIDATE_ID`
   filtered, reordered, or when other candidates are deleted.
 - Because the ID is permanent, you can view any candidate by their ID even while a `find` filter is hiding them.
 - `CANDIDATE_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
-- The result display lists the candidate's name, interview stage, phone, email, address, target role, skills, and note.
+- The result display lists the candidate's name, interview stage, priority score, phone, email, address,
+  target role, skills, and note.
   Empty optional fields (role, skills, note) are shown as `—`.
 - A `CANDIDATE_ID` that no candidate has is rejected with
   `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`, leaving the list unchanged.
@@ -522,10 +552,31 @@ Sample feedback:
 
 | Command | Feedback |
 | --- | --- |
-| `view candidate 1` | Candidate `1`'s full details (name, stage, phone, email, address, role, skills, note); the list collapses to that candidate. |
+| `view candidate 1` | Candidate `1`'s full details (name, stage, priority score, phone, email, address, role, skills, note); the list collapses to that candidate. |
 | `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
-| `view 1`, `view person 1` | `Invalid command format!` followed by the `view candidate` usage (the `candidate` keyword is required). |
+| `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate` and `view event` (a record-type keyword is required). |
+
+### Viewing the calendar from the command box: `view calendar`
+
+Selects the Calendar tab and applies the selected period and filters, just like changing the calendar controls.
+The command is read-only; it does not change or save events.
+
+Format: `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`
+
+- `period/` accepts `today`, `week` or `month` (case-insensitive). If omitted, the period is `week`.
+- `cancelled/` controls **Cancelled only**, and `upcoming/` controls **Upcoming only**. Each accepts `true` or
+  `false` (case-insensitive); omitted filters default to `false`.
+- Each parameter can appear at most once. Write each prefix directly before its value, as in `period/month`;
+  surrounding spaces and extra spaces after `/` are also accepted.
+
+Examples:
+
+- `view calendar period/month upcoming/true` shows the current month and only events that have not ended.
+- `view calendar period/today cancelled/true` shows today's cancelled events.
+- `view calendar` selects the current week with both filters cleared.
+
+The calendar still displays only the current day, week or month; this command does not navigate to another date range.
 
 ### Adding or updating a candidate's note: `note`
 
@@ -683,6 +734,46 @@ The event is saved before it is shown. If saving fails, HireBase reports `Could 
 added. Check storage permissions and available disk space, then try again.` and nothing changes; the event ID is not
 used up.
 
+### Viewing an event's full details: `view event`
+
+Shows the full details of one event in the result display.
+
+Format: `view event EVENT_ID`
+
+* The `event` record-type keyword is required and case-sensitive.
+* `EVENT_ID` is the event's **permanent ID**, shown as `#N` in the result of `add event` and on each event in the
+  Calendar tab. It never changes, even when other events are deleted.
+* `EVENT_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
+* The result shows the event's name, description, start, end and candidates. An empty description, or an event
+  with no candidates, is shown as `—`.
+* A `Status: Cancelled` line appears only if the event is cancelled. Events that are not cancelled show no status.
+* Candidates are listed by ID and name, in the order they were added. If a candidate was deleted after being added
+  to the event, the event keeps their ID, and it is shown as `#ID (deleted)`.
+* Viewing an event does not change any records, the selected tab or the candidate list, and does not save the data
+  file.
+
+Examples:
+
+* `view event 1` shows the full details of the event whose ID is `1`.
+
+Sample output of `view event 1`, for an event with candidates `#1` and `#4`, after candidate `#4` was deleted:
+
+```
+Event:       #1 Interview with Alex
+Description: Round 2
+Start:       05/11/2026 14:00
+End:         05/11/2026 15:00
+Candidates:  #1 Alex Yeoh, #4 (deleted)
+```
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `view event 999` | `Event ID "999" does not exist.` |
+| `view event 0`, `view event abc`, `view event` | `Invalid command format!` followed by the `view event` usage (the ID must be a positive integer). |
+| `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists both `view candidate` and `view event`. |
+
 ### Clearing all entries: `clear`
 
 Clears all candidates, job openings and events from HireBase.
@@ -700,7 +791,7 @@ Format: `exit`
 
 ### Saving the data
 
-HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
+HireBase automatically saves data after commands, except the read-only `list jobs` and `view event` commands. You do not need to save manually.
 Candidate records, job openings and events are saved together in the same data file and loaded on the next launch.
 Changing calendar controls does not save the data file; the selected calendar period and filters are temporary.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
@@ -719,6 +810,10 @@ are given new IDs in file order, starting after every stored ID. An invalid or d
 Each candidate's `interviewStage` must be `SCREENING`, `ACCEPTED`, or `REJECTED` in the JSON file (case-sensitive).
 Older records without this field, or with a `null` value, load as `SCREENING`.
 Blank strings, unknown stage names, or incorrect capitalization make the data file invalid.
+
+Each candidate's `priorityScore` is saved as a digit string: `"1"` (Low), `"2"` (Medium), or `"3"` (High).
+For example, `"priorityScore": "3"` stores High priority. Older records with this field missing or set to `null`
+load as Low. An empty string, a label such as `"High"`, or any other invalid score makes the data file invalid.
 
 The `jobs` array stores each opening's `id`, `title`, `department`, `description`, and `skills`, preserving job order.
 `skills` is an array of strings, for example `["Java", "SQL"]`. Older openings with no `skills` field, or a null
@@ -786,21 +881,23 @@ _Details coming soon ..._
 
 | Action | Format, Examples |
 |--------|------------------|
-| **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer` |
-| **List candidates** | `list candidates [s/SKILL] [r/ROLE] [stage/STAGE]`<br> e.g., `list candidates s/Java` |
+| **Add candidate** | `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE [priority/SCORE]`<br> e.g., `add candidate n/Amy p/91234567 e/amy@example.com a/Blk 1 s/Java s/SQL r/Backend Engineer priority/3` |
+| **List candidates** | `list candidates [s/SKILL] [r/ROLE] [stage/STAGE] [priority/SCORE]`<br> e.g., `list candidates s/Java priority/3` |
 | **Find candidates** | `find KEYWORD [MORE_KEYWORDS]` (searches names or emails)<br> e.g., `find James james@example.com` |
-| **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]…`<br> e.g., `edit candidate 2 n/James Lee e/jameslee@example.com` |
+| **Edit candidate** | `edit candidate CANDIDATE_ID [n/NAME] [e/EMAIL] [p/PHONE] [s/SKILL]… [r/ROLE] [a/ADDRESS] [t/TAG]… [priority/SCORE]`<br> e.g., `edit candidate 2 priority/2` |
 | **Change interview stage** | `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`<br> e.g., `stage candidate 1 3 ACCEPTED` |
 | **Accept candidates** | `accept candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `accept candidate 1 3` |
 | **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
 | **Delete candidate** | `delete candidate CANDIDATE_ID`<br> e.g., `delete candidate 3` |
 | **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
+| **View calendar** | `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`<br> e.g., `view calendar period/month upcoming/true` |
 | **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Add event** | `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`<br> e.g., `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` |
+| **View event** | `view event EVENT_ID`<br> e.g., `view event 1` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

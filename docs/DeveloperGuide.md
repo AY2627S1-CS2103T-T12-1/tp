@@ -248,7 +248,7 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 </div>
 
 1. `LogicManager` passes the command text to `HireBaseParser`, which creates a `ViewCommandParser`.
-1. `ViewCommandParser` requires the `candidate` record-type keyword, then uses `ParserUtil#parseCandidateId(String)` to convert the remaining token into a `CandidateId`. It returns a `ViewCommand` holding that id as `targetId`.
+1. `ViewCommandParser` switches on the record-type keyword (see [View event feature](#view-event-feature)). For `candidate`, it uses `ParserUtil#parseCandidateId(String)` to convert the remaining token into a `CandidateId`, and returns a `ViewCommand` holding that id as `targetId`.
 1. When executed, `ViewCommand` obtains the `ReadOnlyHireBase` through `Model#getHireBase()` and calls `HireBase#getPersonByCandidateId(targetId)`, which streams the full, unfiltered candidate list and returns an `Optional<Person>`.
 1. If the optional is empty, `ViewCommand` throws a `CommandException` carrying `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`. Otherwise it calls `Model#updateFilteredPersonList(...)` with a `SamePersonPredicate` matching only the found candidate, collapsing the displayed list.
 1. Finally it builds a `CommandResult` containing a multi-line, formatted summary of the candidate and tagged with `ListView.CANDIDATES`, which `LogicManager` returns.
@@ -299,6 +299,33 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 Both `view` and `note` rely on the shared `HireBase#getPersonByCandidateId(CandidateId)` lookup described in
 [Candidate ID](#candidate-id), which is the single point where a `CandidateId` is resolved to a `Person`.
 
+### Candidate priority score
+
+Each candidate has a `PriorityScore`: `1 (Low)`, `2 (Medium)`, or `3 (High)`. New candidates and legacy records
+without a score default to Low. Scores are independent of candidate identity, permanent IDs and interview stages.
+They do not change list order.
+
+#### Implementation
+
+`PriorityScore` is an immutable value class in `seedu.hirebase.model.candidate`. It accepts exactly one digit
+from `1` to `3`, exposes the numeric value and label, and formats itself as, for example, `3 (High)`.
+`Person` stores a non-null score, includes it in full equality and hashing, and preserves it when copying an ID.
+Email-based duplicate detection continues to ignore the score.
+
+`CliSyntax#PREFIX_PRIORITY` defines `priority/`. `ParserUtil#parsePriorityScore(String)` trims the value and
+validates it. `AddCommandParser` accepts an optional score and otherwise uses `PriorityScore.DEFAULT`;
+`EditCommandParser` stores a supplied score in `EditPersonDescriptor`. Both reject repeated priority prefixes.
+`EditCommand` uses the old score when that field is omitted, and `NoteCommand` and `StageCommand` copy the old
+score when rebuilding the immutable candidate. Accept and reject commands retain that stage-update behavior.
+
+`ListCommandParser` accepts an optional score alongside skill, role and stage. `ListCommand` compares scores
+for equality and combines all supplied filters with AND, filtering the full candidate list without sorting it.
+`PersonCard` and `PersonDetailWindow` show a plain `Priority: SCORE (LABEL)` label, while `ViewCommand`
+includes a `Priority score` line in its full-details feedback.
+
+`JsonAdaptedPerson` saves `priorityScore` as the digit string `"1"`, `"2"`, or `"3"`. A missing or null field
+loads as Low for backward compatibility. Other invalid values reject the data file through the existing storage
+validation path. The score survives edits, note/stage changes, saving and restarting.
 ### Add event feature
 
 The `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...` command adds
@@ -396,6 +423,73 @@ candidate does not change any event.
 * **Alternative 3:** Save the copy, then run the command again on the real model, as `add job` does.
   * Pros: Reuses the command.
   * Cons: Relies on both runs giving the same ID. Adding the saved event guarantees it.
+
+### View event feature
+
+The `view event EVENT_ID` command shows the full details of one event in the result display. Like
+`view candidate`, it finds its target by the permanent `EventId`, not by a position in a list.
+
+#### Implementation
+
+The sequence diagram below shows the interactions within the `Logic` and `Model` components when the user issues
+`view event 1`. Only the successful flow is shown.
+
+![Interactions Inside the Logic and Model Components for the `view event 1` Command](images/ViewEventSequenceDiagram.png)
+
+**Note:** The lifeline for `ViewCommandParser` should end at the destroy marker (X), but due to a limitation of
+PlantUML, it continues to the end of the diagram.
+
+**Parsing.** `HireBaseParser` sends every `view ...` command to `ViewCommandParser`, which implements
+`Parser<Command>` rather than `Parser<ViewCommand>`, because it creates a different command class for each record
+type. It splits off the first word and switches on it:
+
+* `candidate` → `parseCandidate(...)`, which returns a `ViewCommand` (see [View candidate feature](#view-candidate-feature));
+* `event` → `parseEvent(...)`, which uses `ParserUtil#parseEventId(String)` and returns a `ViewEventCommand`;
+* anything else → a `ParseException` with `ViewCommand.MESSAGE_USAGE`, which also includes the `view event` usage.
+
+The keyword must match exactly, so `events` and `Event` are rejected. An ID that is not a positive integer (e.g. `0`,
+`+1`, `1.5`, or a number larger than `Integer.MAX_VALUE`) is rejected with `ViewEventCommand.MESSAGE_USAGE`. Each
+record type has its own case and helper, so another record type can be added as one more case without changing the
+existing ones.
+
+**Executing.** `ViewEventCommand#execute(Model)`:
+
+1. calls `Model#findEvent(targetId)`. If there is no such event, it throws a `CommandException` with
+   `Messages#MESSAGE_EVENT_ID_NOT_FOUND`;
+1. formats the event's name, description, start, end and candidates. An empty description or candidate list is
+   shown as `—`. A `Status: Cancelled` line is added only if `Event#isCancelled()` is true;
+1. looks up each of the event's candidate IDs with `ReadOnlyHireBase#getPersonByCandidateId(...)`. Deleting a
+   candidate does not change events, so an ID may have no candidate; it is shown as `#ID (deleted)`;
+1. returns a `CommandResult` with `ListView.KEEP`, so the selected tab and the candidate list do not change.
+
+**Not saving.** After most commands, `LogicManager` saves the data file. `view event` changes no data, so
+`LogicManager#execute(String)` returns its result before saving, as it does for `list jobs`. A failed save therefore
+cannot replace the event details with a save error.
+
+#### Design considerations
+
+**Aspect: Which status to show**
+
+* **Alternative 1 (current choice):** Show `Status: Cancelled` for a cancelled event, and no status otherwise.
+  * Pros: The line appears only when it tells the user something. The start and end times already show whether the
+    event is over.
+  * Cons: The user must notice that the line is missing to know the event is not cancelled.
+* **Alternative 2:** Always show `Active` or `Cancelled`.
+  * Pros: Every event shows a status.
+  * Cons: `Active` on a past event reads as "happening now", which is misleading.
+* **Alternative 3:** Show a time-based status such as `Upcoming` or `Over`.
+  * Pros: Tells the user whether the event has happened.
+  * Cons: Repeats the "over when now is at or after the end" rule that the calendar's `CalendarViewOptions` already
+    owns, so the two could drift apart. It would also need an injectable clock to be tested.
+
+**Aspect: Whether to save after viewing**
+
+* **Alternative 1 (current choice):** Do not save.
+  * Pros: Viewing works even when the data file cannot be written, and does no needless disk writes.
+  * Cons: `LogicManager` needs one more special case.
+* **Alternative 2:** Save after viewing, like most commands.
+  * Pros: No special case.
+  * Cons: If saving fails, the user sees a save error instead of the details, although nothing changed.
 
 ### Calendar view
 
@@ -881,6 +975,41 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC11 - View an event's details**
+
+**MSS**
+
+1.  User requests to view an event by its event ID
+2.  HireBase shows the event's name, description, start, end and candidates
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The event ID is not a positive integer
+
+    * 1a1. HireBase displays an error message showing the correct format.
+
+      Use case ends.
+
+* 1b. No event has the given event ID
+
+    * 1b1. HireBase displays an error message saying the event ID does not exist.
+
+      Use case ends.
+
+* 2a. The event is cancelled
+
+    * 2a1. HireBase also shows that the event is cancelled.
+
+      Use case ends.
+
+* 2b. A candidate in the event has been deleted
+
+    * 2b1. HireBase shows that candidate's ID, marked as deleted, in place of their name.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
@@ -939,7 +1068,7 @@ The following requirements describe the intended quality attributes and operatin
 
 **Mainstream OS (Operating System):** For HireBase's compatibility requirements, Windows, Linux, or macOS.
 
-**Priority score:** A value used to indicate the relative attention a recruiter intends to give a candidate.
+**Priority score:** A candidate's attention level: `1 (Low)`, `2 (Medium)`, or `3 (High)`. The default is Low.
 
 **Private contact detail:** Contact information that is not intended to be shared with other people.
 
@@ -1031,6 +1160,77 @@ testers are expected to do more *exploratory* testing.
    1. Close HireBase and launch it again.<br>
       Expected: Every candidate shows the same ID as before.
 
+### Candidate priority scores
+
+Use a separate test copy of the data file. Add the following candidates in this order and note each permanent
+ID from its card. In the commands below, replace `LOW_ID`, `MEDIUM_ID`, and `HIGH_ID` with those IDs.
+
+```text
+add candidate n/Low Priority p/91234567 e/priority.low@example.com a/Singapore s/Java r/Backend Engineer
+add candidate n/Medium Priority p/91234567 e/priority.medium@example.com a/Singapore s/Java r/Backend Engineer priority/2
+add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore s/Java r/Backend Engineer priority/3
+```
+
+1. Adding and displaying scores
+
+   1. Expected: The cards show `Priority: 1 (Low)`, `Priority: 2 (Medium)`, and `Priority: 3 (High)` respectively.
+      Clicking each card shows the same score in the full-details popup. `view candidate HIGH_ID` includes
+      `Priority score: 3 (High)` in the result display.
+
+   1. Add `add candidate n/Explicit Low p/91234567 e/priority.explicit@example.com a/Singapore s/Python r/Analyst priority/1`.<br>
+      Expected: Its priority is explicitly Low. Candidate order follows creation order, rather than priority.
+
+1. Editing and preserving scores
+
+   1. Run `edit candidate LOW_ID priority/3`, then `edit candidate LOW_ID priority/2`.<br>
+      Expected: The score changes to High and then Medium on the card, popup and `view candidate` output.
+      Contact details, skills, role, note, stage and permanent ID are unchanged. The candidate stays in place.
+
+   1. Run each of `edit candidate HIGH_ID p/98765432`, `note HIGH_ID Strong candidate`, `note HIGH_ID`,
+      `stage candidate HIGH_ID SCREENING`, `accept candidate HIGH_ID`, and `reject candidate HIGH_ID`.<br>
+      Expected: After every command, the High candidate retains `3 (High)` and its permanent ID.
+      Restore `stage candidate HIGH_ID SCREENING` for the following filter tests.
+
+1. Filtering scores
+
+   1. Try `list candidates priority/1`, `list candidates priority/2`, and `list candidates priority/3`.<br>
+      Expected: Each result contains only candidates with that exact score, in their original relative order.
+      The score and ID of every candidate remain unchanged.
+
+   1. Run `list candidates s/Java r/Backend Engineer stage/SCREENING priority/3`.<br>
+      Expected: The High test candidate appears; candidates failing any supplied filter are hidden.
+      Reorder the prefixes and repeat the command; results are identical.
+
+   1. Run `list candidates s/Python priority/3`, then `list candidates`.<br>
+      Expected: The first command has no matches for the test candidates. The second restores all candidates
+      in their original order. Neither command changes any score.
+
+1. Invalid priority input
+
+   1. Try `edit candidate HIGH_ID priority/0`, repeating with `4`, `03`, `+3`, `2.0`, `High`, and no value
+      after `priority/`. Also try `edit candidate HIGH_ID priority/1 priority/3`.<br>
+      Expected: Every command reports invalid input and preserves the entire candidate record.
+
+   1. Try the same invalid values, an empty value, and repeated prefixes with `list candidates priority/0`.<br>
+      Expected: Each invalid command reports an error and leaves the previous list and all records unchanged.
+
+   1. Run `add candidate n/Invalid Priority p/91234567 e/priority.invalid@example.com a/Singapore s/Java r/Engineer priority/0`.
+      Repeat with each invalid value above and with `priority/1 priority/3` instead of `priority/0`.<br>
+      Expected: No candidate is added. A valid command with surrounding spaces around a single score succeeds.
+
+1. Saving and legacy data
+
+   1. Close and restart HireBase.<br>
+      Expected: All scores and IDs persist, including the edited Medium score. The JSON file stores, for example,
+      `"priorityScore": "3"` for the High candidate.
+
+   1. With the app closed, remove `priorityScore` from one candidate in the test data file and set another
+      candidate's field to `null`. Relaunch.<br>
+      Expected: Both candidates load as Low without losing other details. Set a non-default score with an edit,
+      restart again, and check that it persists.
+
+   1. In a separate copy of the saved file, replace a score with `"4"` or `"High"` and launch using that copy.<br>
+      Expected: The invalid data file is rejected through the documented invalid-file recovery behavior.
 ### Adding an event
 
 1. Adding events, with and without overlaps
@@ -1067,6 +1267,47 @@ testers are expected to do more *exploratory* testing.
 
    1. Close HireBase and launch it again, then add another event.<br>
       Expected: The new event's ID is one more than the largest ID used before, even if you ran `clear` in between.
+
+### Viewing an event
+
+1. Viewing an event's details
+
+   1. Prerequisites: Run `clear`, then add one candidate with `add candidate`, and note their ID, say `#N`. Add an
+      event with `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 desc/Round 2 c/N`, and note its
+      ID, say `#E`.
+
+   1. Test case: `view event E`<br>
+      Expected: The result shows `#E Interview`, `Round 2`, the start and end times, and `#N` with the candidate's
+      name. There is no `Status` line. The selected tab and the candidate list do not change.
+
+   1. Test case: `delete candidate N`, then `view event E`<br>
+      Expected: The candidate is shown as `#N (deleted)`. The rest of the details are unchanged.
+
+   1. Test case: close HireBase, launch it again, then `view event E`<br>
+      Expected: The same details as in the previous test case.
+
+1. Viewing a cancelled event
+
+   1. Prerequisites: Close HireBase. In the data file, set `"cancelled": true` on event `#E`. Launch HireBase.
+      There is no command to cancel an event yet.
+
+   1. Test case: `view event E`<br>
+      Expected: A `Status: Cancelled` line appears after the end time.
+
+1. Invalid event IDs
+
+   1. Test case: `view event 999` (no event `#999`)<br>
+      Expected: `Event ID "999" does not exist.`
+
+   1. Test case: `view event 0`<br>
+      Expected: An invalid-format error, followed by the `view event` usage.
+
+   1. Other incorrect commands to try: `view event`, `view event abc`, `view event 1 2`, `view event 2147483648`<br>
+      Expected: The same error as the previous test case.
+
+   1. Test case: `view events 1`<br>
+      Expected: An invalid-format error, followed by the `view` usage, which lists both `view candidate` and
+      `view event`.
 
 ### Saving data
 

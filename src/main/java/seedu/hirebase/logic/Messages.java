@@ -52,6 +52,7 @@ public class Messages {
                     .collect(Collectors.joining(", ")));
         }
         person.getRole().ifPresent(role -> builder.append("; Target role: ").append(role));
+        builder.append("; Priority: ").append(person.getPriorityScore());
         return builder.toString();
     }
 

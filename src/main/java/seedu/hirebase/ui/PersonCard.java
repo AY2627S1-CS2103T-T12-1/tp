@@ -50,6 +50,8 @@ public class PersonCard extends UiPart<Region> {
     private Label role;
     @FXML
     private Label interviewStage;
+    @FXML
+    private Label priorityScore;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person}.
@@ -62,6 +64,7 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        priorityScore.setText("Priority: " + person.getPriorityScore());
         note.setText(person.getNote().value);
         note.setVisible(!person.getNote().value.isEmpty());
         note.setManaged(note.isVisible());

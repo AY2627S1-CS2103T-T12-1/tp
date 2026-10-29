@@ -22,6 +22,7 @@ import seedu.hirebase.logic.commands.ListCommand;
 import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.StageCommand;
+import seedu.hirebase.logic.commands.ViewCalendarCommand;
 import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
@@ -87,7 +88,7 @@ public class LogicManager implements Logic {
         if (command instanceof ListJobsCommand) {
             return commandResult.withListView(CommandResult.ListView.JOBS);
         }
-        if (command instanceof ViewEventCommand) {
+        if (command instanceof ViewEventCommand || command instanceof ViewCalendarCommand) {
             // Viewing changes no data, so it skips saving and a failed save cannot hide the details.
             return commandResult;
         }

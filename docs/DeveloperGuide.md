@@ -400,12 +400,14 @@ candidate does not change any event.
 ### Calendar view
 
 The Calendar tab displays saved events using a period selector and independent cancellation and upcoming filters.
-The controls change a temporary view; they never mutate events or call storage. The intended typed-command
-access remains an integration point for the calendar command; this implementation exposes the GUI controls.
-In v1.5, every range is anchored to the supplied current local time. There is no navigation to another week or
-month: on 31 October 2026, an event on 2 November is saved but lies outside Today, Week and Month. The filters
-do not widen those ranges. Navigation to other periods is tracked in
-[issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202) for coordination with calendar-command integration.
+It also supports the `view calendar` command, which applies the same period and event filters. Both the controls
+and command change a temporary view; they never mutate events or call storage. Availability is inferred from gaps
+between scheduled events. HireBase does not calculate or display separate free-time blocks.
+
+Every range is anchored to the current local date. Week runs Sunday through Saturday, and Month covers the first
+through last date of the current calendar month. There is no navigation to another week or month: on 31 October
+2026, an event on 2 November is saved but lies outside Today, Week and Month. Navigation to another date or period
+is tracked in [issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202).
 
 #### Implementation
 
@@ -419,6 +421,15 @@ do not widen those ranges. Navigation to other periods is tracked in
 1. `Calendar.of(...)` groups the matching events by start date and sorts each day by start time, preserving input
    order for equal starts. Empty days remain present. `CalendarPanel` stacks every event, including overlaps,
    in the scrollable grid and exposes `visibleEventCountProperty()` for the footer's Calendar count.
+1. The command syntax is `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`. `period/` accepts
+   `today`, `week` or `month`; the boolean prefixes accept `true` or `false`. Prefixes may appear in any order and
+   at most once. Omitted parameters default to `week`, `false` and `false`, respectively.
+1. `HireBaseParser` routes `view` to `ViewCommandParser`, which dispatches `calendar` to
+   `ViewCalendarCommandParser`. The resulting `ViewCalendarCommand` returns a `CommandResult` with
+   `ListView.CALENDAR` and the requested `CalendarViewOptions`. `MainWindow` applies those options to the existing
+   `CalendarPanel` and selects its Calendar tab, synchronizing the dropdown and checkboxes.
+1. `LogicManager` skips storage for `ViewCalendarCommand`, like `ViewEventCommand`; a calendar-view request is
+   read-only. GUI control changes are also temporary and are not written to `UserPrefs` or event storage.
 1. An injectable `Clock` makes boundary tests deterministic. A one-second JavaFX `Timeline` checks for a date
    change or the next displayed upcoming event's end before rebuilding. This keeps an idle panel and count current
    without rebuilding every second. `start()` and `stop()` manage the timer and event-list subscription.
@@ -437,7 +448,7 @@ hint. Failed additions keep the current tab. Options are not part of `UserPrefs`
 #### Design considerations
 
 Keep date/filter selection in `CalendarViewOptions` and rendering in `CalendarPanel`. This gives GUI controls and
-future command integration the same selection rules, while preserving `Calendar` and `Day` as display-independent
+the typed command the same selection rules, while preserving `Calendar` and `Day` as display-independent
 groupings. Use the model's observable list for record changes and a clock for time changes: observing the list alone
 would leave upcoming events and the current period stale while the app is idle. Native JavaFX controls provide
 keyboard focus, arrow-key selection and checkbox toggling without a separate shortcut grammar.

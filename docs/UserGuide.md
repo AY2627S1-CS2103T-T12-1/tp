@@ -88,7 +88,7 @@ ID, not the candidate's position in the list.
 - Deleted IDs are never given to another candidate, even after `clear`. For example, if you delete candidate `#5`,
   the next candidate you add gets `#6` or higher, and `delete candidate 5` will report that ID `5` does not exist.
 - An ID must be a positive integer (1, 2, 3, …). An ID that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`
 - Candidate IDs and job IDs are counted separately, so candidate `#1` and job opening `1` can both exist.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
@@ -541,7 +541,7 @@ Format: `view candidate CANDIDATE_ID`
   target role, skills, and note.
   Empty optional fields (role, skills, note) are shown as `—`.
 - A `CANDIDATE_ID` that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`, leaving the list unchanged.
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`, leaving the list unchanged.
 
 Examples:
 
@@ -553,7 +553,7 @@ Sample feedback:
 | Command | Feedback |
 | --- | --- |
 | `view candidate 1` | Candidate `1`'s full details (name, stage, priority score, phone, email, address, role, skills, note); the list collapses to that candidate. |
-| `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `view candidate 999` | `Candidate ID "999" does not exist. Use list candidates to view available candidate IDs.` |
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
 | `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate` and `view event` (a record-type keyword is required). |
 
@@ -593,7 +593,7 @@ Format: `note CANDIDATE_ID [NOTE]`
   is active, because the candidate is located by ID.
 - Only the note changes; the candidate's name, contact details, skills, role, and interview stage are preserved.
 - A `CANDIDATE_ID` that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`
 
 Examples:
 
@@ -607,7 +607,7 @@ Sample feedback:
 | --- | --- |
 | `note 1 Strong SQL round` | `Added note to candidate: ` followed by candidate `1`'s updated details. |
 | `note 1` | `Removed note from candidate: ` followed by candidate `1`'s updated details. |
-| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list candidates to view available candidate IDs.` |
 | `note 0 x`, `note abc x`, `note` | `Invalid command format!` followed by the `note` usage (the ID must be a positive integer). |
 
 ### Changing candidates' interview stages: `stage candidate`
@@ -640,7 +640,7 @@ preserves the stage.
 
 Success shows `Updated interview stage for candidate CANDIDATE_ID: NAME (EMAIL) to STAGE` for each selected candidate,
 on a separate line. Single-candidate commands show one line.
-A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list to view available candidate IDs.`
+A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list candidates to view available candidate IDs.`
 An unknown stage reports `Interview stage must be one of [SCREENING, ACCEPTED, REJECTED] (case-insensitive).`
 
 Examples:

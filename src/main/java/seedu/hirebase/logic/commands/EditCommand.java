@@ -57,7 +57,8 @@ public class EditCommand extends Command {
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com\n"
-            + "To edit a job opening, use: " + EditJobCommand.MESSAGE_USAGE;
+            + "To edit a job opening, use: " + EditJobCommand.MESSAGE_USAGE + "\n"
+            + "To edit an event, use: " + EditEventCommand.MESSAGE_USAGE;
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited candidate: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";

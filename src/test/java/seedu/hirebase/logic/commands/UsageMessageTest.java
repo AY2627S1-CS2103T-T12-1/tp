@@ -14,6 +14,7 @@ public class UsageMessageTest {
         assertTrue(DeleteCommand.MESSAGE_USAGE.contains(DeleteJobCommand.MESSAGE_USAGE));
         assertTrue(DeleteCommand.MESSAGE_USAGE.contains(DeleteEventCommand.MESSAGE_USAGE));
         assertTrue(EditCommand.MESSAGE_USAGE.contains(EditJobCommand.MESSAGE_USAGE));
+        assertTrue(EditCommand.MESSAGE_USAGE.contains(EditEventCommand.MESSAGE_USAGE));
         assertTrue(ListCommand.MESSAGE_USAGE.contains(ListJobsCommand.MESSAGE_USAGE));
         assertTrue(ViewCommand.MESSAGE_USAGE.contains(ViewEventCommand.MESSAGE_USAGE));
     }

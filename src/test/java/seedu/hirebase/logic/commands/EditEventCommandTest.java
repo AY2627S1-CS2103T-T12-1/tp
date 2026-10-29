@@ -21,7 +21,7 @@ import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.event.EventName;
 import seedu.hirebase.testutil.EventBuilder;
 
-public class UpdateEventCommandTest {
+public class EditEventCommandTest {
     private final EventId id = new EventId(1);
     private final EventName name = new EventName("Final round");
     private final EventDescription description = new EventDescription("Bring portfolio");
@@ -32,11 +32,11 @@ public class UpdateEventCommandTest {
     @Test
     public void constructor_requiresIdAndAtLeastOneField() {
         assertThrows(NullPointerException.class, () ->
-                new UpdateEventCommand(null, null, null, null, null, true, null));
+                new EditEventCommand(null, null, null, null, null, true, null));
         assertThrows(IllegalArgumentException.class, () ->
-                new UpdateEventCommand(id, null, null, null, null, null, null));
+                new EditEventCommand(id, null, null, null, null, null, null));
         assertThrows(NullPointerException.class, () ->
-                new UpdateEventCommand(id, null, null, null, null, true, null).execute(null));
+                new EditEventCommand(id, null, null, null, null, true, null).execute(null));
     }
 
     @Test
@@ -44,7 +44,7 @@ public class UpdateEventCommandTest {
         Model model = new ModelManager(getTypicalHireBase(), new UserPrefs());
         model.addEvent(new EventBuilder().withCandidateIds(1).build());
         List<CandidateId> ids = new ArrayList<>(List.of(new CandidateId(2), new CandidateId(2)));
-        UpdateEventCommand command = new UpdateEventCommand(id, null, null, null, null, null, ids);
+        EditEventCommand command = new EditEventCommand(id, null, null, null, null, null, ids);
         ids.clear();
         command.execute(model);
         assertEquals(List.of(new CandidateId(2)), model.getEventList().getFirst().getCandidateIds());
@@ -52,27 +52,27 @@ public class UpdateEventCommandTest {
 
     @Test
     public void equalsAndHashCode_compareAllSuppliedFields() {
-        UpdateEventCommand command = new UpdateEventCommand(id, name, description, start, end, true, candidates);
+        EditEventCommand command = new EditEventCommand(id, name, description, start, end, true, candidates);
         assertEquals(command, command);
-        UpdateEventCommand equivalent = new UpdateEventCommand(id, name, description, start, end, true,
+        EditEventCommand equivalent = new EditEventCommand(id, name, description, start, end, true,
                 List.of(new CandidateId(1), new CandidateId(1)));
         assertEquals(command, equivalent);
         assertEquals(command.hashCode(), equivalent.hashCode());
         assertNotEquals(command, null);
         assertNotEquals(command, new ClearCommand());
-        assertNotEquals(command, new UpdateEventCommand(new EventId(2), name, description,
+        assertNotEquals(command, new EditEventCommand(new EventId(2), name, description,
                 start, end, true, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, null, description, start, end, true, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, name, null, start, end, true, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, name, description, null, end, true, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, name, description, start, null, true, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, name, description, start, end, false, candidates));
-        assertNotEquals(command, new UpdateEventCommand(id, name, description, start, end, true, null));
+        assertNotEquals(command, new EditEventCommand(id, null, description, start, end, true, candidates));
+        assertNotEquals(command, new EditEventCommand(id, name, null, start, end, true, candidates));
+        assertNotEquals(command, new EditEventCommand(id, name, description, null, end, true, candidates));
+        assertNotEquals(command, new EditEventCommand(id, name, description, start, null, true, candidates));
+        assertNotEquals(command, new EditEventCommand(id, name, description, start, end, false, candidates));
+        assertNotEquals(command, new EditEventCommand(id, name, description, start, end, true, null));
     }
 
     @Test
     public void toString_includesTargetAndCancellation() {
-        String text = new UpdateEventCommand(id, null, null, null, null, true, null).toString();
+        String text = new EditEventCommand(id, null, null, null, null, true, null).toString();
         assertTrue(text.contains("targetId=1"));
         assertTrue(text.contains("cancelled=true"));
     }

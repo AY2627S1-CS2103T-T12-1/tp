@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-import seedu.hirebase.logic.commands.UpdateEventCommand;
+import seedu.hirebase.logic.commands.EditEventCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.event.EventDescription;
@@ -24,29 +24,29 @@ import seedu.hirebase.model.event.EventId;
 /**
  * Parses partial event updates, rejecting unknown prefixes rather than absorbing them into field values.
  */
-public class UpdateEventCommandParser implements Parser<UpdateEventCommand> {
+public class EditEventCommandParser implements Parser<EditEventCommand> {
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_DESCRIPTION, PREFIX_FROM,
             PREFIX_TO, PREFIX_CANDIDATE, PREFIX_CANCEL);
     // Prefix names start with a letter, so dates such as 05/11/2026 are not mistaken for prefixes.
     private static final Pattern PREFIX_TOKEN = Pattern.compile("(?U)(?<!\\S)([\\p{L}_][\\p{L}\\p{N}_-]*/)");
 
     @Override
-    public UpdateEventCommand parse(String args) throws ParseException {
+    public EditEventCommand parse(String args) throws ParseException {
         requireNonNull(args);
         List<MatchResult> matches = PREFIX_TOKEN.matcher(args).results().toList();
         String[] preamble = args.substring(0, matches.isEmpty() ? args.length() : matches.getFirst().start())
                 .trim().split("\\s+");
-        if (preamble.length != 2 || !preamble[0].equals(UpdateEventCommand.RECORD_TYPE_EVENT)) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, UpdateEventCommand.MESSAGE_USAGE));
+        if (preamble.length != 2 || !preamble[0].equals(EditEventCommand.RECORD_TYPE_EVENT)) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditEventCommand.MESSAGE_USAGE));
         }
         EventId id;
         try {
             id = new EventId(ParserUtil.parseIndex(preamble[1]).getOneBased());
         } catch (ParseException e) {
-            throw new ParseException(UpdateEventCommand.MESSAGE_INVALID_ID, e);
+            throw new ParseException(EditEventCommand.MESSAGE_INVALID_ID, e);
         }
         if (matches.isEmpty()) {
-            throw new ParseException(UpdateEventCommand.MESSAGE_NO_FIELDS);
+            throw new ParseException(EditEventCommand.MESSAGE_NO_FIELDS);
         }
         ArgumentMultimap fields = new ArgumentMultimap();
         for (int i = 0; i < matches.size(); i++) {
@@ -59,7 +59,7 @@ public class UpdateEventCommandParser implements Parser<UpdateEventCommand> {
             fields.put(prefix, args.substring(match.end(), end).trim());
         }
         fields.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_DESCRIPTION, PREFIX_FROM, PREFIX_TO, PREFIX_CANCEL);
-        return new UpdateEventCommand(id,
+        return new EditEventCommand(id,
                 fields.getValue(PREFIX_NAME).isPresent()
                         ? ParserUtil.parseEventName(fields.getValue(PREFIX_NAME).get()) : null,
                 fields.getValue(PREFIX_DESCRIPTION).map(EventDescription::new).orElse(null),
@@ -79,7 +79,7 @@ public class UpdateEventCommandParser implements Parser<UpdateEventCommand> {
         if (value.equalsIgnoreCase("false")) {
             return false;
         }
-        throw new ParseException(UpdateEventCommand.MESSAGE_INVALID_CANCEL);
+        throw new ParseException(EditEventCommand.MESSAGE_INVALID_CANCEL);
     }
 
     private List<CandidateId> parseCandidateIds(List<String> values) throws ParseException {

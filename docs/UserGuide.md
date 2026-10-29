@@ -771,13 +771,13 @@ Sample feedback:
 | `view event 0`, `view event abc`, `view event` | `Invalid command format!` followed by the `view event` usage (the ID must be a positive integer). |
 | `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists both `view candidate` and `view event`. |
 
-### Updating or cancelling an event: `update event`
+### Editing or cancelling an event: `edit event`
 
-Updates one event using its permanent event ID. Cancellation keeps the event and its linked candidates for reference.
+Edits one event using its permanent event ID. Cancellation keeps the event and its linked candidates for reference.
 
-Format: `update event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true|false]`
+Format: `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true|false]`
 
-- `update`, `event`, and the prefixes are case-sensitive. Supply exactly one positive event ID and at least one field.
+- `edit`, `event`, and the prefixes are case-sensitive. Supply exactly one positive event ID and at least one field.
   Use the number from the event's `#N` identifier, without the `#`. This is an event ID, not a candidate ID or list position.
 - Omitted fields retain their existing values. Supplied fields can appear in any order.
   Each prefix may appear once, except `c/`, which can appear multiple times.
@@ -803,19 +803,19 @@ Format: `update event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:M
 - Invalid fields, unknown prefixes, duplicate single-value prefixes, nonexistent event or candidate IDs, and invalid
   resulting times leave the event unchanged. A failed save also leaves the original event in the application.
 
-Success shows `Updated event: ` followed by the event's ID, name, and times, ending with `Status: Cancelled.`
+Success shows `Edited event: ` followed by the event's ID, name, and times, ending with `Status: Cancelled.`
 or `Status: Active.`. Overlapping active events are listed after a warning.
 A nonexistent event reports `Event ID "EVENT_ID" does not exist.`
 An invalid cancellation value reports `cancel/ must be true or false.`
 
 Examples:
 
-- `update event 1 cancel/true` cancels event `#1` while keeping its details and linked candidates.
-- `update event 1 desc/Applicant requested postponement cancel/true` records a reason and cancels the event.
-- `update event 1 cancel/false` restores event `#1` to active status.
-- `update event 1 from/06/11/2026 14:00 to/06/11/2026 15:00` moves the event to that date and time.
-- `update event 1 n/Final interview c/2 c/3` renames the event and replaces its candidate links with IDs 2 and 3.
-- `update event 1 desc/ c/` clears the description and candidate links, preserving its other fields.
+- `edit event 1 cancel/true` cancels event `#1` while keeping its details and linked candidates.
+- `edit event 1 desc/Applicant requested postponement cancel/true` records a reason and cancels the event.
+- `edit event 1 cancel/false` restores event `#1` to active status.
+- `edit event 1 from/06/11/2026 14:00 to/06/11/2026 15:00` moves the event to that date and time.
+- `edit event 1 n/Final interview c/2 c/3` renames the event and replaces its candidate links with IDs 2 and 3.
+- `edit event 1 desc/ c/` clears the description and candidate links, preserving its other fields.
 
 ### Deleting an event: `delete event`
 
@@ -974,7 +974,7 @@ _Details coming soon ..._
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Add event** | `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`<br> e.g., `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` |
 | **View event** | `view event EVENT_ID`<br> e.g., `view event 1` |
-| **Update or cancel event** | `update event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true\|false]`<br> e.g., `update event 1 cancel/true` |
+| **Edit or cancel event** | `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true\|false]`<br> e.g., `edit event 1 cancel/true` |
 | **Delete event** | `delete event EVENT_ID`<br> e.g., `delete event 1` |
 | **Clear** | `clear` |
 | **Help** | `help` |

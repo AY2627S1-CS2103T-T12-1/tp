@@ -10,15 +10,15 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.hirebase.logic.Messages;
-import seedu.hirebase.logic.commands.UpdateEventCommand;
+import seedu.hirebase.logic.commands.EditEventCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.event.EventDescription;
 import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.event.EventName;
 
-public class UpdateEventCommandParserTest {
-    private final UpdateEventCommandParser parser = new UpdateEventCommandParser();
+public class EditEventCommandParserTest {
+    private final EditEventCommandParser parser = new EditEventCommandParser();
 
     @Test
     public void parse_cancelAndRestore_acceptsExplicitBooleansIgnoringCase() {
@@ -57,13 +57,13 @@ public class UpdateEventCommandParserTest {
                 "candidate 1 cancel/true", "event 1 2 cancel/true")) {
             assertThrows(ParseException.class, () -> parser.parse(input));
         }
-        assertParseFailure(parser, "event 1", UpdateEventCommand.MESSAGE_NO_FIELDS);
+        assertParseFailure(parser, "event 1", EditEventCommand.MESSAGE_NO_FIELDS);
     }
 
     @Test
     public void parse_invalidIds_rejected() {
         for (String id : List.of("0", "-1", "+1", "1.5", "abc", "2147483648")) {
-            assertParseFailure(parser, "event " + id + " cancel/true", UpdateEventCommand.MESSAGE_INVALID_ID);
+            assertParseFailure(parser, "event " + id + " cancel/true", EditEventCommand.MESSAGE_INVALID_ID);
             assertThrows(ParseException.class, () -> parser.parse("event 1 c/" + id));
         }
         assertThrows(ParseException.class, () -> parser.parse("event 1 c/ c/1"));
@@ -72,7 +72,7 @@ public class UpdateEventCommandParserTest {
     @Test
     public void parse_invalidCancellation_rejectedRatherThanSilentlyRestoring() {
         for (String value : List.of("", "yes", "1", "no", "tru", "false extra")) {
-            assertParseFailure(parser, "event 1 cancel/" + value, UpdateEventCommand.MESSAGE_INVALID_CANCEL);
+            assertParseFailure(parser, "event 1 cancel/" + value, EditEventCommand.MESSAGE_INVALID_CANCEL);
         }
     }
 
@@ -108,8 +108,8 @@ public class UpdateEventCommandParserTest {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
 
-    private UpdateEventCommand update(EventName name, EventDescription description, LocalDateTime start,
+    private EditEventCommand update(EventName name, EventDescription description, LocalDateTime start,
             LocalDateTime end, Boolean cancelled, List<CandidateId> candidates) {
-        return new UpdateEventCommand(new EventId(1), name, description, start, end, cancelled, candidates);
+        return new EditEventCommand(new EventId(1), name, description, start, end, cancelled, candidates);
     }
 }

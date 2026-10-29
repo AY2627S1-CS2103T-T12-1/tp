@@ -32,7 +32,7 @@ import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.CommandResult;
-import seedu.hirebase.logic.commands.UpdateEventCommand;
+import seedu.hirebase.logic.commands.EditEventCommand;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
@@ -312,7 +312,7 @@ public class CalendarUiIntegrationTest {
     }
 
     @Test
-    public void updateEvent_cancelRestoreAndReschedule_refreshCalendarWithoutChangingOptions() throws Exception {
+    public void editEvent_cancelRestoreAndReschedule_refreshCalendarWithoutChangingOptions() throws Exception {
         onFxThread(() -> {
             Fixture fixture = new Fixture();
             try {
@@ -324,7 +324,7 @@ public class CalendarUiIntegrationTest {
                 fixture.select("Calendar");
                 assertEquals("1 event", fixture.count());
 
-                fixture.submit("update event 1 cancel/true");
+                fixture.submit("edit event 1 cancel/true");
                 assertTrue(fixture.feedback().contains("Status: Cancelled"));
                 assertEquals("Calendar", fixture.selectedTab());
                 assertEquals(active, panel.getOptions());
@@ -333,13 +333,13 @@ public class CalendarUiIntegrationTest {
 
                 panel.setOptions(cancelled);
                 assertEquals("1 event", fixture.count());
-                fixture.submit("update event 1 cancel/false");
+                fixture.submit("edit event 1 cancel/false");
                 assertEquals(cancelled, panel.getOptions());
                 assertEquals("0 events", fixture.count());
                 panel.setOptions(active);
                 assertEquals("1 event", fixture.count());
 
-                fixture.submit("update event 1 from/27/10/2026 14:00 to/27/10/2026 15:00");
+                fixture.submit("edit event 1 from/27/10/2026 14:00 to/27/10/2026 15:00");
                 assertTrue(fixture.feedback().contains("27/10/2026"));
                 assertEquals("Calendar", fixture.selectedTab());
                 assertEquals(active, panel.getOptions());
@@ -354,7 +354,7 @@ public class CalendarUiIntegrationTest {
     }
 
     @Test
-    public void updateEvent_saveFailure_keepsCalendarAndStoredEventUnchanged() throws Exception {
+    public void editEvent_saveFailure_keepsCalendarAndStoredEventUnchanged() throws Exception {
         onFxThread(() -> {
             Fixture fixture = new Fixture();
             try {
@@ -365,9 +365,9 @@ public class CalendarUiIntegrationTest {
                 CalendarViewOptions options = fixture.window.getCalendarPanel().getOptions();
                 fixture.storage.failure = new IOException("disk full");
 
-                fixture.submit("update event 1 cancel/true");
+                fixture.submit("edit event 1 cancel/true");
 
-                assertEquals(UpdateEventCommand.MESSAGE_SAVE_FAILURE, fixture.feedback());
+                assertEquals(EditEventCommand.MESSAGE_SAVE_FAILURE, fixture.feedback());
                 assertEquals("Calendar", fixture.selectedTab());
                 assertEquals("1 event", fixture.count());
                 assertEquals(options, fixture.window.getCalendarPanel().getOptions());

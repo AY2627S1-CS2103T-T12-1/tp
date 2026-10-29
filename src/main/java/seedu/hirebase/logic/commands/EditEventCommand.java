@@ -17,23 +17,23 @@ import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.event.EventName;
 
 /**
- * Updates supplied fields of an event while preserving its permanent ID.
+ * Edits supplied fields of an event while preserving its permanent ID.
  */
-public class UpdateEventCommand extends Command {
-    public static final String COMMAND_WORD = "update";
+public class EditEventCommand extends Command {
+    public static final String COMMAND_WORD = EditCommand.COMMAND_WORD;
     public static final String RECORD_TYPE_EVENT = "event";
-    public static final String MESSAGE_USAGE = "update event EVENT_ID [n/NAME] [desc/DESCRIPTION] "
+    public static final String MESSAGE_USAGE = "edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] "
             + "[from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true|false]";
-    public static final String MESSAGE_NO_FIELDS = "Specify at least one field to update. Usage: " + MESSAGE_USAGE;
+    public static final String MESSAGE_NO_FIELDS = "Specify at least one field to edit. Usage: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_ID = "Event ID must be a positive integer. Usage: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_CANCEL = "cancel/ must be true or false.";
     public static final String MESSAGE_NOT_FOUND = "Event ID \"%d\" does not exist.";
     public static final String MESSAGE_UNKNOWN_CANDIDATES =
-            "No candidate has ID(s): %s. Use list to view candidate IDs. The event was not updated.";
-    public static final String MESSAGE_SUCCESS = "Updated event: %s; Status: %s.";
+            "No candidate has ID(s): %s. Use list to view candidate IDs. The event was not edited.";
+    public static final String MESSAGE_SUCCESS = "Edited event: %s; Status: %s.";
     public static final String MESSAGE_CONFLICT_WARNING =
-            "\nWarning: this event overlaps with %d existing event(s). It was still updated:";
-    public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. The event was not updated. "
+            "\nWarning: this event overlaps with %d existing event(s). It was still edited:";
+    public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. The event was not edited. "
             + "Check storage permissions and available disk space, then try again.";
 
     private final EventId targetId;
@@ -48,7 +48,7 @@ public class UpdateEventCommand extends Command {
      * Creates an update. Null fields retain their existing values; an empty candidate list clears links.
      * At least one field must be supplied. The candidate IDs are copied to protect the command from later changes.
      */
-    public UpdateEventCommand(EventId targetId, EventName name, EventDescription description,
+    public EditEventCommand(EventId targetId, EventName name, EventDescription description,
             LocalDateTime start, LocalDateTime end, Boolean cancelled, List<CandidateId> candidateIds) {
         this.targetId = requireNonNull(targetId);
         if (name == null && description == null && start == null && end == null
@@ -99,7 +99,7 @@ public class UpdateEventCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof UpdateEventCommand otherCommand
+        return other == this || other instanceof EditEventCommand otherCommand
                 && targetId.equals(otherCommand.targetId)
                 && Objects.equals(name, otherCommand.name)
                 && Objects.equals(description, otherCommand.description)

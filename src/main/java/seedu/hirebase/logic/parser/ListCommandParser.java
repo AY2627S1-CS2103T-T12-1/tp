@@ -46,6 +46,7 @@ public class ListCommandParser implements Parser<Command> {
 
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(normalizedArgs,
                 PREFIX_SKILL, PREFIX_ROLE, PREFIX_STAGE, PREFIX_PRIORITY);
+        argMultimap.verifyNoUnknownPrefixes();
         if (!argMultimap.getPreamble().equals(ListCommand.RECORD_TYPE_CANDIDATE)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE));
         }

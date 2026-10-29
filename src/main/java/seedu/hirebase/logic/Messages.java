@@ -20,6 +20,7 @@ public class Messages {
     public static final String MESSAGE_EVENT_ID_NOT_FOUND = "Event ID \"%1$d\" does not exist.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
+    public static final String MESSAGE_UNKNOWN_PARAMETER = "Unknown parameter: %1$s.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.

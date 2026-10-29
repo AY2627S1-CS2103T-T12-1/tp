@@ -196,4 +196,10 @@ public class AddCommandParserTest {
         assertParseFailure(parser, " person" + VALID_COMMAND_BOB, expected); // wrong record type
         assertParseFailure(parser, " candidates" + VALID_COMMAND_BOB, expected); // not an exact match
     }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        assertParseFailure(parser, CANDIDATE + VALID_COMMAND_BOB + " stage/ACCEPTED",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "stage/"));
+    }
 }

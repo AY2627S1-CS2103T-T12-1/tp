@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import seedu.hirebase.logic.Messages;
@@ -20,6 +22,9 @@ import seedu.hirebase.logic.parser.exceptions.ParseException;
  * can be inserted multiple times for the same prefix.
  */
 public class ArgumentMultimap {
+
+    /** Matches a prefix-like token after whitespace, using the same token shape as the job parsers. */
+    private static final Pattern UNKNOWN_PREFIX_TOKEN = Pattern.compile("(?U)(?<=\\s)([\\p{L}\\p{N}_-]+/)");
 
     /** Prefixes mapped to their respective arguments */
     private final Map<Prefix, List<String>> argMultimap = new HashMap<>();
@@ -81,6 +86,22 @@ public class ArgumentMultimap {
 
         if (duplicatedPrefixes.length > 0) {
             throw new ParseException(Messages.getErrorMessageForDuplicatePrefixes(duplicatedPrefixes));
+        }
+    }
+
+    /**
+     * Throws a {@code ParseException} if any value contains a prefix-like token, such as {@code stage/}, after
+     * whitespace. Accepted prefixes were already split off by the tokenizer, so any such token is unknown to the
+     * command. Slashes without a preceding space, as in {@code CI/CD}, are kept as part of the value.
+     */
+    public void verifyNoUnknownPrefixes() throws ParseException {
+        for (List<String> values : argMultimap.values()) {
+            for (String value : values) {
+                Matcher matcher = UNKNOWN_PREFIX_TOKEN.matcher(value);
+                if (matcher.find()) {
+                    throw new ParseException(String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, matcher.group(1)));
+                }
+            }
         }
     }
 }

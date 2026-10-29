@@ -65,6 +65,11 @@ the management of high-volume candidate tracking for tech recruiters through an 
   Positional arguments, such as `CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE` in
   `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`, must follow the order shown.
 
+- In `add candidate`, `edit candidate`, `list candidates`, `add job` and `edit job`, a word ending in `/` after a
+  space is read as a parameter. One the command does not accept is rejected as `Unknown parameter: X/.`, for example
+  `edit candidate 1 r/Backend Engineer stage/ACCEPTED` reports `Unknown parameter: stage/.` and changes nothing.
+  A slash without a space before it is part of the value, so `s/CI/CD` is accepted but `s/Build CI/CD` is not.
+
 - `CANDIDATE_ID` is a candidate's permanent ID, shown as `#N` (e.g. `#1`) before their name on each card. See [About candidate IDs](#about-candidate-ids).
 
 - `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.

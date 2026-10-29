@@ -192,6 +192,11 @@ Open **Calendar** to browse saved events. Choose **Today**, **Week** or **Month*
 | **Week** | The current week, from Sunday through Saturday, including across month or year boundaries. |
 | **Month** | The current calendar month, from its first day to its last day. |
 
+In v1.5, these are **current-period views only**. There are no controls to navigate to another week or month.
+For example, on **31 October 2026**, an event on **2 November 2026** can be saved but cannot be seen in any of
+the three views: it is outside that day, the week of 25–31 October and the month of October. The available
+dates change automatically as your computer's local date advances. The checkboxes do not extend the date range.
+
 The calendar starts in **Week** with both checkboxes clear each time you launch HireBase.
 Dates and times follow your computer's local clock, and the displayed period updates automatically as the date changes.
 
@@ -207,9 +212,14 @@ that period after both filters are applied. With **Upcoming only** selected, the
 automatically as events end. Saved record changes also update the view.
 
 Adding an event keeps the selected period and filters, so it appears only if its date and status match the current view.
-Check the range heading and filters if it is not visible. Switching tabs and changing calendar controls only change what
-you see; they do not edit events or save data. The selected period and checkboxes are remembered while the
-app remains open and reset on the next launch.
+If a newly added event is hidden, the success message and any overlap warning are followed by:
+
+`Saved successfully, but not shown in the current calendar view. Check the selected period and filters.`
+
+The event has been saved even when it is outside the available current-period views. A visible new event does
+not show this extra hint. Switching tabs and changing calendar controls only change what you see; they do not
+edit events or save data. The selected period and checkboxes are remembered while the app remains open and
+reset on the next launch.
 
 You can use the calendar without a mouse: use **Tab** and **Shift+Tab** to move focus, arrow keys on the tab
 headers or dropdown to change the selection, and **Space** to toggle a focused checkbox.
@@ -652,7 +662,8 @@ Examples:
 * `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 desc/Round 2 c/1`
 * `add event n/Hiring sync from/06/11/2026 09:30 to/06/11/2026 10:00`
 
-Adding an overlapping event, when event `#1` is the interview above:
+Adding an overlapping event, when event `#1` is the interview above, shows this success and overlap feedback
+(a calendar-view hint may follow):
 
 ```
 add event n/Team sync from/05/11/2026 14:30 to/05/11/2026 15:30
@@ -660,6 +671,10 @@ Added event: #2 Team sync (05/11/2026 14:30 to 05/11/2026 15:30)
 Warning: this event overlaps with 1 existing event(s). It was still added:
 #1 Interview with Alex (05/11/2026 14:00 to 05/11/2026 15:00)
 ```
+
+After a successful addition, HireBase selects **Calendar** while keeping its period and filters. If they hide
+the new event, an extra hint confirms that it was saved; see [Viewing the calendar](#viewing-the-calendar).
+The v1.5 calendar cannot navigate to dates outside its current day, week or month.
 
 The event is saved before it is shown. If saving fails, HireBase reports `Could not save changes. The event was not
 added. Check storage permissions and available disk space, then try again.` and nothing changes; the event ID is not

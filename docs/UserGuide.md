@@ -492,6 +492,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 - Matching is case-insensitive for both names and email addresses.
 - Names match whole words: `Hans` matches `Hans Gruber`, but `Han` does not match his name.
+  Parts of hyphenated or apostrophe names count as words: `Mary`, `Jane`, `Neil` and `Mary-Jane` all match
+  `Mary-Jane O'Neil`.
 - Email addresses match any substring: `hans`, `hans@example.com`, and `@example.com` all match `hans@example.com`.
   A partial name keyword can still find a candidate if it matches their email address.
 - Keywords are separated by whitespace. Supply at least one keyword; an empty search is rejected.

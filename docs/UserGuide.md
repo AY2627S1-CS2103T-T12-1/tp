@@ -39,7 +39,7 @@ the management of high-volume candidate tracking for tech recruiters through an 
 
    - `add event n/Team meeting from/05/11/2026 14:00 to/05/11/2026 15:00` : Adds an event to the calendar.
 
-   - `view calendar period/month` : Opens the Calendar tab and shows the current 
+   - `view calendar period/month` : Opens the Calendar tab and shows the current month.
 
    - `clear` : Deletes all candidates, job openings and events.
 
@@ -234,8 +234,7 @@ The calendar starts in **Week** with both checkboxes clear each time you launch 
 Dates and times follow your computer's local clock, and the displayed period updates automatically as the date changes.
 
 - With **Cancelled only** clear, cancelled events are hidden. Select it to show only cancelled events instead.
-  HireBase v1.5 has no command to cancel an event, so this view stays empty unless you set `"cancelled": true` on an
-  event in the data file (see [Editing the data file](#editing-the-data-file)).
+  Cancel an event with [`edit event`](#editing-or-cancelling-an-event-edit-event), for example `edit event 1 cancel/true`.
 - With **Upcoming only** clear, past events remain visible. Select it to hide events whose end time has been reached.
   An event in progress is still upcoming until it ends.
 - Selecting both checkboxes shows only cancelled events that have not ended, within the selected period.
@@ -723,7 +722,7 @@ Format: `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRI
 * The new event is given the next unused event ID, shown as `#N` in the result. Event IDs are separate from candidate and job IDs, and are never reused, even after `clear`.
 
 **Overlapping events:** if the new event overlaps any existing event, HireBase still adds it and lists the events it
-overlaps, with their IDs, so you can reschedule one of them or remove it with [`delete event`](#deleting-an-event-delete-event). 
+overlaps, with their IDs, so you can reschedule one of theso you can move or cancel one of them with [`edit event`](#editing-or-cancelling-an-event-edit-event), or remove it with [`delete event`](#deleting-an-event-delete-event).m or remove it with [`delete event`](#deleting-an-event-delete-event). 
 Cancelled events do not count, and an event that starts exactly when another ends does not overlap it. Past events still count.
 
 **Caution:** `d/` is not a parameter of `add event` (it is a job's department). Use `desc/` for the description.
@@ -792,6 +791,59 @@ Sample feedback:
 | `view event 999` | `Event ID "999" does not exist.` |
 | `view event 0`, `view event abc`, `view event` | `Invalid command format!` followed by the `view event` usage (the ID must be a positive integer). |
 | `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate`, `view event` and `view calendar`. |
+
+### Editing or cancelling an event: `edit event`
+
+Edits one event using its permanent event ID. Cancellation keeps the event and its linked candidates for reference.
+
+Format: `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true|false]`
+
+- `edit`, `event`, and the prefixes are case-sensitive. Supply exactly one positive event ID and at least one field.
+  Use the number from the event's `#N` identifier, without the `#`. This is an event ID, not a candidate ID or list position.
+- Omitted fields retain their existing values. Supplied fields can appear in any order.
+  Each prefix may appear once, except `c/`, which can appear multiple times.
+- `n/NAME` replaces the event name. The name must be nonblank and at most 100 characters long.
+- `desc/DESCRIPTION` replaces the description; `desc/` with no text clears it.
+- Unlike `add event`, this command rejects unknown prefixes. In names and descriptions, a prefix-like token
+  following whitespace is treated as a parameter: `desc/Discuss CI/CD pipelines` is rejected with
+  `Unknown parameter: CI/.`. To include slash-containing text, put it immediately after the field prefix
+  (`desc/CI/CD pipelines discussion`) or wrap that text in parentheses (`desc/Discuss (CI/CD) pipelines`).
+  The parentheses are preserved in the saved value.
+- `from/` and `to/` replace the start and end times using `DD/MM/YYYY HH:MM` in 24-hour time.
+  The resulting start must be strictly before the end, and both must be on the same day.
+  When changing dates, supply both fields so that the resulting event stays on one day.
+- `c/CANDIDATE_ID` replaces the entire list of linked candidates. All supplied candidate IDs must exist;
+  repeated IDs are kept only once. Use a single empty `c/` to remove all candidate links.
+  Omitting `c/` preserves historical links, including IDs of candidates who have since been deleted.
+- `cancel/true` marks the event cancelled; `cancel/false` restores it to active status.
+  The values `true` and `false` are case-insensitive. Repeating a cancellation or restoration is allowed.
+  Other values, including an empty `cancel/`, are rejected.
+- Cancelled events keep their name, description, times, permanent ID, and linked candidates unless you also update
+  those fields. They do not contribute to overlap warnings.
+- If an updated active event overlaps another active event, a warning is shown and the update still succeeds.
+  The event is not counted as overlapping with itself. Restoring a cancelled event checks overlaps too.
+- The permanent event ID and event order are preserved, as are candidate records, job openings, the current tab,
+  and candidate search filters. Updates are saved automatically and retained after restarting HireBase.
+  The calendar refreshes using its current period and filters: cancellation hides an event from the default view
+  and makes it eligible for the cancelled-only view, while restoration reverses that behaviour.
+- Invalid fields, unknown prefixes, duplicate single-value prefixes, nonexistent event or candidate IDs, and invalid
+  resulting times leave the event unchanged. A failed save also leaves the original event in the application.
+
+Success shows `Edited event: ` followed by the event's ID, name, and times, ending with `Status: Cancelled.`
+or `Status: Active.`. Overlapping active events are listed after a warning.
+A nonexistent event reports `Event ID "EVENT_ID" does not exist.`
+An invalid cancellation value reports `cancel/ must be true or false.`
+
+Examples:
+
+- `edit event 1 cancel/true` cancels event `#1` while keeping its details and linked candidates.
+- `edit event 1 desc/Applicant requested postponement cancel/true` records a reason and cancels the event.
+- `edit event 1 desc/Discuss (CI/CD) pipelines` updates the description while keeping the slash-containing text
+  in parentheses so that it is not treated as a parameter.
+- `edit event 1 cancel/false` restores event `#1` to active status.
+- `edit event 1 from/06/11/2026 14:00 to/06/11/2026 15:00` moves the event to that date and time.
+- `edit event 1 n/Final interview c/2 c/3` renames the event and replaces its candidate links with IDs 2 and 3.
+- `edit event 1 desc/ c/` clears the description and candidate links, preserving its other fields.
 
 ### Deleting an event: `delete event`
 
@@ -931,8 +983,6 @@ _Details coming soon ..._
 3. **The calendar only shows the current day, week or month.** An event on another date is saved but cannot be seen
    in the Calendar tab, and neither `view calendar` nor the checkboxes widen the range. Use `view event EVENT_ID` to read
    such an event. Navigation to other periods is planned.
-4. **Events cannot be edited or cancelled with a command.** To change an event, use `delete event EVENT_ID` and
-   `add event` again. The **Cancelled only** view shows events only if you set `"cancelled": true` in the data file.
 
 ---
 
@@ -957,6 +1007,7 @@ _Details coming soon ..._
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Add event** | `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`<br> e.g., `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` |
 | **View event** | `view event EVENT_ID`<br> e.g., `view event 1` |
+| **Edit or cancel event** | `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]... [cancel/true\|false]`<br> e.g., `edit event 1 cancel/true` |
 | **Delete event** | `delete event EVENT_ID`<br> e.g., `delete event 1` |
 | **Clear** | `clear` |
 | **Help** | `help` |

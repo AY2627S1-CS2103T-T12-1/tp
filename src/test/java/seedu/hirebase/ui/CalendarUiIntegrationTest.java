@@ -32,6 +32,7 @@ import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.EditEventCommand;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
@@ -306,6 +307,74 @@ public class CalendarUiIntegrationTest {
             } finally {
                 window.getCalendarPanel().stop();
                 stage.close();
+            }
+        });
+    }
+
+    @Test
+    public void editEvent_cancelRestoreAndReschedule_refreshCalendarWithoutChangingOptions() throws Exception {
+        onFxThread(() -> {
+            Fixture fixture = new Fixture();
+            try {
+                Event original = fixture.model.addEvent(event("Interview", 14, 15, false));
+                CalendarViewOptions active = new CalendarViewOptions(Period.TODAY, false, true);
+                CalendarViewOptions cancelled = new CalendarViewOptions(Period.TODAY, true, true);
+                CalendarPanel panel = fixture.window.getCalendarPanel();
+                panel.setOptions(active);
+                fixture.select("Calendar");
+                assertEquals("1 event", fixture.count());
+
+                fixture.submit("edit event 1 cancel/true");
+                assertTrue(fixture.feedback().contains("Status: Cancelled"));
+                assertEquals("Calendar", fixture.selectedTab());
+                assertEquals(active, panel.getOptions());
+                assertEquals("0 events", fixture.count());
+                assertEquals(original.withCancelled(true), fixture.model.getEventList().getFirst());
+
+                panel.setOptions(cancelled);
+                assertEquals("1 event", fixture.count());
+                fixture.submit("edit event 1 cancel/false");
+                assertEquals(cancelled, panel.getOptions());
+                assertEquals("0 events", fixture.count());
+                panel.setOptions(active);
+                assertEquals("1 event", fixture.count());
+
+                fixture.submit("edit event 1 from/27/10/2026 14:00 to/27/10/2026 15:00");
+                assertTrue(fixture.feedback().contains("27/10/2026"));
+                assertEquals("Calendar", fixture.selectedTab());
+                assertEquals(active, panel.getOptions());
+                assertEquals("0 events", fixture.count());
+                assertEquals(original.getEventId(), fixture.model.getEventList().getFirst().getEventId());
+                assertEquals(fixture.model.getEventList(),
+                        fixture.storage.readHireBase().orElseThrow().getEventList());
+            } finally {
+                fixture.close();
+            }
+        });
+    }
+
+    @Test
+    public void editEvent_saveFailure_keepsCalendarAndStoredEventUnchanged() throws Exception {
+        onFxThread(() -> {
+            Fixture fixture = new Fixture();
+            try {
+                Event original = fixture.model.addEvent(event("Interview", 14, 15, false));
+                fixture.storage.saveHireBase(fixture.model.getHireBase());
+                String saved = Files.readString(fixture.storage.getHireBaseFilePath());
+                fixture.select("Calendar");
+                CalendarViewOptions options = fixture.window.getCalendarPanel().getOptions();
+                fixture.storage.failure = new IOException("disk full");
+
+                fixture.submit("edit event 1 cancel/true");
+
+                assertEquals(EditEventCommand.MESSAGE_SAVE_FAILURE, fixture.feedback());
+                assertEquals("Calendar", fixture.selectedTab());
+                assertEquals("1 event", fixture.count());
+                assertEquals(options, fixture.window.getCalendarPanel().getOptions());
+                assertEquals(List.of(original), fixture.model.getEventList());
+                assertEquals(saved, Files.readString(fixture.storage.getHireBaseFilePath()));
+            } finally {
+                fixture.close();
             }
         });
     }

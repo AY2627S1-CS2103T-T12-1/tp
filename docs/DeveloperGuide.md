@@ -132,7 +132,7 @@ chosen by the type of command:
 
 1. **Read-only commands** (`list jobs`, `view event` and `view calendar`) return their result without saving. A failed
    save can therefore never replace what the user asked to see with a save error.
-1. **Save-before-publish commands** (`add job`, `edit job`, `delete job`, `add event`, `delete event`, and the candidate
+1. **Save-before-publish commands** (`add job`, `edit job`, `delete job`, `add event`, `edit event`, `delete event`, and the candidate
    commands `add candidate`, `delete candidate`, `edit candidate`, `note` and `stage candidate`, which `accept candidate`
    and `reject candidate` extend) are first run on a `pending` copy of the model. `LogicManager` saves the copy, and only
    then changes the real model that the UI observes. If the command or the save fails, the real model, the filters, the
@@ -143,9 +143,6 @@ chosen by the type of command:
    shows the replay pattern.
 1. **All other commands** (for example `find`, `list candidates`, `clear` and `view candidate`) run on the real model, and
    the data file is saved afterwards.
-
-### Model component
-**API** :
 
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/model/Model.java)
@@ -374,6 +371,7 @@ includes a `Priority score` line in its full-details feedback.
 `JsonAdaptedPerson` saves `priorityScore` as the digit string `"1"`, `"2"`, or `"3"`. A missing or null field
 loads as Low for backward compatibility. Other invalid values reject the data file through the existing storage
 validation path. The score survives edits, note/stage changes, saving and restarting.
+
 ### Add event feature
 
 The `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...` command adds
@@ -606,19 +604,32 @@ below shows a successful `delete event`.
   * Cons: The record is lost.
 * **Alternative 2:** Mark the event as cancelled and keep it.
   * Pros: Keeps a history of cancelled interviews, which the Calendar's **Cancelled only** filter can show.
-  * Cons: Needs a separate `cancel event` command, and the calendar would fill with events that no longer matter.
+  * Cons: This is what `edit event EVENT_ID cancel/true` already does. Deleting is for events that are no longer needed at all, and the calendar would fill with events that no longer matter.
 
 ### Calendar view
 
 The Calendar tab displays saved events using a period selector and independent cancellation and upcoming filters.
-The controls change a temporary view; they never mutate events or call storage. The `view calendar` command
-(see [The `view calendar` command](#the-view-calendar-command)) sets the same view from the command box.
-In v1.5, every range is anchored to the supplied current local time. There is no navigation to another week or
-month: on 31 October 2026, an event on 2 November is saved but lies outside Today, Week and Month. The filters
-do not widen those ranges. Navigation to other periods is tracked in
-[issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202).
+It also supports the `view calendar` command, which applies the same period and event filters. Both the controls
+and command change a temporary view; they never mutate events or call storage. Availability is inferred from gaps
+between scheduled events. HireBase does not calculate or display separate free-time blocks.
+
+Every range is anchored to the current local date. Week runs Sunday through Saturday, and Month covers the first
+through last date of the current calendar month. There is no navigation to another week or month: on 31 October
+2026, an event on 2 November is saved but lies outside Today, Week and Month. Navigation to another date or period
+is tracked in [issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202).
 
 #### Implementation
+
+`CalendarPanel` gets the live event list from `Logic` and applies `CalendarViewOptions`, which filters the events
+and creates a `Calendar` of consecutive `Day` objects. The panel renders each `Day` and its events. The diagram
+below shows these display data and their relationships.
+
+![Calendar display model](images/CalendarModelClassDiagram.png)
+
+The sequence diagram below shows how `view calendar` is parsed, returned as a read-only command result, and applied
+to the existing `CalendarPanel`.
+
+![Interactions for the `view calendar` command](images/ViewCalendarSequenceDiagram.png)
 
 1. `MainWindow` creates one `CalendarPanel` with the live, unmodifiable event list exposed by `Logic#getEventList()`.
    The panel observes that list, so published additions, replacements, deletions and `clear` update the view.
@@ -630,6 +641,15 @@ do not widen those ranges. Navigation to other periods is tracked in
 1. `Calendar.of(...)` groups the matching events by start date and sorts each day by start time, preserving input
    order for equal starts. Empty days remain present. `CalendarPanel` stacks every event, including overlaps,
    in the scrollable grid and exposes `visibleEventCountProperty()` for the footer's Calendar count.
+1. The command syntax is `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`. `period/` accepts
+   `today`, `week` or `month`; the boolean prefixes accept `true` or `false`. Prefixes may appear in any order and
+   at most once. Omitted parameters default to `week`, `false` and `false`, respectively.
+1. `HireBaseParser` routes `view` to `ViewCommandParser`, which dispatches `calendar` to
+   `ViewCalendarCommandParser`. The resulting `ViewCalendarCommand` returns a `CommandResult` with
+   `ListView.CALENDAR` and the requested `CalendarViewOptions`. `MainWindow` applies those options to the existing
+   `CalendarPanel` and selects its Calendar tab, synchronizing the dropdown and checkboxes.
+1. `LogicManager` skips storage for `ViewCalendarCommand`, like `ViewEventCommand`; a calendar-view request is
+   read-only. GUI control changes are also temporary and are not written to `UserPrefs` or event storage.
 1. An injectable `Clock` makes boundary tests deterministic. A one-second JavaFX `Timeline` checks for a date
    change or the next displayed upcoming event's end before rebuilding. This keeps an idle panel and count current
    without rebuilding every second. `start()` and `stop()` manage the timer and event-list subscription.
@@ -645,61 +665,10 @@ that newly added event is hidden by the range or filters:
 The original success and overlap feedback remain intact. A visible addition or a view-only request has no such
 hint. Failed additions keep the current tab. Options are not part of `UserPrefs` or the saved event data and reset at launch.
 
-#### The `view calendar` command
-
-`view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]` selects the Calendar tab and applies a period and
-filters, just like changing the GUI controls. It uses the same `CalendarViewOptions`, so the command and the controls
-follow the same selection rules. The command changes only the view and no data. The first sequence diagram shows the
-`Logic` component, and the second shows how the `UI` component then applies the result. Only the successful flow is shown.
-
-![Interactions inside the Logic component for the `view calendar period/month` command](images/ViewCalendarSequenceDiagram.png)
-
-**Note:** The lifelines for `ViewCommandParser` and `ViewCalendarCommandParser` should end at the destroy marker (X),
-but due to a limitation of PlantUML, they continue to the end of the diagram.
-
-![Interactions inside the UI component after the `view calendar period/month` command](images/ViewCalendarUiSequenceDiagram.png)
-
-**Parsing.** `ViewCommandParser` passes the arguments after `calendar` to `ViewCalendarCommandParser`. It tokenizes them
-with the `period/`, `cancelled/` and `upcoming/` prefixes and:
-
-* rejects a repeated prefix, and any text before the first prefix;
-* reads the period with `Period.valueOf(...)` after upper-casing it, so `today`, `week` and `month` are accepted in any
-  case, and uses `WEEK` when `period/` is absent;
-* accepts only `true` or `false`, ignoring case, for the two filters, and uses `false` when they are absent;
-* reports every failure as `Invalid command format!` followed by `ViewCalendarCommand.MESSAGE_USAGE`.
-
-It returns a `ViewCalendarCommand` holding the `CalendarViewOptions`.
-
-**Executing.** `ViewCalendarCommand#execute(Model)` does not use the model. It returns `Showing calendar.` in a
-`CommandResult` created with `withCalendarViewOptions(options)`, which sets the list view to `ListView.CALENDAR` and carries
-the options. `LogicManager` returns this result before saving, because viewing changes no data (see
-[How `LogicManager` saves data](#how-logicmanager-saves-data)).
-
-**Applying in the UI.** `MainWindow#executeCommand(...)` switches on `CommandResult#getListView()`. For `CALENDAR`, it
-calls `CalendarPanel#setOptions(...)` if the result has options, then `CalendarPanel#refresh()`, and selects the Calendar
-tab. A successful `add event` also returns `ListView.CALENDAR`, but without options, so the panel keeps its current
-period and filters.
-
 #### Design considerations
 
-**Aspect: How a command changes the calendar view**
-
-* **Alternative 1 (current choice):** Carry `CalendarViewOptions` in the `CommandResult`, and let `MainWindow` apply them.
-  * Pros: `Logic` does not depend on any `UI` class, as the architecture requires, and `CalendarViewOptions` is a `Model`
-    class. The command and the GUI controls share one set of rules.
-  * Cons: `CommandResult` gains one more optional field.
-* **Alternative 2:** Store the current options in `Model`.
-  * Pros: One source of truth for the view.
-  * Cons: The options are a temporary view, not data. The `Model` would need to expose and observe them, although they
-    are not saved and reset at launch.
-* **Alternative 3:** Let the command call `CalendarPanel` directly.
-  * Pros: Fewest classes.
-  * Cons: `Logic` would depend on `UI`, which breaks the architecture and makes the command hard to test.
-
-**Aspect: Where the date and filter rules live**
-
 Keep date/filter selection in `CalendarViewOptions` and rendering in `CalendarPanel`. This gives GUI controls and
-future command integration the same selection rules, while preserving `Calendar` and `Day` as display-independent
+the typed command the same selection rules, while preserving `Calendar` and `Day` as display-independent
 groupings. Use the model's observable list for record changes and a clock for time changes: observing the list alone
 would leave upcoming events and the current period stale while the app is idle. Native JavaFX controls provide
 keyboard focus, arrow-key selection and checkbox toggling without a separate shortcut grammar.
@@ -749,9 +718,9 @@ calls, so `MainApp` itself has no extra logic.
 
 The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
+* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
+* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
 
 These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
 
@@ -794,7 +763,7 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 
@@ -1305,7 +1274,7 @@ The following requirements describe the intended quality attributes and operatin
 
 **Calendar view:** The Calendar tab, which shows the saved events of the current day, week or month. The user can narrow it with the **Cancelled only** and **Upcoming only** filters.
 
-**Cancelled event:** An event whose `cancelled` field is `true` in the data file. HireBase has no command that cancels an event yet.
+**Cancelled event:** An event marked as cancelled with `edit event EVENT_ID cancel/true`. It stays in HireBase, is hidden from the default calendar view, and is shown by the **Cancelled only** filter.
 
 **Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
 
@@ -1348,6 +1317,7 @@ The following requirements describe the intended quality attributes and operatin
 **Target role:** The type of position a candidate is being considered for, such as a software engineering role.
 
 **Technical skill:** A job-relevant skill, such as Java or SQL, that is recorded for a candidate or required by a job opening.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**
@@ -1490,6 +1460,7 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
    1. In a separate copy of the saved file, replace a score with `"4"` or `"High"` and launch using that copy.<br>
       Expected: The invalid data file is rejected through the documented invalid-file recovery behavior.
+
 ### Adding an event
 
 1. Adding events, with and without overlaps
@@ -1547,8 +1518,7 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
 1. Viewing a cancelled event
 
-   1. Prerequisites: Close HireBase. In the data file, set `"cancelled": true` on event `#E`. Launch HireBase.
-      There is no command to cancel an event yet.
+   1. Prerequisites: Run `edit event E cancel/true` to cancel event `#E`.
 
    1. Test case: `view event E`<br>
       Expected: A `Status: Cancelled` line appears after the end time.
@@ -1579,8 +1549,8 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
    1. Test case: `delete event E1`<br>
       Expected: `Deleted event: #E1 Interview (05/11/2026 14:00 to 05/11/2026 15:00)`. The Candidates tab stays
-      selected, and the candidate list does not change. Event `#E1` disappears from the Calendar tab, if it was shown, and
-      the footer count drops by one.
+      selected, and the candidate list does not change. Event `#E1` disappears from the Calendar tab. The footer count does not
+      change, because it counts the candidates shown in the selected Candidates tab.
 
    1. Test case: `view event E1`<br>
       Expected: The error says that event ID `E1` (written as its number) does not exist. Event `#E2` and candidate `#N` are unchanged.
@@ -1607,17 +1577,18 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
 1. Deleting a cancelled event
 
-   1. Prerequisites: Close HireBase. In the data file, set `"cancelled": true` on event `#E2`. Launch HireBase.
+   1. Prerequisites: Run `edit event E2 cancel/true` to cancel event `#E2`.
 
    1. Test case: `delete event E2`<br>
       Expected: The event is deleted in the same way as an active event.
 
 1. A failed save
 
-   1. Prerequisites: Make the data file read-only so that HireBase cannot write to it.
+   1. Prerequisites: Add a new event with `add event n/Debrief from/07/11/2026 09:00 to/07/11/2026 10:00`, and note its ID,
+      say `#E3`. Then make the data file read-only so that HireBase cannot write to it.
 
-   1. Test case: `delete event E2` for an existing event.<br>
-      Expected: An error says that the data could not be saved. The event stays in the Calendar tab, and `view event E2` still
+   1. Test case: `delete event E3`<br>
+      Expected: An error says that the data could not be saved. The event stays in the Calendar tab, and `view event E3` still
       shows it.
 
 ### Saving data
@@ -1653,7 +1624,7 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
 Use a disposable data file with active and cancelled events, past, ongoing and future events, and several overlaps.
 Include dates inside and outside the current week/month and at Sunday/Saturday, month and year boundaries.
-Prepare cancelled fixtures with `cancelled: true` while the app is closed; the calendar does not provide a cancel action.
+Cancel some events with `edit event EVENT_ID cancel/true`; the calendar itself does not provide a cancel action.
 For exact end-time, leap-day and midnight boundaries, repeat the corresponding automated tests with an injected clock.
 
 | Check | Actions and expected result |
@@ -1668,3 +1639,32 @@ For exact end-time, leap-day and midnight boundaries, repeat the corresponding a
 | Tabs, counts and read-only controls | Start with a candidate search, change calendar controls and switch between all three tabs. The search and calendar options survive; the footer counts the active view. Compare the data file before/after view-only actions: contents and modification time do not change. |
 | Rollover and model updates | Leave Calendar open across midnight, including a Sunday/month/year transition, or advance the injected test clock. Dates and count move to the current period. Published event replacement/deletion and `clear` refresh the panel; clear leaves the active tab selected with zero events. |
 | Keyboard and restart | Use Tab/Shift+Tab, arrows on tab headers/dropdown and Space on checkboxes. Repeat at a small window size and scroll both axes. Restart: saved events remain, but Calendar returns to Week with both filters clear. |
+
+### View calendar command
+
+1. Showing the calendar with a command
+
+   1. Prerequisites: Add a few events with `add event`, including one today and one this month. Select the Candidates tab.
+
+   1. Test case: `view calendar`<br>
+      Expected: `Showing calendar.` The Calendar tab is selected, with Week selected and both filters clear.
+
+   1. Test case: `view calendar period/month upcoming/true`<br>
+      Expected: `Showing calendar.` The Calendar tab shows Month, the Upcoming only checkbox is ticked, and the Cancelled only checkbox is clear.
+
+   1. Test case: `view calendar cancelled/true period/today`<br>
+      Expected: The same as the previous test case, but with Today and Cancelled only. The order of the parameters does not matter.
+
+   1. Test case: Compare the data file before and after the commands above.<br>
+      Expected: The file is unchanged, because `view calendar` is read-only.
+
+1. Invalid input
+
+   1. Test case: `view calendar period/year`<br>
+      Expected: `Period must be one of [today, week, month] (ignoring case).` The Calendar tab, its period and its filters do not change.
+
+   1. Test case: `view calendar upcoming/yes`<br>
+      Expected: `Calendar filters must be true or false (ignoring case).` Nothing changes.
+
+   1. Other incorrect commands to try: `view calendar week`, `view calendar period/week period/month`<br>
+      Expected: An invalid-format error, followed by the `view calendar` usage. Nothing changes.

@@ -17,6 +17,7 @@ import seedu.hirebase.logic.commands.DeleteCommand;
 import seedu.hirebase.logic.commands.DeleteEventCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.commands.EditCommand;
+import seedu.hirebase.logic.commands.EditEventCommand;
 import seedu.hirebase.logic.commands.EditJobCommand;
 import seedu.hirebase.logic.commands.FindCommand;
 import seedu.hirebase.logic.commands.ListCommand;
@@ -74,6 +75,9 @@ public class LogicManager implements Logic {
         }
         if (command instanceof AddEventCommand addEventCommand) {
             return executeAddEvent(addEventCommand);
+        }
+        if (command instanceof EditEventCommand editEventCommand) {
+            return executeEditEvent(editEventCommand);
         }
         if (command instanceof DeleteEventCommand deleteEventCommand) {
             return executeDeleteEvent(deleteEventCommand);
@@ -190,6 +194,23 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException e) {
             throw new CommandException(DeleteEventCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        command.execute(model);
+        return result;
+    }
+
+    /**
+     * Saves an updated event before publishing it, preserving the original event on a failed save.
+     */
+    private CommandResult executeEditEvent(EditEventCommand command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (AccessDeniedException e) {
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException e) {
+            throw new CommandException(EditEventCommand.MESSAGE_SAVE_FAILURE, e);
         }
         command.execute(model);
         return result;

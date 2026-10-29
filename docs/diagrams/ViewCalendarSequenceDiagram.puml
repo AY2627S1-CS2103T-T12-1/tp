@@ -2,99 +2,64 @@
 !include style.puml
 skinparam ArrowFontStyle plain
 
+box UI UI_COLOR_T1
+participant ":MainWindow" as MainWindow UI_COLOR
+participant ":CalendarPanel" as CalendarPanel UI_COLOR
+end box
+
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":HireBaseParser" as HireBaseParser LOGIC_COLOR
-participant ":ViewCommandParser" as ViewCommandParser LOGIC_COLOR
 participant ":ViewCalendarCommandParser" as ViewCalendarCommandParser LOGIC_COLOR
-participant "v:ViewCalendarCommand" as ViewCalendarCommand LOGIC_COLOR
+participant "c:ViewCalendarCommand" as ViewCalendarCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
-box Model MODEL_COLOR_T1
-participant "o:CalendarViewOptions" as CalendarViewOptions MODEL_COLOR
-end box
+[-> MainWindow : command entered
+activate MainWindow
 
-[-> LogicManager : execute("view calendar period/month")
+MainWindow -> LogicManager : execute(commandText)
 activate LogicManager
 
-LogicManager -> HireBaseParser : parseCommand("view calendar period/month")
-activate HireBaseParser
-
-create ViewCommandParser
-HireBaseParser -> ViewCommandParser
-activate ViewCommandParser
-
-ViewCommandParser --> HireBaseParser
-deactivate ViewCommandParser
-
-HireBaseParser -> ViewCommandParser : parse("calendar period/month")
-activate ViewCommandParser
-
-create ViewCalendarCommandParser
-ViewCommandParser -> ViewCalendarCommandParser
+note over LogicManager, ViewCalendarCommandParser
+  HireBaseParser and ViewCommandParser route
+  this command to ViewCalendarCommandParser.
+end note
+LogicManager -> ViewCalendarCommandParser : parse("period/month upcoming/true")
 activate ViewCalendarCommandParser
-
-ViewCalendarCommandParser --> ViewCommandParser
-deactivate ViewCalendarCommandParser
-
-ViewCommandParser -> ViewCalendarCommandParser : parse("period/month")
-activate ViewCalendarCommandParser
-
-create CalendarViewOptions
-ViewCalendarCommandParser -> CalendarViewOptions : CalendarViewOptions(MONTH, false, false)
-activate CalendarViewOptions
-
-CalendarViewOptions --> ViewCalendarCommandParser
-deactivate CalendarViewOptions
-
 create ViewCalendarCommand
-ViewCalendarCommandParser -> ViewCalendarCommand : ViewCalendarCommand(o)
+ViewCalendarCommandParser -> ViewCalendarCommand : new CalendarViewOptions(MONTH, false, true)
 activate ViewCalendarCommand
-
-ViewCalendarCommand --> ViewCalendarCommandParser
+ViewCalendarCommand --> ViewCalendarCommandParser : c
 deactivate ViewCalendarCommand
-
-ViewCalendarCommandParser --> ViewCommandParser : v
+ViewCalendarCommandParser --> LogicManager : c
 deactivate ViewCalendarCommandParser
-'Hidden arrow to position the destroy marker below the end of the activation bar.
-ViewCalendarCommandParser -[hidden]-> ViewCommandParser
-destroy ViewCalendarCommandParser
-
-ViewCommandParser --> HireBaseParser : v
-deactivate ViewCommandParser
-'Hidden arrow to position the destroy marker below the end of the activation bar.
-ViewCommandParser -[hidden]-> HireBaseParser
-destroy ViewCommandParser
-
-HireBaseParser --> LogicManager : v
-deactivate HireBaseParser
 
 LogicManager -> ViewCalendarCommand : execute(model)
 activate ViewCalendarCommand
-
 create CommandResult
-ViewCalendarCommand -> CommandResult : CommandResult("Showing calendar.")
+ViewCalendarCommand -> CommandResult : withCalendarViewOptions(options)
 activate CommandResult
-
-CommandResult --> ViewCalendarCommand
-deactivate CommandResult
-
-ViewCalendarCommand -> CommandResult : withCalendarViewOptions(o)
-activate CommandResult
-
 CommandResult --> ViewCalendarCommand : r
 deactivate CommandResult
-
 ViewCalendarCommand --> LogicManager : r
 deactivate ViewCalendarCommand
-
 note right of LogicManager
-  Returns r without calling
-  Storage#saveHireBase(...),
-  since viewing changes no data.
+  ViewCalendarCommand is read-only;
+  LogicManager returns without saving.
 end note
 
-[<-- LogicManager : r
+LogicManager --> MainWindow : r
 deactivate LogicManager
+MainWindow -> CalendarPanel : setOptions(options)
+activate CalendarPanel
+CalendarPanel --> MainWindow
+deactivate CalendarPanel
+MainWindow -> CalendarPanel : refresh()
+activate CalendarPanel
+CalendarPanel --> MainWindow
+deactivate CalendarPanel
+MainWindow -> MainWindow : select Calendar tab
+
+[<--MainWindow
+deactivate MainWindow
 @enduml

@@ -52,6 +52,19 @@ public class NameOrEmailContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_partOfHyphenatedOrApostropheName_returnsTrue() {
+        Person person = new PersonBuilder().withName("Mary-Jane O'Neil")
+                .withEmail("recruit@example.com").build();
+
+        for (String keyword : List.of("Mary", "jane", "Neil", "O", "Mary-Jane", "o'neil")) {
+            assertTrue(new NameOrEmailContainsKeywordsPredicate(List.of(keyword)).test(person), keyword);
+        }
+        for (String keyword : List.of("Mar", "Jane-Mary", "Neil-")) {
+            assertFalse(new NameOrEmailContainsKeywordsPredicate(List.of(keyword)).test(person), keyword);
+        }
+    }
+
+    @Test
     public void test_fullEmailIgnoringCase_returnsTrue() {
         NameOrEmailContainsKeywordsPredicate predicate =
                 new NameOrEmailContainsKeywordsPredicate(List.of("RECRUIT@EXAMPLE.COM"));

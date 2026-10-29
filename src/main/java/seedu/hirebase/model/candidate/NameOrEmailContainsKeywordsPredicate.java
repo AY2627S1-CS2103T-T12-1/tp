@@ -1,8 +1,10 @@
 package seedu.hirebase.model.candidate;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import seedu.hirebase.commons.util.StringUtil;
 import seedu.hirebase.commons.util.ToStringBuilder;
@@ -12,6 +14,9 @@ import seedu.hirebase.commons.util.ToStringBuilder;
  * Names match whole words, while emails match substrings.
  */
 public class NameOrEmailContainsKeywordsPredicate implements Predicate<Person> {
+    /** Separates name parts: spaces, plus the hyphens and apostrophes that names may contain. */
+    private static final Pattern NAME_PART_SEPARATOR = Pattern.compile("[\\s'-]+");
+
     private final List<String> keywords;
 
     /**
@@ -24,12 +29,16 @@ public class NameOrEmailContainsKeywordsPredicate implements Predicate<Person> {
 
     /**
      * Returns true if any keyword matches a whole name word or an email substring, ignoring case.
+     * Parts of a hyphenated or apostrophe name, such as {@code Mary} in {@code Mary-Jane}, count as words.
      */
     @Override
     public boolean test(Person person) {
+        String name = person.getName().fullName;
+        List<String> nameParts = Arrays.asList(NAME_PART_SEPARATOR.split(name));
         String email = person.getEmail().value.toLowerCase(Locale.ROOT);
         return keywords.stream().anyMatch(keyword ->
-                StringUtil.containsWordIgnoreCase(person.getName().fullName, keyword)
+                StringUtil.containsWordIgnoreCase(name, keyword)
+                        || nameParts.stream().anyMatch(keyword::equalsIgnoreCase)
                         || email.contains(keyword.toLowerCase(Locale.ROOT)));
     }
 

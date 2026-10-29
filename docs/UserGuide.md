@@ -69,6 +69,11 @@ the management of high-volume candidate tracking for tech recruiters through an 
   Positional arguments, such as `CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE` in
   `stage candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]... STAGE`, must follow the order shown.
 
+- In `add candidate`, `edit candidate`, `list candidates`, `add job` and `edit job`, a word ending in `/` after a
+  space is read as a parameter. One the command does not accept is rejected as `Unknown parameter: X/.`, for example
+  `edit candidate 1 r/Backend Engineer stage/ACCEPTED` reports `Unknown parameter: stage/.` and changes nothing.
+  A slash without a space before it is part of the value, so `s/CI/CD` is accepted but `s/Build CI/CD` is not.
+
 - `CANDIDATE_ID` is a candidate's permanent ID, shown as `#N` (e.g. `#1`) before their name on each card. See [About candidate IDs](#about-candidate-ids).
 
 - `CANDIDATE_ID [MORE_CANDIDATE_IDS]...` means one or more permanent candidate IDs separated by spaces.
@@ -92,7 +97,7 @@ ID, not the candidate's position in the list.
 - Deleted IDs are never given to another candidate, even after `clear`. For example, if you delete candidate `#5`,
   the next candidate you add gets `#6` or higher, and `delete candidate 5` will report that ID `5` does not exist.
 - An ID must be a positive integer (1, 2, 3, …). An ID that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`
 - Candidate IDs and job IDs are counted separately, so candidate `#1` and job opening `1` can both exist.
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
@@ -377,7 +382,8 @@ Changing only capitalisation or supplying the existing values is allowed.
 To tag an existing opening, use `edit job 2 s/Java s/SQL`. Supplied skills **replace the entire required-skill set**;
 include every skill you want to keep. Omitting `s/` preserves existing skills, including when editing the title,
 department or description. A single empty `s/`, as in `edit job 2 s/`, clears all skills. Combining an empty `s/`
-with other `s/` fields is rejected. Skills use the same validation and duplicate rules as `add job`.
+with other `s/` fields is rejected with `An empty s/ clears all skills and cannot be combined with other s/ values.`
+Skills use the same validation and duplicate rules as `add job`.
 Tagging skills preserves the opening's ID and does not change candidate skills or filter candidates automatically.
 
 Success shows `Edited job opening ID: TITLE — DEPARTMENT.` and selects the Job openings tab. The opening
@@ -465,7 +471,8 @@ For example, `edit candidate 1 priority/3` changes only the candidate's priority
 Omitting `priority/` preserves the existing score; an empty `priority/` is invalid and cannot clear it.
 
 For example, `edit candidate 1 s/` removes all skills from the candidate with ID 1. Mixing an empty skill with a
-non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected and leaves the candidate's entire record unchanged.
+non-empty skill, as in `edit candidate 1 s/ s/new skill`, is rejected with the same message and leaves the candidate's
+entire record unchanged.
 To replace all existing skills with just "new skill", use `edit candidate 1 s/new skill`.
 Omitting `s/` entirely preserves the candidate's existing skills.
 
@@ -495,6 +502,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 
 - Matching is case-insensitive for both names and email addresses.
 - Names match whole words: `Hans` matches `Hans Gruber`, but `Han` does not match his name.
+  Parts of hyphenated or apostrophe names count as words: `Mary`, `Jane`, `Neil` and `Mary-Jane` all match
+  `Mary-Jane O'Neil`.
 - Email addresses match any substring: `hans`, `hans@example.com`, and `@example.com` all match `hans@example.com`.
   A partial name keyword can still find a candidate if it matches their email address.
 - Keywords are separated by whitespace. Supply at least one keyword; an empty search is rejected.
@@ -549,7 +558,7 @@ Format: `view candidate CANDIDATE_ID`
   target role, skills, and note.
   Empty optional fields (role, skills, note) are shown as `—`.
 - A `CANDIDATE_ID` that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`, leaving the list unchanged.
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`, leaving the list unchanged.
 
 Examples:
 
@@ -561,7 +570,7 @@ Sample feedback:
 | Command | Feedback |
 | --- | --- |
 | `view candidate 1` | Candidate `1`'s full details (name, stage, priority score, phone, email, address, role, skills, note); the list collapses to that candidate. |
-| `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `view candidate 999` | `Candidate ID "999" does not exist. Use list candidates to view available candidate IDs.` |
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
 | `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate`, `view event` and `view calendar` (a record-type keyword is required). |
 
@@ -611,7 +620,7 @@ Format: `note CANDIDATE_ID [NOTE]`
   is active, because the candidate is located by ID.
 - Only the note changes; the candidate's name, contact details, skills, role, and interview stage are preserved.
 - A `CANDIDATE_ID` that no candidate has is rejected with
-  `Candidate ID "<ID>" does not exist. Use list to view available candidate IDs.`
+  `Candidate ID "<ID>" does not exist. Use list candidates to view available candidate IDs.`
 
 Examples:
 
@@ -625,7 +634,7 @@ Sample feedback:
 | --- | --- |
 | `note 1 Strong SQL round` | `Added note to candidate: ` followed by candidate `1`'s updated details. |
 | `note 1` | `Removed note from candidate: ` followed by candidate `1`'s updated details. |
-| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
+| `note 999 Strong SQL round` | `Candidate ID "999" does not exist. Use list candidates to view available candidate IDs.` |
 | `note 0 x`, `note abc x`, `note` | `Invalid command format!` followed by the `note` usage (the ID must be a positive integer). |
 
 ### Changing candidates' interview stages: `stage candidate`
@@ -658,7 +667,7 @@ preserves the stage.
 
 Success shows `Updated interview stage for candidate CANDIDATE_ID: NAME (EMAIL) to STAGE` for each selected candidate,
 on a separate line. Single-candidate commands show one line.
-A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list to view available candidate IDs.`
+A nonexistent or deleted ID reports `Candidate ID "CANDIDATE_ID" does not exist. Use list candidates to view available candidate IDs.`
 An unknown stage reports `Interview stage must be one of [SCREENING, ACCEPTED, REJECTED] (case-insensitive).`
 
 Examples:
@@ -959,7 +968,7 @@ for example:
   starting after every stored ID. A missing `events` array loads as no events.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data. The original file stays in place until you run a command that saves data (read-only commands such as `list jobs`, `view event` and `view calendar` do not save). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data, and the result box shows a message naming that copy. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

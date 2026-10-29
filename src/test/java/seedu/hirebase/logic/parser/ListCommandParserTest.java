@@ -39,7 +39,7 @@ public class ListCommandParserTest {
 
     @Test
     public void parse_singleTechnicalSkill_success() {
-        for (String skill : new String[] {"Java", "Spring", "SQL", "C++", "C#", "Build CI/CD", "a".repeat(30)}) {
+        for (String skill : new String[] {"Java", "Spring", "SQL", "C++", "C#", "CI/CD", "a".repeat(30)}) {
             assertParseSuccess(parser, "candidates s/" + skill, new ListCommand(new Skill(skill)));
         }
         assertParseSuccess(parser, "candidates s/jAvA", new ListCommand(new Skill("Java")));
@@ -141,6 +141,20 @@ public class ListCommandParserTest {
         assertParseFailure(parser, "candidates stage/SCREENING stage/SCREENING",
                 Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_STAGE));
         assertParseFailure(parser, "jobs stage/SCREENING", ListJobsCommand.MESSAGE_EXTRA_ARGUMENTS);
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        assertParseFailure(parser, "candidates s/Java n/Alex",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "n/"));
+        assertParseFailure(parser, "candidates r/Frontend Engineer t/friends",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "t/"));
+        assertParseFailure(parser, "candidates stage/SCREENING x/1",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "x/"));
+        assertParseFailure(parser, "candidates n/Alex", String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "n/"));
+        // As in add job, a word ending in / after a space is read as a parameter, even inside a skill.
+        assertParseFailure(parser, "candidates s/Build CI/CD",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "CI/"));
     }
 
 }

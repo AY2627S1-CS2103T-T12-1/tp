@@ -246,6 +246,15 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
+     * Shows {@code warning} in the result display, styled as an error, for a problem found while starting up.
+     * The next command replaces it.
+     */
+    void showStartupWarning(String warning) {
+        resultDisplay.setFeedbackToUser(warning);
+        resultDisplay.setStyleToIndicateError();
+    }
+
+    /**
      * Closes the application.
      */
     @FXML

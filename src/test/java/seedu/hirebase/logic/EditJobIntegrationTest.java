@@ -23,6 +23,7 @@ import seedu.hirebase.logic.commands.EditCommand;
 import seedu.hirebase.logic.commands.EditJobCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
+import seedu.hirebase.logic.parser.ParserUtil;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
@@ -46,6 +47,12 @@ public class EditJobIntegrationTest {
     private final HireBaseParser parser = new HireBaseParser();
     private final JobOpening first = job("Engineering");
     private final JobOpening second = job("Research");
+
+    @Test
+    public void parse_emptySkillWithOtherSkill_reportsRule() {
+        ParseException e = assertThrows(ParseException.class, () -> parser.parseCommand("edit job 1 s/ s/Java"));
+        assertEquals(ParserUtil.MESSAGE_EMPTY_SKILL_COMBINED, e.getMessage());
+    }
 
     @Test
     public void parse_validWhitespaceAndCandidateRouting_success() throws Exception {

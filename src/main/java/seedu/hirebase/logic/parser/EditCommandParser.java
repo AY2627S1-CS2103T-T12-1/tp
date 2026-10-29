@@ -43,6 +43,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(parts[1], PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
                 PREFIX_ADDRESS, PREFIX_TAG, PREFIX_SKILL, PREFIX_ROLE, PREFIX_PRIORITY);
+        argMultimap.verifyNoUnknownPrefixes();
 
         CandidateId candidateId;
 
@@ -73,9 +74,8 @@ public class EditCommandParser implements Parser<EditCommand> {
 
         Collection<String> skills = argMultimap.getAllValues(PREFIX_SKILL);
         if (!skills.isEmpty()) {
-            // A single empty prefix explicitly clears skills; an omitted prefix preserves them.
-            editPersonDescriptor.setSkills(skills.size() == 1 && skills.contains("")
-                    ? Collections.emptySet() : ParserUtil.parseSkills(skills));
+            // An omitted prefix preserves skills; ParserUtil handles an empty one, which clears them.
+            editPersonDescriptor.setSkills(ParserUtil.parseSkillsForEdit(skills));
         }
         if (argMultimap.getValue(PREFIX_ROLE).isPresent()) {
             editPersonDescriptor.setRole(ParserUtil.parseRole(argMultimap.getValue(PREFIX_ROLE).get()));

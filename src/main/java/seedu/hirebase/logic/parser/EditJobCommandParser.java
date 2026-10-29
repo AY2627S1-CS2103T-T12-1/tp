@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,8 +74,7 @@ public class EditJobCommandParser implements Parser<EditJobCommand> {
                     values.containsKey("t/") ? new JobTitle(values.get("t/")) : null,
                     values.containsKey("d/") ? new Department(values.get("d/")) : null,
                     values.containsKey("desc/") ? new Description(values.get("desc/")) : null,
-                    skills.isEmpty() ? null : skills.size() == 1 && skills.getFirst().isBlank()
-                            ? Set.of() : ParserUtil.parseSkills(skills));
+                    skills.isEmpty() ? null : ParserUtil.parseSkillsForEdit(skills));
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

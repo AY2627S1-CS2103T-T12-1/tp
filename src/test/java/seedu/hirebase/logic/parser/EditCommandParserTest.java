@@ -93,7 +93,8 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "candidate " + "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "candidate " + "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "candidate " + "1 i/ string",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "i/"));
     }
 
     @Test
@@ -227,5 +228,18 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetId, descriptor);
 
         assertParseSuccess(parser, "candidate " + userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        assertParseFailure(parser, "candidate 1 r/Backend Engineer stage/ACCEPTED",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "stage/"));
+        assertParseFailure(parser, "candidate 1 s/Java note/hello",
+                String.format(Messages.MESSAGE_UNKNOWN_PARAMETER, "note/"));
+    }
+
+    @Test
+    public void parse_emptySkillWithOtherSkill_failure() {
+        assertParseFailure(parser, "candidate 1 s/ s/Java", ParserUtil.MESSAGE_EMPTY_SKILL_COMBINED);
     }
 }

@@ -33,7 +33,7 @@ public class AddEventCommand extends Command {
     public static final String MESSAGE_CONFLICT_WARNING =
             "\nWarning: this event overlaps with %1$d existing event(s). It was still added:";
     public static final String MESSAGE_UNKNOWN_CANDIDATES =
-            "No candidate has ID(s): %1$s. Use list to view candidate IDs. The event was not added.";
+            "No candidate has ID(s): %1$s. Use list candidates to view candidate IDs. The event was not added.";
     public static final String MESSAGE_EVENT_HAS_ID = "A new event must not have an ID yet.";
     public static final String MESSAGE_SAVE_FAILURE = "Could not save changes. The event was not added. "
             + "Check storage permissions and available disk space, then try again.";

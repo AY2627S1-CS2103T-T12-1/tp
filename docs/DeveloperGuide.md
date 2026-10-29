@@ -248,7 +248,7 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 </div>
 
 1. `LogicManager` passes the command text to `HireBaseParser`, which creates a `ViewCommandParser`.
-1. `ViewCommandParser` requires the `candidate` record-type keyword, then uses `ParserUtil#parseCandidateId(String)` to convert the remaining token into a `CandidateId`. It returns a `ViewCommand` holding that id as `targetId`.
+1. `ViewCommandParser` switches on the record-type keyword (see [View event feature](#view-event-feature)). For `candidate`, it uses `ParserUtil#parseCandidateId(String)` to convert the remaining token into a `CandidateId`, and returns a `ViewCommand` holding that id as `targetId`.
 1. When executed, `ViewCommand` obtains the `ReadOnlyHireBase` through `Model#getHireBase()` and calls `HireBase#getPersonByCandidateId(targetId)`, which streams the full, unfiltered candidate list and returns an `Optional<Person>`.
 1. If the optional is empty, `ViewCommand` throws a `CommandException` carrying `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`. Otherwise it calls `Model#updateFilteredPersonList(...)` with a `SamePersonPredicate` matching only the found candidate, collapsing the displayed list.
 1. Finally it builds a `CommandResult` containing a multi-line, formatted summary of the candidate and tagged with `ListView.CANDIDATES`, which `LogicManager` returns.
@@ -423,6 +423,73 @@ candidate does not change any event.
 * **Alternative 3:** Save the copy, then run the command again on the real model, as `add job` does.
   * Pros: Reuses the command.
   * Cons: Relies on both runs giving the same ID. Adding the saved event guarantees it.
+
+### View event feature
+
+The `view event EVENT_ID` command shows the full details of one event in the result display. Like
+`view candidate`, it finds its target by the permanent `EventId`, not by a position in a list.
+
+#### Implementation
+
+The sequence diagram below shows the interactions within the `Logic` and `Model` components when the user issues
+`view event 1`. Only the successful flow is shown.
+
+![Interactions Inside the Logic and Model Components for the `view event 1` Command](images/ViewEventSequenceDiagram.png)
+
+**Note:** The lifeline for `ViewCommandParser` should end at the destroy marker (X), but due to a limitation of
+PlantUML, it continues to the end of the diagram.
+
+**Parsing.** `HireBaseParser` sends every `view ...` command to `ViewCommandParser`, which implements
+`Parser<Command>` rather than `Parser<ViewCommand>`, because it creates a different command class for each record
+type. It splits off the first word and switches on it:
+
+* `candidate` → `parseCandidate(...)`, which returns a `ViewCommand` (see [View candidate feature](#view-candidate-feature));
+* `event` → `parseEvent(...)`, which uses `ParserUtil#parseEventId(String)` and returns a `ViewEventCommand`;
+* anything else → a `ParseException` with `ViewCommand.MESSAGE_USAGE`, which also includes the `view event` usage.
+
+The keyword must match exactly, so `events` and `Event` are rejected. An ID that is not a positive integer (e.g. `0`,
+`+1`, `1.5`, or a number larger than `Integer.MAX_VALUE`) is rejected with `ViewEventCommand.MESSAGE_USAGE`. Each
+record type has its own case and helper, so another record type can be added as one more case without changing the
+existing ones.
+
+**Executing.** `ViewEventCommand#execute(Model)`:
+
+1. calls `Model#findEvent(targetId)`. If there is no such event, it throws a `CommandException` with
+   `Messages#MESSAGE_EVENT_ID_NOT_FOUND`;
+1. formats the event's name, description, start, end and candidates. An empty description or candidate list is
+   shown as `—`. A `Status: Cancelled` line is added only if `Event#isCancelled()` is true;
+1. looks up each of the event's candidate IDs with `ReadOnlyHireBase#getPersonByCandidateId(...)`. Deleting a
+   candidate does not change events, so an ID may have no candidate; it is shown as `#ID (deleted)`;
+1. returns a `CommandResult` with `ListView.KEEP`, so the selected tab and the candidate list do not change.
+
+**Not saving.** After most commands, `LogicManager` saves the data file. `view event` changes no data, so
+`LogicManager#execute(String)` returns its result before saving, as it does for `list jobs`. A failed save therefore
+cannot replace the event details with a save error.
+
+#### Design considerations
+
+**Aspect: Which status to show**
+
+* **Alternative 1 (current choice):** Show `Status: Cancelled` for a cancelled event, and no status otherwise.
+  * Pros: The line appears only when it tells the user something. The start and end times already show whether the
+    event is over.
+  * Cons: The user must notice that the line is missing to know the event is not cancelled.
+* **Alternative 2:** Always show `Active` or `Cancelled`.
+  * Pros: Every event shows a status.
+  * Cons: `Active` on a past event reads as "happening now", which is misleading.
+* **Alternative 3:** Show a time-based status such as `Upcoming` or `Over`.
+  * Pros: Tells the user whether the event has happened.
+  * Cons: Repeats the "over when now is at or after the end" rule that the calendar's `CalendarViewOptions` already
+    owns, so the two could drift apart. It would also need an injectable clock to be tested.
+
+**Aspect: Whether to save after viewing**
+
+* **Alternative 1 (current choice):** Do not save.
+  * Pros: Viewing works even when the data file cannot be written, and does no needless disk writes.
+  * Cons: `LogicManager` needs one more special case.
+* **Alternative 2:** Save after viewing, like most commands.
+  * Pros: No special case.
+  * Cons: If saving fails, the user sees a save error instead of the details, although nothing changed.
 
 ### Calendar view
 
@@ -908,6 +975,41 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC11 - View an event's details**
+
+**MSS**
+
+1.  User requests to view an event by its event ID
+2.  HireBase shows the event's name, description, start, end and candidates
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The event ID is not a positive integer
+
+    * 1a1. HireBase displays an error message showing the correct format.
+
+      Use case ends.
+
+* 1b. No event has the given event ID
+
+    * 1b1. HireBase displays an error message saying the event ID does not exist.
+
+      Use case ends.
+
+* 2a. The event is cancelled
+
+    * 2a1. HireBase also shows that the event is cancelled.
+
+      Use case ends.
+
+* 2b. A candidate in the event has been deleted
+
+    * 2b1. HireBase shows that candidate's ID, marked as deleted, in place of their name.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
@@ -1165,6 +1267,47 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
 
    1. Close HireBase and launch it again, then add another event.<br>
       Expected: The new event's ID is one more than the largest ID used before, even if you ran `clear` in between.
+
+### Viewing an event
+
+1. Viewing an event's details
+
+   1. Prerequisites: Run `clear`, then add one candidate with `add candidate`, and note their ID, say `#N`. Add an
+      event with `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 desc/Round 2 c/N`, and note its
+      ID, say `#E`.
+
+   1. Test case: `view event E`<br>
+      Expected: The result shows `#E Interview`, `Round 2`, the start and end times, and `#N` with the candidate's
+      name. There is no `Status` line. The selected tab and the candidate list do not change.
+
+   1. Test case: `delete candidate N`, then `view event E`<br>
+      Expected: The candidate is shown as `#N (deleted)`. The rest of the details are unchanged.
+
+   1. Test case: close HireBase, launch it again, then `view event E`<br>
+      Expected: The same details as in the previous test case.
+
+1. Viewing a cancelled event
+
+   1. Prerequisites: Close HireBase. In the data file, set `"cancelled": true` on event `#E`. Launch HireBase.
+      There is no command to cancel an event yet.
+
+   1. Test case: `view event E`<br>
+      Expected: A `Status: Cancelled` line appears after the end time.
+
+1. Invalid event IDs
+
+   1. Test case: `view event 999` (no event `#999`)<br>
+      Expected: `Event ID "999" does not exist.`
+
+   1. Test case: `view event 0`<br>
+      Expected: An invalid-format error, followed by the `view event` usage.
+
+   1. Other incorrect commands to try: `view event`, `view event abc`, `view event 1 2`, `view event 2147483648`<br>
+      Expected: The same error as the previous test case.
+
+   1. Test case: `view events 1`<br>
+      Expected: An invalid-format error, followed by the `view` usage, which lists both `view candidate` and
+      `view event`.
 
 ### Saving data
 

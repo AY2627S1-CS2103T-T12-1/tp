@@ -552,7 +552,7 @@ Sample feedback:
 | `view candidate 1` | Candidate `1`'s full details (name, stage, priority score, phone, email, address, role, skills, note); the list collapses to that candidate. |
 | `view candidate 999` | `Candidate ID "999" does not exist. Use list to view available candidate IDs.` |
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
-| `view 1`, `view person 1` | `Invalid command format!` followed by the `view candidate` usage (the `candidate` keyword is required). |
+| `view 1`, `view person 1` | `Invalid command format!` followed by the `view` usage, which lists `view candidate` and `view event` (a record-type keyword is required). |
 
 ### Viewing the calendar from the command box: `view calendar`
 
@@ -731,6 +731,46 @@ The event is saved before it is shown. If saving fails, HireBase reports `Could 
 added. Check storage permissions and available disk space, then try again.` and nothing changes; the event ID is not
 used up.
 
+### Viewing an event's full details: `view event`
+
+Shows the full details of one event in the result display.
+
+Format: `view event EVENT_ID`
+
+* The `event` record-type keyword is required and case-sensitive.
+* `EVENT_ID` is the event's **permanent ID**, shown as `#N` in the result of `add event` and on each event in the
+  Calendar tab. It never changes, even when other events are deleted.
+* `EVENT_ID` **must be a positive integer** 1, 2, 3, …​ Surrounding and repeated whitespace is accepted.
+* The result shows the event's name, description, start, end and candidates. An empty description, or an event
+  with no candidates, is shown as `—`.
+* A `Status: Cancelled` line appears only if the event is cancelled. Events that are not cancelled show no status.
+* Candidates are listed by ID and name, in the order they were added. If a candidate was deleted after being added
+  to the event, the event keeps their ID, and it is shown as `#ID (deleted)`.
+* Viewing an event does not change any records, the selected tab or the candidate list, and does not save the data
+  file.
+
+Examples:
+
+* `view event 1` shows the full details of the event whose ID is `1`.
+
+Sample output of `view event 1`, for an event with candidates `#1` and `#4`, after candidate `#4` was deleted:
+
+```
+Event:       #1 Interview with Alex
+Description: Round 2
+Start:       05/11/2026 14:00
+End:         05/11/2026 15:00
+Candidates:  #1 Alex Yeoh, #4 (deleted)
+```
+
+Sample feedback:
+
+| Command | Feedback |
+| --- | --- |
+| `view event 999` | `Event ID "999" does not exist.` |
+| `view event 0`, `view event abc`, `view event` | `Invalid command format!` followed by the `view event` usage (the ID must be a positive integer). |
+| `view events 1`, `view Event 1` | `Invalid command format!` followed by the `view` usage, which lists both `view candidate` and `view event`. |
+
 ### Clearing all entries: `clear`
 
 Clears all candidates, job openings and events from HireBase.
@@ -748,7 +788,7 @@ Format: `exit`
 
 ### Saving the data
 
-HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
+HireBase automatically saves data after commands, except the read-only `list jobs` and `view event` commands. You do not need to save manually.
 Candidate records, job openings and events are saved together in the same data file and loaded on the next launch.
 Changing calendar controls does not save the data file; the selected calendar period and filters are temporary.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
@@ -854,6 +894,7 @@ _Details coming soon ..._
 | **Edit job** | `edit job ID [t/TITLE] [d/DEPARTMENT] [desc/DESCRIPTION] [s/SKILL]...`<br> e.g., `edit job 1 d/Research` |
 | **Delete job** | `delete job ID`<br> e.g., `delete job 2` |
 | **Add event** | `add event n/NAME from/DD/MM/YYYY HH:MM to/DD/MM/YYYY HH:MM [desc/DESCRIPTION] [c/CANDIDATE_ID]...`<br> e.g., `add event n/Interview with Alex from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` |
+| **View event** | `view event EVENT_ID`<br> e.g., `view event 1` |
 | **Clear** | `clear` |
 | **Help** | `help` |
 | **Exit** | `exit` |

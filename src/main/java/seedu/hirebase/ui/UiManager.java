@@ -1,6 +1,7 @@
 package seedu.hirebase.ui;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -25,16 +26,17 @@ public class UiManager implements Ui {
 
     private Logic logic;
     private Path dataFilePath;
+    private Optional<String> startupWarning;
     private MainWindow mainWindow;
 
     /**
-     * Creates a {@code UiManager} with the given {@code Logic} and the data file
-     * path
-     * to show in the status bar.
+     * Creates a {@code UiManager} with the given {@code Logic}, the data file path to show in the status bar,
+     * and an optional {@code startupWarning} to show in the result display when the window opens.
      */
-    public UiManager(Logic logic, Path dataFilePath) {
+    public UiManager(Logic logic, Path dataFilePath, Optional<String> startupWarning) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.startupWarning = startupWarning;
     }
 
     @Override
@@ -48,6 +50,7 @@ public class UiManager implements Ui {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
             mainWindow.show(); // This should be called before creating other UI parts
             mainWindow.fillInnerParts();
+            startupWarning.ifPresent(mainWindow::showStartupWarning);
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));

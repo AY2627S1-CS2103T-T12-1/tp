@@ -44,6 +44,8 @@ public class MainApp extends Application {
     protected Storage storage;
     protected Model model;
 
+    private Optional<String> dataLoadWarning = Optional.empty();
+
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing HireBase ]===========================");
@@ -58,7 +60,7 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getHireBaseFilePath());
+        ui = new UiManager(logic, storage.getHireBaseFilePath(), dataLoadWarning);
     }
 
     /**
@@ -69,7 +71,7 @@ public class MainApp extends Application {
      * or an empty address book will be used instead if errors occur when reading
      * {@code storage}'s address book.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getHireBaseFilePath());
 
         Optional<ReadOnlyHireBase> hireBaseOptional;
@@ -84,11 +86,30 @@ public class MainApp extends Application {
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getHireBaseFilePath() + " could not be loaded."
                     + " Will be starting with an empty HireBase.");
-            FileUtil.tryBackUpInvalidFile(storage.getHireBaseFilePath());
+            Optional<Path> backup = FileUtil.tryBackUpInvalidFile(storage.getHireBaseFilePath());
+            dataLoadWarning = Optional.of(buildDataLoadWarning(storage.getHireBaseFilePath(), backup));
             initialData = new HireBase();
         }
 
         return new ModelManager(initialData, userPrefs);
+    }
+
+    /**
+     * Returns the startup warning to show the user, present only if the data file could not be loaded.
+     */
+    Optional<String> getDataLoadWarning() {
+        return dataLoadWarning;
+    }
+
+    /**
+     * Returns the message telling the user that {@code dataFile} could not be loaded, naming {@code backup}
+     * if a copy of the invalid file was made.
+     */
+    static String buildDataLoadWarning(Path dataFile, Optional<Path> backup) {
+        String warning = "Could not read the data file " + dataFile + ", so HireBase started with no data. ";
+        return warning + backup.map(path -> "A copy of the file was saved as " + path + ".")
+                .orElse("No backup copy could be made, so copy the file yourself before running a command"
+                        + " that saves data.");
     }
 
     /**

@@ -22,6 +22,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import seedu.hirebase.logic.LogicManager;
 import seedu.hirebase.model.ModelManager;
@@ -83,6 +84,53 @@ public class JobUiTest {
             assertTrue(skills.isWrapText());
             JobCard empty = new JobCard(base.withJobId(new JobId(8)));
             assertEquals("Required skills: None", ((Label) empty.getRoot().lookup("#skills")).getText());
+        });
+    }
+
+    @Test
+    public void mainWindow_longDepartmentAtMinimumWidth_displaysFullWrappedText() throws Exception {
+        onFxThread(() -> {
+            ModelManager model = new ModelManager();
+            LogicManager logic = new LogicManager(model, new StorageManager(
+                    new JsonHireBaseStorage(temporaryFolder.resolve("department.json")),
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+            Stage stage = new Stage();
+            MainWindow window = new MainWindow(stage, logic, temporaryFolder.resolve("department.json"));
+            window.fillInnerParts();
+            stage.setWidth(stage.getMinWidth());
+            try {
+                stage.show();
+                Scene scene = stage.getScene();
+                TextField command = (TextField) scene.lookup("#commandTextField");
+                submit(command, "add job t/Engineer d/Engineering desc/Build services");
+                for (String departmentText : new String[] {
+                    "International Research and Development Engineering Operations Department",
+                    "D".repeat(100), "Engineering"
+                }) {
+                    submit(command, "edit job 1 d/" + departmentText);
+                    scene.getRoot().applyCss();
+                    scene.getRoot().layout();
+                    Label department = (Label) scene.lookup("#department");
+                    assertNotNull(department);
+                    Text renderedText = (Text) department.lookup(".text");
+                    assertNotNull(renderedText);
+                    assertEquals(departmentText, renderedText.getText());
+                    Text singleLine = new Text(departmentText);
+                    singleLine.setFont(department.getFont());
+                    if (departmentText.equals("Engineering")) {
+                        assertEquals(department.prefWidth(-1), department.getWidth(), 1);
+                        assertEquals(singleLine.getLayoutBounds().getHeight(),
+                                renderedText.getLayoutBounds().getHeight(), 1);
+                    } else {
+                        assertTrue(renderedText.getLayoutBounds().getHeight()
+                                > singleLine.getLayoutBounds().getHeight());
+                    }
+                    assertTrue(department.getHeight() >= department.prefHeight(department.getWidth()) - 1);
+                    assertTrue(department.localToScene(department.getBoundsInLocal()).getMaxX() <= scene.getWidth());
+                }
+            } finally {
+                stage.close();
+            }
         });
     }
 

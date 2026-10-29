@@ -131,6 +131,7 @@ public class PersonDetailWindowTest {
     }
 
     private static Node lookup(PersonDetailWindow window, String id) {
+        window.getRoot().getScene().getRoot().applyCss();
         return window.getRoot().getScene().lookup(id);
     }
 

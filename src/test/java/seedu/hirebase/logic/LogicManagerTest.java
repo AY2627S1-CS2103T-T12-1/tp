@@ -8,10 +8,7 @@ import static seedu.hirebase.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.ROLE_DESC_AMY;
 import static seedu.hirebase.logic.commands.CommandTestUtil.SKILL_DESC_JAVA;
-import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_ROLE_AMY;
-import static seedu.hirebase.logic.commands.CommandTestUtil.VALID_SKILL_JAVA;
 import static seedu.hirebase.testutil.Assert.assertThrows;
-import static seedu.hirebase.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -33,11 +30,9 @@ import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.calendar.CalendarViewOptions;
 import seedu.hirebase.model.calendar.CalendarViewOptions.Period;
-import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.StorageManager;
-import seedu.hirebase.testutil.PersonBuilder;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -209,10 +204,7 @@ public class LogicManagerTest {
         // Triggers the saveHireBase method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + " " + AddCommand.RECORD_TYPE_CANDIDATE + NAME_DESC_AMY
             + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY + SKILL_DESC_JAVA + ROLE_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().withSkills(VALID_SKILL_JAVA)
-                .withRole(VALID_ROLE_AMY).build();
         ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 }

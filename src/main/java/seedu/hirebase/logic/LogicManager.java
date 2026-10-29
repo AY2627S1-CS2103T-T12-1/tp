@@ -80,6 +80,10 @@ public class LogicManager implements Logic {
         if (command instanceof EditJobCommand editJobCommand) {
             return executeEditJob(editJobCommand);
         }
+        if (command instanceof AddCommand || command instanceof DeleteCommand || command instanceof EditCommand
+                || command instanceof NoteCommand || command instanceof StageCommand) {
+            return executeCandidateChange(command);
+        }
         commandResult = command.execute(model);
         if (command instanceof ListJobsCommand) {
             return commandResult.withListView(CommandResult.ListView.JOBS);
@@ -97,12 +101,28 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
-        if (command instanceof AddCommand || command instanceof DeleteCommand || command instanceof EditCommand
-                || command instanceof FindCommand || command instanceof ListCommand
-                || command instanceof NoteCommand || command instanceof StageCommand) {
+        if (command instanceof FindCommand || command instanceof ListCommand) {
             return commandResult.withListView(CommandResult.ListView.CANDIDATES);
         }
         return commandResult;
+    }
+
+    /**
+     * Saves candidate changes before publishing them, preserving records, filters and IDs on a failed save.
+     */
+    private CommandResult executeCandidateChange(Command command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (AccessDeniedException e) {
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException e) {
+            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, e.getMessage()), e);
+        }
+        // Replay only after saving so the live model keeps each command's existing filter behaviour.
+        command.execute(model);
+        return result.withListView(CommandResult.ListView.CANDIDATES);
     }
 
     private CommandResult executeAddJob(AddJobCommand command) throws CommandException {

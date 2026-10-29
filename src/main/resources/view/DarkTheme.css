@@ -488,6 +488,10 @@
     -fx-background-color: transparent;
 }
 
+.calendar-panel .scroll-pane > .corner {
+    -fx-background-color: #383838;
+}
+
 .calendar-day,
 .calendar-event {
     -fx-padding: 8;

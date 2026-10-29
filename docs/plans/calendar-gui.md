@@ -43,3 +43,22 @@ cancelled/upcoming combinations, overlapping events, empty states, model updates
 Visually inspect a populated week and month using temporary data before completing the local PR preparation.
 
 This branch and its intermediate commits remain local until publishing is requested.
+
+## Completion and validation
+
+Implemented the options, panel and application integration in separate commits, followed by guide and screenshot updates.
+The GUI retains the existing dark theme and uses standard JavaFX controls. Calendar command parsing remains separate.
+
+- `gradlew.bat build check --offline` with JDK 25 passed all 877 tests, with no failures, errors or skipped tests.
+  The final run executed 13 tasks, including tests, packaging and both Checkstyle checks; three tasks were up-to-date,
+  including Java compilation. Both Checkstyle XML reports contain zero violations.
+- Fourteen option tests cover date ranges, leap days, exact end times, cancellation, combinations and stable overlaps.
+  Ten panel tests and four application integration tests cover controls, live counts, refresh, lifecycle,
+  tab switching, add-event feedback and view-only actions preserving records and saved data.
+- A separate local probe loaded production classes and FXML from `build/libs/hirebase.jar`, then captured Today,
+  Week and Month at 1280 by 720 and 850 by 650 window sizes. Its assertions checked complete date labels,
+  stacked event cards, event counts and unchanged JSON. Screenshots were visually reviewed, including combined filters.
+- Repository text checks found no prohibited index line endings, trailing whitespace or missing final newlines.
+
+The User Guide documents the current controls and includes the verified week screenshot. The Developer Guide describes
+the shared selection rules, refresh lifecycle and a manual testing matrix. A local PR description is prepared separately.

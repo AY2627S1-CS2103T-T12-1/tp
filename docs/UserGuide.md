@@ -3,7 +3,9 @@ layout: page
 title: User Guide
 ---
 
-HireBase is a **keyboard-driven CLI application** that helps you manage candidates, their recruitment details, and local job openings. It is designed to be simple, fast, and efficient, by streamlining the management of high-volume candidate tracking for tech recruiters through an optimized, keyboard-first interface.
+HireBase is a **keyboard-driven CLI application** that helps you manage candidates, their recruitment details,
+local job openings and a calendar of saved events. It is designed to be simple, fast, and efficient, by streamlining
+the management of high-volume candidate tracking for tech recruiters through an optimized, keyboard-first interface.
 
 - Table of Contents
   {:toc}
@@ -35,7 +37,7 @@ HireBase is a **keyboard-driven CLI application** that helps you manage candidat
 
    - `delete candidate 3` : Deletes the 3rd candidate shown in the current list.
 
-   - `clear` : Deletes all candidates and job openings.
+   - `clear` : Deletes all candidates, job openings and events.
 
    - `exit` : Exits the app.
 
@@ -162,11 +164,11 @@ to it or change their target roles. When you add an opening with required skills
 candidates with at least one matching skill as an initial shortlist. Use `list candidates` to clear that filter. Use
 `edit job` to correct an opening while keeping its ID and position in the job list.
 
-### Switching between candidates and job openings
+### Switching between candidates, job openings and the calendar
 
-Click **Candidates** or **Job openings** above the list to switch views. Switching tabs does not change records
-or reset a candidate search. You can also use `list jobs` or `list candidates` from the command box;
-`list candidates` resets the candidate filter to show all candidates.
+Click **Candidates**, **Job openings** or **Calendar** to switch views. Switching tabs does not change records,
+reset a candidate search or reset the calendar controls. You can also use `list jobs` or `list candidates` from
+the command box; `list candidates` resets the candidate filter to show all candidates.
 
 Each job card displays its permanent positive-integer ID, title, department, full description, and required skills.
 Long details wrap
@@ -174,8 +176,43 @@ across lines; scroll the list to read additional content. An empty jobs tab show
 Cards update after adding, editing, deleting or clearing records. After a deletion, all remaining openings keep their IDs.
 
 Successful job commands select the Job openings tab. Successful candidate commands, including `find`, select
-the Candidates tab. Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active
-tab and empties both lists. On launch, the Candidates tab is selected; saved openings are available in Job openings.
+the Candidates tab. Adding an event successfully selects Calendar and keeps its current period and filters.
+Failed commands keep the current tab and displayed data unchanged. `clear` keeps the active tab and removes
+all candidates, job openings and events. On launch, the Candidates tab is selected.
+
+### Viewing the calendar
+
+Open **Calendar** to browse saved events. Choose **Today**, **Week** or **Month** from the dropdown:
+
+![Calendar showing a Sunday-to-Saturday week](images/calendar-week.png)
+
+| View | Dates shown |
+| --- | --- |
+| **Today** | The current local date. |
+| **Week** | The current week, from Sunday through Saturday, including across month or year boundaries. |
+| **Month** | The current calendar month, from its first day to its last day. |
+
+The calendar starts in **Week** with both checkboxes clear each time you launch HireBase.
+Dates and times follow your computer's local clock, and the displayed period updates automatically as the date changes.
+
+- With **Cancelled only** clear, cancelled events are hidden. Select it to show only cancelled events instead.
+- With **Upcoming only** clear, past events remain visible. Select it to hide events whose end time has been reached.
+  An event in progress is still upcoming until it ends.
+- Selecting both checkboxes shows only cancelled events that have not ended, within the selected period.
+
+Events appear under their date in start-time order. Overlapping events are shown separately; scroll to see every entry.
+The heading shows the selected date range. Days without matching events are still shown; an empty view reports
+`No matching events in this period.` The count at the bottom of the window is the number of events visible in
+that period after both filters are applied. With **Upcoming only** selected, the entries and count update
+automatically as events end. Saved record changes also update the view.
+
+Adding an event keeps the selected period and filters, so it appears only if its date and status match the current view.
+Check the range heading and filters if it is not visible. Switching tabs and changing calendar controls only change what
+you see; they do not edit events or save data. The selected period and checkboxes are remembered while the
+app remains open and reset on the next launch.
+
+You can use the calendar without a mouse: use **Tab** and **Shift+Tab** to move focus, arrow keys on the tab
+headers or dropdown to change the selection, and **Space** to toggle a focused checkbox.
 
 ### Adding a job opening: `add job`
 
@@ -591,12 +628,12 @@ Candidates stay in HireBase; rejecting already rejected candidates is allowed, a
 
 ### Clearing all entries: `clear`
 
-Clears all candidates and job openings from HireBase.
+Clears all candidates, job openings and events from HireBase.
 
 Format: `clear`
 
-Candidate IDs and job IDs used before `clear` are not reused. New candidates and job openings continue from the
-next unused ID.
+Candidate IDs, job IDs and event IDs used before `clear` are not reused. New records continue from the
+next unused ID for their record type.
 
 ### Exiting the program: `exit`
 
@@ -607,8 +644,8 @@ Format: `exit`
 ### Saving the data
 
 HireBase automatically saves data after commands, except the read-only `list jobs` command. You do not need to save manually.
-Candidate records and any stored job openings are saved together in the same data
-file and loaded on the next launch.
+Candidate records, job openings and events are saved together in the same data file and loaded on the next launch.
+Changing calendar controls does not save the data file; the selected calendar period and filters are temporary.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 
 ### Editing the data file

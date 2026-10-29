@@ -22,7 +22,8 @@ public class DeleteCommand extends Command {
             + ": Deletes the candidate identified by their CANDIDATE_ID.\n"
             + "Parameters: " + RECORD_TYPE_CANDIDATE + " CANDIDATE_ID (CANDIDATE_ID must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1\n"
-            + "To delete a job opening, use: " + DeleteJobCommand.MESSAGE_USAGE;
+            + "To delete a job opening, use: " + DeleteJobCommand.MESSAGE_USAGE + "\n"
+            + "To delete an event, use: " + DeleteEventCommand.MESSAGE_USAGE;
 
     public static final String MESSAGE_DELETE_CANDIDATE_SUCCESS = "Deleted candidate %1$d: %2$s (%3$s)";
 

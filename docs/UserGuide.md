@@ -783,6 +783,11 @@ Format: `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM]
   Each prefix may appear once, except `c/`, which can appear multiple times.
 - `n/NAME` replaces the event name. The name must be nonblank and at most 100 characters long.
 - `desc/DESCRIPTION` replaces the description; `desc/` with no text clears it.
+- Unlike `add event`, this command rejects unknown prefixes. In names and descriptions, a prefix-like token
+  following whitespace is treated as a parameter: `desc/Discuss CI/CD pipelines` is rejected with
+  `Unknown parameter: CI/.`. To include slash-containing text, put it immediately after the field prefix
+  (`desc/CI/CD pipelines discussion`) or wrap that text in parentheses (`desc/Discuss (CI/CD) pipelines`).
+  The parentheses are preserved in the saved value.
 - `from/` and `to/` replace the start and end times using `DD/MM/YYYY HH:MM` in 24-hour time.
   The resulting start must be strictly before the end, and both must be on the same day.
   When changing dates, supply both fields so that the resulting event stays on one day.
@@ -812,6 +817,8 @@ Examples:
 
 - `edit event 1 cancel/true` cancels event `#1` while keeping its details and linked candidates.
 - `edit event 1 desc/Applicant requested postponement cancel/true` records a reason and cancels the event.
+- `edit event 1 desc/Discuss (CI/CD) pipelines` updates the description while keeping the slash-containing text
+  in parentheses so that it is not treated as a parameter.
 - `edit event 1 cancel/false` restores event `#1` to active status.
 - `edit event 1 from/06/11/2026 14:00 to/06/11/2026 15:00` moves the event to that date and time.
 - `edit event 1 n/Final interview c/2 c/3` renames the event and replaces its candidate links with IDs 2 and 3.

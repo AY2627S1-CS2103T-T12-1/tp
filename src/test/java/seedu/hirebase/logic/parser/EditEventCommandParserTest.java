@@ -46,6 +46,29 @@ public class EditEventCommandParserTest {
     }
 
     @Test
+    public void parse_slashTextAfterWhitespace_rejectedAsUnknownPrefix() {
+        for (String prefix : List.of("n/", "desc/")) {
+            assertParseFailure(parser, "event 1 " + prefix + "Discuss CI/CD pipelines",
+                    "Unknown parameter: CI/.");
+        }
+    }
+
+    @Test
+    public void parse_slashTextImmediatelyAfterPrefix_preserved() {
+        assertParseSuccess(parser, "event 1 n/CI/CD interview desc/CI/CD pipelines discussion",
+                update(new EventName("CI/CD interview"), new EventDescription("CI/CD pipelines discussion"),
+                        null, null, null, null));
+    }
+
+    @Test
+    public void parse_parenthesizedSlashText_preservedAlongsideOtherFields() {
+        assertParseSuccess(parser, "event 1 n/Discuss (CI/CD) pipelines "
+                + "desc/Review (CI/CD) workflows cancel/true",
+                update(new EventName("Discuss (CI/CD) pipelines"), new EventDescription("Review (CI/CD) workflows"),
+                        null, null, true, null));
+    }
+
+    @Test
     public void parse_emptyOptionalFields_clearsDescriptionAndCandidates() {
         assertParseSuccess(parser, "event 1 desc/ c/", update(null, EventDescription.EMPTY,
                 null, null, null, List.of()));

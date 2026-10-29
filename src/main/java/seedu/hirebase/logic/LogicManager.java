@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import seedu.hirebase.commons.core.GuiSettings;
 import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.logic.commands.AddCommand;
+import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.AddJobCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
@@ -29,6 +30,8 @@ import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.Skill;
+import seedu.hirebase.model.event.Event;
+import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.job.JobOpening;
 import seedu.hirebase.storage.Storage;
 
@@ -65,6 +68,9 @@ public class LogicManager implements Logic {
         Command command = hireBaseParser.parseCommand(commandText);
         if (command instanceof AddJobCommand addJobCommand) {
             return executeAddJob(addJobCommand);
+        }
+        if (command instanceof AddEventCommand addEventCommand) {
+            return executeAddEvent(addEventCommand);
         }
         if (command instanceof DeleteJobCommand deleteJobCommand) {
             return executeDeleteJob(deleteJobCommand);
@@ -116,6 +122,30 @@ public class LogicManager implements Logic {
                     .withListView(CommandResult.ListView.CANDIDATES);
         }
         return result.withListView(CommandResult.ListView.JOBS);
+    }
+
+    /**
+     * Adds the event to a copy of the model and saves that copy before changing the real model,
+     * so a failed save leaves no event behind and uses up no event ID.
+     */
+    private CommandResult executeAddEvent(AddEventCommand command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        // The copy started from the model's ID counter, so the new event got exactly that ID.
+        // The command has already rejected an exhausted counter, so the value fits in an int.
+        EventId newId = new EventId((int) model.getHireBase().getNextEventId());
+        Event saved = pending.findEvent(newId).orElseThrow();
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (AccessDeniedException e) {
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException e) {
+            logger.warning("Could not save new event " + newId + ": " + e.getMessage());
+            throw new CommandException(AddEventCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        // Publish the exact event that was saved; it keeps its ID, so the app and the file agree.
+        model.addEvent(saved);
+        return result;
     }
 
     private CommandResult executeDeleteJob(DeleteJobCommand command) throws CommandException {

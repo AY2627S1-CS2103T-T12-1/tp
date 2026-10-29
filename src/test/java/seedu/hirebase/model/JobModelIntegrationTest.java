@@ -17,6 +17,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.exceptions.DuplicatePersonException;
+import seedu.hirebase.model.event.Event;
 import seedu.hirebase.model.job.Department;
 import seedu.hirebase.model.job.Description;
 import seedu.hirebase.model.job.JobOpening;
@@ -206,6 +207,11 @@ public class JobModelIntegrationTest {
             @Override
             public ObservableList<JobOpening> getJobOpeningList() {
                 return FXCollections.observableArrayList(jobs);
+            }
+
+            @Override
+            public ObservableList<Event> getEventList() {
+                return FXCollections.emptyObservableList();
             }
         };
     }

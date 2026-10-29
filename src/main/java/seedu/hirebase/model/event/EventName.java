@@ -5,10 +5,13 @@ import static seedu.hirebase.commons.util.AppUtil.checkArgument;
 
 /**
  * An immutable event name. Names need not be unique because events are identified by {@link EventId}.
- * Only blankness is checked here; stricter rules belong to the add command.
+ * Names must not be blank and are capped at {@code MAX_LENGTH} characters, so that every way of creating an
+ * event (commands and saved data) enforces the same rule.
  */
 public final class EventName {
-    public static final String MESSAGE_CONSTRAINTS = "Event names should not be blank.";
+    public static final int MAX_LENGTH = 100;
+    public static final String MESSAGE_CONSTRAINTS = "Event names should not be blank and must be at most "
+            + MAX_LENGTH + " characters long.";
     public final String value;
 
     /**
@@ -21,11 +24,13 @@ public final class EventName {
     }
 
     /**
-     * Returns true if the given string is a valid event name.
+     * Returns true if the given string is not blank and, after trimming, has at most {@code MAX_LENGTH} characters.
+     * Characters are counted as code points, so an emoji counts as one character, not two.
      */
     public static boolean isValidEventName(String test) {
         requireNonNull(test);
-        return !test.isBlank();
+        String trimmed = test.strip();
+        return !trimmed.isEmpty() && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
     }
 
     @Override

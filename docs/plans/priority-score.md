@@ -2,7 +2,8 @@
 
 ## Local change plan
 
-Base: `a016d25e` (28 October 2026). Branch: `candidate-priority-score`.
+Original base: `a016d25e` (28 October 2026). Branch: `candidate-priority-score`.
+Upstream integration checked at `efb456e9` on 29 October 2026.
 No matching priority issue exists in the team tracker at this check.
 
 Use the existing candidate commands and a single `priority/` prefix:
@@ -40,9 +41,9 @@ Recruiters can assign Low, Medium or High priority using `priority/1`, `priority
 commands, and filter candidates by score with the existing list command. Scores survive restarts and unrelated edits;
 older records default to Low. Candidate cards and details display the score using the existing plain styling.
 
-Validation: `gradlew.bat build check --offline` passed on JDK 25 with 733 tests, zero failures/errors/skips and both
-Checkstyle checks. The final run executed test compilation, tests, test Checkstyle and coverage; production compilation,
-packaging and production Checkstyle were up to date from the preceding run. JavaFX used software rendering.
-The first checks found two test-formatting violations; both were corrected before the successful full run.
+Validation: `gradlew.bat build check --offline` passed on JDK 25 after upstream integration with 873 tests,
+zero failures/errors/skips and both Checkstyle checks. Production and test compilation, packaging, tests,
+both Checkstyle tasks and coverage reporting executed; resource processing was up to date.
+JavaFX used software rendering. Repository line-ending, whitespace and final-newline checks also passed.
 
-This is a local PR preparation; no remote branch or pull request is created or pushed.
+The branch is prepared for review against the team repository's `master` branch.

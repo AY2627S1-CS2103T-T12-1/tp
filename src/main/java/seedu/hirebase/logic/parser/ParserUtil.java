@@ -2,6 +2,10 @@ package seedu.hirebase.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,6 +21,7 @@ import seedu.hirebase.model.candidate.Phone;
 import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
+import seedu.hirebase.model.event.EventName;
 import seedu.hirebase.model.tag.Tag;
 
 /**
@@ -26,6 +31,13 @@ import seedu.hirebase.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_DATE_TIME =
+            "Date and time must be a real date in the format DD/MM/YYYY HH:MM (24-hour), e.g. 05/11/2026 14:00.";
+
+    // Strict resolving rejects dates such as 31/04 instead of silently moving them to 30/04.
+    // "uuuu" is the proleptic year; "yyyy" would need an era to resolve strictly.
+    private static final DateTimeFormatter DATE_TIME_INPUT_FORMAT = DateTimeFormatter.ofPattern("dd/MM/uuuu HH:mm")
+            .withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Parses a replacement skill set. Every supplied skill must be non-blank.
@@ -171,6 +183,34 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses {@code dateTime} in the format {@code DD/MM/YYYY HH:MM}. Leading and trailing whitespace is trimmed,
+     * but the date and time must be separated by exactly one space.
+     *
+     * @throws ParseException if the input is not a real date and time in that format.
+     */
+    public static LocalDateTime parseDateTime(String dateTime) throws ParseException {
+        requireNonNull(dateTime);
+        try {
+            return LocalDateTime.parse(dateTime.trim(), DATE_TIME_INPUT_FORMAT);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(MESSAGE_INVALID_DATE_TIME, e);
+        }
+    }
+
+    /**
+     * Parses {@code name} into an {@code EventName}. Leading and trailing whitespace is trimmed.
+     *
+     * @throws ParseException if the name is blank.
+     */
+    public static EventName parseEventName(String name) throws ParseException {
+        requireNonNull(name);
+        if (!EventName.isValidEventName(name)) {
+            throw new ParseException(EventName.MESSAGE_CONSTRAINTS);
+        }
+        return new EventName(name);
     }
 
     /**

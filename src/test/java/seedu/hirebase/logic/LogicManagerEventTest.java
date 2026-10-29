@@ -151,6 +151,23 @@ public class LogicManagerEventTest {
     }
 
     @Test
+    public void viewEvent_neverSaves_soSaveFailureStillShowsDetails() throws Exception {
+        logic.execute(ADD_INTERVIEW);
+        int savesAfterAdd = hireBaseStorage.saveCount;
+
+        // Viewing changes no data, so it does not write the file at all.
+        logic.execute("view event 1");
+        assertEquals(savesAfterAdd, hireBaseStorage.saveCount);
+
+        // Even when the disk cannot be written, the details are shown instead of a save error.
+        hireBaseStorage.failure = new IOException("disk full");
+        assertTrue(logic.execute("view event 1").getFeedbackToUser().startsWith("Event:       #1 Interview\n"));
+        hireBaseStorage.failure = new AccessDeniedException("hirebase.json");
+        assertTrue(logic.execute("view event 1").getFeedbackToUser().startsWith("Event:       #1 Interview\n"));
+        assertEquals(savesAfterAdd, hireBaseStorage.saveCount);
+    }
+
+    @Test
     public void viewEvent_afterRestart_showsSameEvent() throws Exception {
         model.addPerson(new PersonBuilder().withName("Alice Tan").withEmail("alice@example.com").build());
         logic.execute(ADD_INTERVIEW + " desc/Round 2 c/1");

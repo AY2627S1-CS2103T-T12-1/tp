@@ -524,6 +524,27 @@ Sample feedback:
 | `view candidate 0`, `view candidate abc` | `Invalid command format!` followed by the `view candidate` usage (the ID must be a positive integer). |
 | `view 1`, `view person 1` | `Invalid command format!` followed by the `view candidate` usage (the `candidate` keyword is required). |
 
+### Viewing the calendar from the command box: `view calendar`
+
+Selects the Calendar tab and applies the selected period and filters, just like changing the calendar controls.
+The command is read-only; it does not change or save events.
+
+Format: `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`
+
+- `period/` accepts `today`, `week` or `month` (case-insensitive). If omitted, the period is `week`.
+- `cancelled/` controls **Cancelled only**, and `upcoming/` controls **Upcoming only**. Each accepts `true` or
+  `false` (case-insensitive); omitted filters default to `false`.
+- Each parameter can appear at most once. Write each prefix directly before its value, as in `period/month`;
+  surrounding spaces and extra spaces after `/` are also accepted.
+
+Examples:
+
+- `view calendar period/month upcoming/true` shows the current month and only events that have not ended.
+- `view calendar period/today cancelled/true` shows today's cancelled events.
+- `view calendar` selects the current week with both filters cleared.
+
+The calendar still displays only the current day, week or month; this command does not navigate to another date range.
+
 ### Adding or updating a candidate's note: `note`
 
 Adds, updates, or clears the free-text screening note of an existing candidate. Any existing note is overwritten.
@@ -792,6 +813,7 @@ _Details coming soon ..._
 | **Reject candidates** | `reject candidate CANDIDATE_ID [MORE_CANDIDATE_IDS]...`<br> e.g., `reject candidate 2 4` |
 | **Delete candidate** | `delete candidate CANDIDATE_ID`<br> e.g., `delete candidate 3` |
 | **View candidate** | `view candidate CANDIDATE_ID`<br> e.g., `view candidate 1` |
+| **View calendar** | `view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]`<br> e.g., `view calendar period/month upcoming/true` |
 | **Note candidate** | `note CANDIDATE_ID [NOTE]`<br> e.g., `note 1 Strong system-design round` |
 | **Add job** | `add job t/TITLE d/DEPARTMENT desc/DESCRIPTION [s/SKILL]...`<br> e.g., `add job t/Software Engineer d/Engineering desc/Build Java services.` |
 | **List jobs** | `list jobs` |

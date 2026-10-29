@@ -29,7 +29,8 @@ public class ViewCommand extends Command {
             + "and shows only that candidate.\n"
             + "Parameters: " + RECORD_TYPE_CANDIDATE + " CANDIDATE_ID (CANDIDATE_ID must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1\n"
-            + "To view an event, use: " + ViewEventCommand.MESSAGE_USAGE;
+            + "To view an event, use: " + ViewEventCommand.MESSAGE_USAGE + "\n"
+            + "To view the calendar, use: " + ViewCalendarCommand.MESSAGE_USAGE;
 
     private static final String EMPTY_PLACEHOLDER = "—";
 

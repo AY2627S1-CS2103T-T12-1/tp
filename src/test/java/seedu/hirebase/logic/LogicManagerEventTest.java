@@ -57,6 +57,8 @@ public class LogicManagerEventTest {
         assertEquals(1, model.getEventList().size());
         assertEquals(model.getEventList(), savedEvents());
         assertEquals(2, model.getHireBase().getNextEventId());
+        assertEquals(model.getEventList().getFirst(), result.getAddedEvent().orElseThrow());
+        assertEquals(CommandResult.ListView.CALENDAR, result.getListView());
     }
 
     @Test

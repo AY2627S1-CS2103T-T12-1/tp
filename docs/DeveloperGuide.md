@@ -411,6 +411,17 @@ is tracked in [issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/2
 
 #### Implementation
 
+`CalendarPanel` gets the live event list from `Logic` and applies `CalendarViewOptions`, which filters the events
+and creates a `Calendar` of consecutive `Day` objects. The panel renders each `Day` and its events. The diagram
+below shows these display data and their relationships.
+
+![Calendar display model](images/CalendarModelClassDiagram.png)
+
+The sequence diagram below shows how `view calendar` is parsed, returned as a read-only command result, and applied
+to the existing `CalendarPanel`.
+
+![Interactions for the `view calendar` command](images/ViewCalendarSequenceDiagram.png)
+
 1. `MainWindow` creates one `CalendarPanel` with the live, unmodifiable event list exposed by `Logic#getEventList()`.
    The panel observes that list, so published additions, replacements, deletions and `clear` update the view.
 1. Each control change creates immutable `CalendarViewOptions`. Its default is `WEEK` with both filters false.

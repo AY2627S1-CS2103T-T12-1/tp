@@ -1,0 +1,43 @@
+@startuml
+!include style.puml
+skinparam Class {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  FontColor #000000
+}
+
+class CalendarPanel {
+  -events: ObservableList<Event>
+  -options: CalendarViewOptions
+  -displayedCalendar: Calendar
+  +refresh()
+}
+
+class CalendarViewOptions {
+  -period: Period
+  -cancelledOnly: boolean
+  -upcomingOnly: boolean
+  +createCalendar(events, now): Calendar
+}
+
+class Calendar {
+  -days: List<Day>
+  +getDays(): List<Day>
+}
+
+class Day {
+  -date: LocalDate
+  -events: List<Event>
+  +getEvents(): List<Event>
+}
+
+class Event
+
+CalendarPanel --> CalendarViewOptions : applies
+CalendarViewOptions ..> Event : filters
+CalendarViewOptions ..> Calendar : creates
+Calendar "1" *-- "1..*" Day : days
+Day "1" *-- "0..*" Event : events
+CalendarPanel ..> Day : renders
+
+@enduml

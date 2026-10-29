@@ -12,32 +12,21 @@ Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
 Class "<<interface>>\nModel" as Model
 Class HireBase {
     -nextCandidateId : int
+    -nextJobId : long
+    -nextEventId : long
 }
 Class ModelManager
 Class UserPrefs
 
 Class UniquePersonList
 Class UniqueJobOpeningList
-Class JobOpening
+Class UniqueEventList
 Class Person
-Class CandidateId {
-    -value : int
-}
-Class Name
-Class Phone
-Class Email
-Class Address
-Class Note
-Class Skill
-Class Role
-Class InterviewStage
-Class Tag
-
-Class I #FFFFFF
+Class JobOpening
+Class Event
 }
 
 show HireBase fields
-show CandidateId fields
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
@@ -53,26 +42,10 @@ UserPrefs .up.|> ReadOnlyUserPrefs
 
 HireBase *--> "1" UniquePersonList
 HireBase *--> "1" UniqueJobOpeningList
-UniqueJobOpeningList --> "~* all" JobOpening
+HireBase *--> "1" UniqueEventList
 UniquePersonList --> "~* all" Person
-Person *--> "0..1" CandidateId
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
-Person *--> Note
-Person *--> "*" Skill
-Person *--> "0..1" Role
-Person *--> InterviewStage
-Person *--> "*" Tag
-
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
-
-CandidateId -[hidden]right-> Name
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Email
-Email -[hidden]right-> Address
+UniqueJobOpeningList --> "~* all" JobOpening
+UniqueEventList --> "~* all" Event
 
 ModelManager --> "~* filtered" Person
 @enduml

@@ -1,0 +1,30 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+Package "Job opening classes" <<Rectangle>>{
+Class JobOpening
+Class JobId {
+    -value : int
+}
+Class JobTitle
+Class Department
+Class Description
+Class Skill
+}
+
+show JobId fields
+
+Class HiddenOutside #FFFFFF
+HiddenOutside ..> JobOpening
+
+JobOpening *--> "0..1" JobId
+JobOpening *--> "1" JobTitle
+JobOpening *--> "1" Department
+JobOpening *--> "1" Description
+JobOpening *--> "*" Skill
+@enduml

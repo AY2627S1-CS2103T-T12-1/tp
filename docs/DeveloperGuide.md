@@ -9,7 +9,10 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* HireBase is based on the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project created by the [SE-EDU initiative](https://se-education.org). The architecture, the command parsing classes, and the structure of the User Guide and this Developer Guide are adapted from it.
+* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+* Diagrams are drawn with [PlantUML](https://plantuml.com/), using the styles from the SE-EDU AddressBook-Level3 `diagrams` folder.
+* The checkstyle and Codecov setup follows the SE-EDU AddressBook-Level3 project.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +39,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -69,7 +72,7 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/ui/Ui.java)
 
 ![Partial structure of the UI component, including the calendar panel](images/UiClassDiagram.png)
 
@@ -82,7 +85,7 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 `CalendarPanel` and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`
 class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -93,7 +96,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -122,11 +125,35 @@ How the parsing works:
 * When called upon to parse a user command, the `HireBaseParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `HireBaseParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
+#### How `LogicManager` saves data
+
+After a command that changes data, `LogicManager` writes the data file through `Storage`. It uses one of three patterns,
+chosen by the type of command:
+
+1. **Read-only commands** (`list jobs`, `view event` and `view calendar`) return their result without saving. A failed
+   save can therefore never replace what the user asked to see with a save error.
+1. **Save-before-publish commands** (`add job`, `edit job`, `delete job`, `add event`, `delete event`, and the candidate
+   commands `add candidate`, `delete candidate`, `edit candidate`, `note` and `stage candidate`, which `accept candidate`
+   and `reject candidate` extend) are first run on a `pending` copy of the model. `LogicManager` saves the copy, and only
+   then changes the real model that the UI observes. If the command or the save fails, the real model, the filters, the
+   ID counters and the data file are unchanged. The ways of changing the real model differ slightly: `add event`
+   adds the exact event that was saved, so the ID in the app and in the file are the same (see
+   [Add event feature](#add-event-feature)), while the other commands run again on the real model, which gives the same
+   result because it holds the same data as the copy. The [`delete event` sequence diagram](#delete-event-feature)
+   shows the replay pattern.
+1. **All other commands** (for example `find`, `list candidates`, `clear` and `view candidate`) run on the real model, and
+   the data file is saved afterwards.
+
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** :
+
+### Model component
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
 
+The class diagram above shows the structure of the `Model` component. To keep each diagram readable, the details of
+candidates, job openings, and events and calendars are shown in separate diagrams below.
 
 The `Model` component,
 
@@ -135,7 +162,21 @@ The `Model` component,
 * stores all calendar `Event` objects in a `UniqueEventList`, gives each new event a permanent `EventId` from the `nextEventId` counter, and finds the events that overlap a given event (see [Add event feature](#add-event-feature)).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+* stores job openings in `UniqueJobOpeningList`, and gives each a permanent `JobId` from the `nextJobId` counter in `HireBase`.
+* provides the `Calendar`, `Day` and `CalendarViewOptions` classes in `seedu.hirebase.model.calendar`. They are built from the events when needed and are not stored in `HireBase` (see [Calendar view](#calendar-view)).
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+
+**Candidate classes.** A `Person` is an immutable candidate. Its `CandidateId` is empty until `HireBase` adds the candidate, and its `PriorityScore` defaults to Low.
+
+<img src="images/ModelCandidateClassDiagram.png" width="550" />
+
+**Job opening classes.** A `JobOpening` is also immutable, and its `JobId` is empty until `HireBase` adds it.
+
+<img src="images/ModelJobClassDiagram.png" width="400" />
+
+**Event and calendar classes.** An `Event` starts and ends on the same day and refers to its candidates by `CandidateId` only, so deleting a candidate does not change any event. `CalendarViewOptions` builds a `Calendar`, which groups the matching events into `Day`s.
+
+<img src="images/ModelEventClassDiagram.png" width="600" />
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `HireBase`, and each `Person` references tags from that list. This lets `HireBase` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
@@ -146,14 +187,16 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-1/tp/tree/master/src/main/java/seedu/hirebase/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
 * can save both HireBase data and user preference data in JSON format, and read them back into corresponding objects.
 * saves each candidate's `candidateId` in `JsonAdaptedPerson`, and the `nextCandidateId` counter in `JsonSerializableHireBase`, so that candidate IDs stay the same across restarts.
+* saves each job opening in `JsonAdaptedJobOpening`, and the `nextJobId` counter in `JsonSerializableHireBase`, so that job IDs stay the same across restarts.
 * saves each event in `JsonAdaptedEvent`, and the `nextEventId` counter in `JsonSerializableHireBase`, in the same data file as candidates and job openings.
+* keeps a timestamped copy of a data file that cannot be loaded, so that the user's data is not lost when the app starts empty (see [Backing up an invalid data file](#backing-up-an-invalid-data-file)).
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonHireBaseStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -496,15 +539,84 @@ cannot replace the event details with a save error.
   * Pros: No special case.
   * Cons: If saving fails, the user sees a save error instead of the details, although nothing changed.
 
+### Delete event feature
+
+The `delete event EVENT_ID` command permanently removes one event from the calendar. Like `view event`, it finds its
+target by the permanent `EventId`, not by a position in a list. Other events keep their IDs, and a deleted ID is never
+given to a new event (see [Add event feature](#add-event-feature)).
+
+#### Implementation
+
+**Parsing.** The sequence diagram below shows the interactions within the `Logic` component when the user issues
+`delete event 1`. Only the successful flow is shown.
+
+![Interactions inside the Logic component when parsing the `delete event 1` command](images/DeleteEventParseSequenceDiagram.png)
+
+**Note:** The lifelines for `DeleteCommandParser` and `DeleteEventCommandParser` should end at the destroy marker (X),
+but due to a limitation of PlantUML, they continue to the end of the diagram.
+
+1. `HireBaseParser` sends every `delete ...` command to `DeleteCommandParser`, which implements `Parser<Command>`
+   rather than `Parser<DeleteCommand>`, because it creates a different command class for each record type. It splits
+   off the first word and checks it: `event` goes to `DeleteEventCommandParser`, `job` to the job parsing code, and
+   `candidate` creates a `DeleteCommand`. Any other word is a `ParseException` with `DeleteCommand.MESSAGE_USAGE`, which
+   also lists the `delete job` and `delete event` usage. The keywords are case-sensitive.
+1. `DeleteEventCommandParser` rejects a blank argument (`MESSAGE_MISSING_ID`), more than one token
+   (`MESSAGE_MULTIPLE_ARGUMENTS`), and a token that `ParserUtil#parseIndex(String)` does not accept as a positive integer
+   (`MESSAGE_INVALID_ID`). Otherwise it returns a `DeleteEventCommand` holding the `EventId`.
+
+**Executing.** `DeleteEventCommand#execute(Model)`:
+
+1. calls `Model#findEvent(targetId)`. If there is no such event, it throws a `CommandException` with
+   `DeleteEventCommand.MESSAGE_NOT_FOUND`;
+1. calls `Model#deleteEvent(target)`, which removes the event from `HireBase`. The `nextEventId` counter is not changed,
+   so the ID is not reused, and no candidate is changed, because only the event refers to the candidate;
+1. returns a `CommandResult` that says `Deleted event: ` followed by `Event#toCalendarString()`. The result does not request
+   a different tab, so the selected tab and the candidate list do not change.
+
+**Saving before publishing.** `LogicManager` handles `DeleteEventCommand` in `executeDeleteEvent(...)`, using the
+save-before-publish pattern from [How `LogicManager` saves data](#how-logicmanager-saves-data). The sequence diagram
+below shows a successful `delete event`.
+
+![Interactions inside the Logic, Model and Storage components for the `delete event 1` command](images/DeleteEventExecuteSequenceDiagram.png)
+
+1. `LogicManager` copies the model into `pending` and runs the command on the copy. If the command fails (for example,
+   because the event does not exist), the real model and the data file are unchanged.
+1. `LogicManager` saves `pending`. If saving fails, it throws a `CommandException` (with
+   `DeleteEventCommand.MESSAGE_SAVE_FAILURE`, or a file permission message), so the event stays in the app and in the
+   data file.
+1. Only then does `LogicManager` run the command again on the real model. This removes the event and updates the
+   observable event list, so `CalendarPanel` redraws and the footer count changes.
+
+#### Design considerations
+
+**Aspect: When to remove the event from the model**
+
+* **Alternative 1 (current choice):** Run the command on a copy, save the copy, then run the command again on the real model.
+  * Pros: A failed save changes nothing. The command is reused, and running it twice is safe because deleting by ID
+    gives the same result on the copy and on the real model.
+  * Cons: Copies the whole `HireBase` for each `delete event`. This is fast enough for the expected data size.
+* **Alternative 2:** Delete from the real model, then save, as most AddressBook-Level3 commands do.
+  * Pros: Simpler.
+  * Cons: If saving fails, the event disappears from the calendar but returns on the next launch.
+
+**Aspect: What deleting an event means**
+
+* **Alternative 1 (current choice):** Remove the event completely.
+  * Pros: Simple, and matches the user story of deleting a calendar event. Active and cancelled events are deleted the same way.
+  * Cons: The record is lost.
+* **Alternative 2:** Mark the event as cancelled and keep it.
+  * Pros: Keeps a history of cancelled interviews, which the Calendar's **Cancelled only** filter can show.
+  * Cons: Needs a separate `cancel event` command, and the calendar would fill with events that no longer matter.
+
 ### Calendar view
 
 The Calendar tab displays saved events using a period selector and independent cancellation and upcoming filters.
-The controls change a temporary view; they never mutate events or call storage. The intended typed-command
-access remains an integration point for the calendar command; this implementation exposes the GUI controls.
+The controls change a temporary view; they never mutate events or call storage. The `view calendar` command
+(see [The `view calendar` command](#the-view-calendar-command)) sets the same view from the command box.
 In v1.5, every range is anchored to the supplied current local time. There is no navigation to another week or
 month: on 31 October 2026, an event on 2 November is saved but lies outside Today, Week and Month. The filters
 do not widen those ranges. Navigation to other periods is tracked in
-[issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202) for coordination with calendar-command integration.
+[issue #202](https://github.com/AY2627S1-CS2103T-T12-1/tp/issues/202).
 
 #### Implementation
 
@@ -533,13 +645,103 @@ that newly added event is hidden by the range or filters:
 The original success and overlap feedback remain intact. A visible addition or a view-only request has no such
 hint. Failed additions keep the current tab. Options are not part of `UserPrefs` or the saved event data and reset at launch.
 
+#### The `view calendar` command
+
+`view calendar [period/PERIOD] [cancelled/BOOLEAN] [upcoming/BOOLEAN]` selects the Calendar tab and applies a period and
+filters, just like changing the GUI controls. It uses the same `CalendarViewOptions`, so the command and the controls
+follow the same selection rules. The command changes only the view and no data. The first sequence diagram shows the
+`Logic` component, and the second shows how the `UI` component then applies the result. Only the successful flow is shown.
+
+![Interactions inside the Logic component for the `view calendar period/month` command](images/ViewCalendarSequenceDiagram.png)
+
+**Note:** The lifelines for `ViewCommandParser` and `ViewCalendarCommandParser` should end at the destroy marker (X),
+but due to a limitation of PlantUML, they continue to the end of the diagram.
+
+![Interactions inside the UI component after the `view calendar period/month` command](images/ViewCalendarUiSequenceDiagram.png)
+
+**Parsing.** `ViewCommandParser` passes the arguments after `calendar` to `ViewCalendarCommandParser`. It tokenizes them
+with the `period/`, `cancelled/` and `upcoming/` prefixes and:
+
+* rejects a repeated prefix, and any text before the first prefix;
+* reads the period with `Period.valueOf(...)` after upper-casing it, so `today`, `week` and `month` are accepted in any
+  case, and uses `WEEK` when `period/` is absent;
+* accepts only `true` or `false`, ignoring case, for the two filters, and uses `false` when they are absent;
+* reports every failure as `Invalid command format!` followed by `ViewCalendarCommand.MESSAGE_USAGE`.
+
+It returns a `ViewCalendarCommand` holding the `CalendarViewOptions`.
+
+**Executing.** `ViewCalendarCommand#execute(Model)` does not use the model. It returns `Showing calendar.` in a
+`CommandResult` created with `withCalendarViewOptions(options)`, which sets the list view to `ListView.CALENDAR` and carries
+the options. `LogicManager` returns this result before saving, because viewing changes no data (see
+[How `LogicManager` saves data](#how-logicmanager-saves-data)).
+
+**Applying in the UI.** `MainWindow#executeCommand(...)` switches on `CommandResult#getListView()`. For `CALENDAR`, it
+calls `CalendarPanel#setOptions(...)` if the result has options, then `CalendarPanel#refresh()`, and selects the Calendar
+tab. A successful `add event` also returns `ListView.CALENDAR`, but without options, so the panel keeps its current
+period and filters.
+
 #### Design considerations
+
+**Aspect: How a command changes the calendar view**
+
+* **Alternative 1 (current choice):** Carry `CalendarViewOptions` in the `CommandResult`, and let `MainWindow` apply them.
+  * Pros: `Logic` does not depend on any `UI` class, as the architecture requires, and `CalendarViewOptions` is a `Model`
+    class. The command and the GUI controls share one set of rules.
+  * Cons: `CommandResult` gains one more optional field.
+* **Alternative 2:** Store the current options in `Model`.
+  * Pros: One source of truth for the view.
+  * Cons: The options are a temporary view, not data. The `Model` would need to expose and observe them, although they
+    are not saved and reset at launch.
+* **Alternative 3:** Let the command call `CalendarPanel` directly.
+  * Pros: Fewest classes.
+  * Cons: `Logic` would depend on `UI`, which breaks the architecture and makes the command hard to test.
+
+**Aspect: Where the date and filter rules live**
 
 Keep date/filter selection in `CalendarViewOptions` and rendering in `CalendarPanel`. This gives GUI controls and
 future command integration the same selection rules, while preserving `Calendar` and `Day` as display-independent
 groupings. Use the model's observable list for record changes and a clock for time changes: observing the list alone
 would leave upcoming events and the current period stale while the app is idle. Native JavaFX controls provide
 keyboard focus, arrow-key selection and checkbox toggling without a separate shortcut grammar.
+
+### Backing up an invalid data file
+
+If the data file exists but cannot be loaded (for example, because the user edited it into an invalid state), HireBase
+starts with an empty `HireBase`. The next command that saves data would then replace the file, and the user's data would
+be lost. To prevent this, HireBase copies the invalid file before it starts empty.
+
+#### Implementation
+
+`MainApp#initModelManager(...)` catches the `DataLoadingException` thrown when the data file is invalid, and calls
+`FileUtil#tryBackUpInvalidFile(Path)` before creating the empty `HireBase`.
+
+* `FileUtil#backUpInvalidFile(Path, LocalDateTime)` copies the file next to itself as
+  `<name>-invalid-<yyyyMMdd-HHmmss>.<extension>`, for example `hirebase-invalid-20261027-183000.json`. If that name is
+  already taken, it appends `-1`, `-2`, and so on, so an earlier backup is never overwritten. A file with no extension gets
+  only the suffix. The original file is left in place.
+* `FileUtil#tryBackUpInvalidFile(Path)` calls it with the current time. It does nothing if the file does not exist, and
+  logs a warning instead of throwing if the copy fails, so a failed backup never stops HireBase from starting. On success, it
+  logs the path of the copy.
+
+The time is a parameter of the first method so that tests can use a fixed time. The second method is the only one `MainApp`
+calls, so `MainApp` itself has no extra logic.
+
+#### Design considerations
+
+**Aspect: How to protect the user's data**
+
+* **Alternative 1 (current choice):** Copy the invalid file, and then start empty.
+  * Pros: The app always starts, the original file stays where the user expects it, and the user can fix the backup or the
+    original file and restore the data.
+  * Cons: Backups pile up if the user keeps launching with an invalid file. They are never deleted automatically.
+* **Alternative 2:** Refuse to start, or refuse to save, until the file is fixed.
+  * Pros: No second file.
+  * Cons: The user cannot use the app at all, which conflicts with the non-functional requirement that HireBase starts
+    without crashing.
+* **Alternative 3:** Show a warning in the GUI.
+  * Pros: The user learns about the problem immediately.
+  * Cons: Needs the `UI` to read start-up problems, which the `Main` component does not currently pass on. The backup
+    is currently reported only in the log file.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -1015,6 +1217,54 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC12 - Delete an event**
+
+**MSS**
+
+1.  User requests to delete an event by its event ID
+2.  HireBase deletes the event
+3.  HireBase displays a success message showing the deleted event
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The event ID is missing, is not a positive integer, or more than one ID is given
+
+    * 1a1. HireBase displays an error message showing the correct format.
+
+      Use case ends.
+
+* 1b. No event has the given event ID
+
+    * 1b1. HireBase displays an error message saying the event ID does not exist.
+
+      Use case ends.
+
+* 2a. HireBase cannot save the change
+
+    * 2a1. HireBase displays an error message. The event is not deleted.
+
+      Use case ends.
+
+**Use case: UC13 - View the calendar with a command**
+
+**MSS**
+
+1.  User submits view calendar command, optionally with a period and filters
+2.  HireBase selects the Calendar tab and applies the period and filters
+3.  HireBase displays a message saying that the calendar is shown
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The period is not `today`, `week` or `month`, a filter is not `true` or `false`, a parameter is repeated, or there is text before the first parameter
+
+    * 1a1. HireBase displays an error message showing the correct format. The Calendar tab, its period and its filters do not change.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 The following requirements describe the intended quality attributes and operating constraints of HireBase. Applicable product constraints are adapted from the [CS2103/T project constraints](https://nus-cs2103-ay2627-s1.github.io/website/admin/tp-constraints.html).
@@ -1053,6 +1303,10 @@ The following requirements describe the intended quality attributes and operatin
 
 **Calendar event:** An entry in HireBase's local calendar with a date and time, such as an interview.
 
+**Calendar view:** The Calendar tab, which shows the saved events of the current day, week or month. The user can narrow it with the **Cancelled only** and **Upcoming only** filters.
+
+**Cancelled event:** An event whose `cancelled` field is `true` in the data file. HireBase has no command that cancels an event yet.
+
 **Candidate:** A person whom a recruiter is considering for a job opening. A candidate record contains the information the recruiter tracks about that person.
 
 **Candidate ID:** A permanent positive integer that HireBase gives a candidate when they are added, shown as `#N` on their card. Commands use it to refer to a candidate. It does not change when the list is filtered or other candidates are deleted, and it is never given to another candidate.
@@ -1061,9 +1315,11 @@ The following requirements describe the intended quality attributes and operatin
 
 **CLI (Command Line Interface):** A way of interacting with an application by typing text commands. In HireBase, commands are entered in the application's command box.
 
+**Event ID:** A permanent positive integer that HireBase gives an event when it is added, shown as `#N`. It is separate from candidate and job IDs and is never reused.
+
 **GUI (Graphical User Interface):** The application's visual interface, including its windows, candidate lists, and command feedback.
 
-**Interview stage:** A candidate's current position in the recruitment process: screening, shortlisted, rejected, or hired.
+**Interview stage:** A candidate's current position in the recruitment process: `SCREENING`, `ACCEPTED`, or `REJECTED`.
 
 **JAR (Java Archive):** A file that packages Java application code and resources for distribution. HireBase is distributed as a runnable JAR file.
 
@@ -1118,8 +1374,6 @@ testers are expected to do more *exploratory* testing.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
-
-1. _{ more test cases …​ }_
 
 ### Deleting a candidate
 
@@ -1314,13 +1568,86 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
       Expected: An invalid-format error, followed by the `view` usage, which lists both `view candidate` and
       `view event`.
 
+### Deleting an event
+
+1. Deleting events
+
+   1. Prerequisites: Run `clear`, then add one candidate with `add candidate`, and note their ID, say `#N`. Add
+      `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/N` and
+      `add event n/Team sync from/06/11/2026 09:00 to/06/11/2026 10:00`, and note their IDs, say `#E1` and `#E2`.
+      Select the Candidates tab.
+
+   1. Test case: `delete event E1`<br>
+      Expected: `Deleted event: #E1 Interview (05/11/2026 14:00 to 05/11/2026 15:00)`. The Candidates tab stays
+      selected, and the candidate list does not change. Event `#E1` disappears from the Calendar tab, if it was shown, and
+      the footer count drops by one.
+
+   1. Test case: `view event E1`<br>
+      Expected: The error says that event ID `E1` (written as its number) does not exist. Event `#E2` and candidate `#N` are unchanged.
+
+   1. Test case: add another event, then close HireBase and launch it again.<br>
+      Expected: The new event's ID is larger than `E2`, and event `#E1` is still deleted.
+
+1. Invalid event IDs
+
+   1. Test case: `delete event 999` (no event `#999`)<br>
+      Expected: `Event ID "999" does not exist.` No event is deleted.
+
+   1. Test case: `delete event`<br>
+      Expected: `Missing event ID. Usage: delete event EVENT_ID`
+
+   1. Test case: `delete event 0`, `delete event abc`<br>
+      Expected: `Event ID must be a positive integer. Usage: delete event EVENT_ID`
+
+   1. Test case: `delete event 1 2`<br>
+      Expected: `Expected exactly one event ID. Usage: delete event EVENT_ID`
+
+   1. Test case: `delete Event 1`<br>
+      Expected: An invalid-format error, followed by the `delete` usage, which lists `delete job` and `delete event`.
+
+1. Deleting a cancelled event
+
+   1. Prerequisites: Close HireBase. In the data file, set `"cancelled": true` on event `#E2`. Launch HireBase.
+
+   1. Test case: `delete event E2`<br>
+      Expected: The event is deleted in the same way as an active event.
+
+1. A failed save
+
+   1. Prerequisites: Make the data file read-only so that HireBase cannot write to it.
+
+   1. Test case: `delete event E2` for an existing event.<br>
+      Expected: An error says that the data could not be saved. The event stays in the Calendar tab, and `view event E2` still
+      shows it.
+
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close HireBase, and delete `data/hirebase.json` (and nothing else).
 
-1. _{ more test cases …​ }_
+   1. Test case: Launch HireBase.<br>
+      Expected: The app opens with the sample data. No backup file is created. The data file is created again after the
+      first command that saves data.
+
+1. Dealing with a corrupted data file
+
+   1. Prerequisites: Close HireBase. Make a copy of `data/hirebase.json` and keep it safe. In the data file, make an
+      invalid change, such as deleting its last `}` or setting a candidate's `"priorityScore"` to `"High"`.
+
+   1. Test case: Launch HireBase.<br>
+      Expected: The app opens with no candidates, job openings or events. A new file
+      `data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` with the same invalid content appears next to `hirebase.json`, and the
+      original `hirebase.json` is still there. `hirebase.log` has a warning that says the invalid data file was copied.
+
+   1. Test case: Run `add job t/Software Engineer d/Engineering desc/Build backend services.`<br>
+      Expected: `hirebase.json` now holds only the new job opening. The backup file is unchanged.
+
+   1. Test case: Close HireBase, copy the backup over `hirebase.json`, fix the invalid change, and launch again.<br>
+      Expected: The original data is restored.
+
+   1. Test case: Put an invalid change back in `hirebase.json` and launch twice without running a saving command in between.<br>
+      Expected: Each launch creates its own backup. Earlier backups are not overwritten.
 
 ### Calendar view
 

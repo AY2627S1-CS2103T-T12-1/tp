@@ -71,7 +71,12 @@ The sections below give more details of each component.
 
 The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
 
-![Structure of the UI Component](images/UiClassDiagram.png)
+![Partial structure of the UI component, including the calendar panel](images/UiClassDiagram.png)
+
+This partial class diagram highlights the candidate list and calendar integration. `MainWindow` owns one
+`CalendarPanel`, which extends `UiPart` and uses events and `CalendarViewOptions` from the Model component.
+`MainWindow` passes the calendar's observable visible-event count to `StatusBarFooter`; the footer does not
+hold a reference to the calendar panel. Other UI classes are omitted for readability.
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
 `CalendarPanel` and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart`

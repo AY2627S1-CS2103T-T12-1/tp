@@ -15,19 +15,23 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.CommandResult;
+import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
+import seedu.hirebase.model.UserPrefs;
 import seedu.hirebase.model.event.Event;
 import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
 import seedu.hirebase.storage.StorageManager;
+import seedu.hirebase.testutil.PersonBuilder;
 
 /**
- * Tests that add event saves the new event before showing it, so a failed save leaves no trace.
+ * Tests that add event saves the new event before showing it, so a failed save leaves no trace,
+ * and that view event shows what was saved.
  */
 public class LogicManagerEventTest {
 
@@ -130,6 +134,63 @@ public class LogicManagerEventTest {
                 logic.execute(ADD_INTERVIEW));
         assertEquals(0, hireBaseStorage.saveCount);
         assertEquals(List.of(), model.getEventList());
+    }
+
+    @Test
+    public void viewEvent_afterAddEvent_showsSavedEvent() throws Exception {
+        logic.execute(ADD_INTERVIEW);
+
+        CommandResult result = logic.execute("view event 1");
+
+        assertEquals("Event:       #1 Interview\n"
+                + "Description: —\n"
+                + "Start:       05/11/2026 14:00\n"
+                + "End:         05/11/2026 15:00\n"
+                + "Candidates:  —", result.getFeedbackToUser());
+        assertEquals(CommandResult.ListView.KEEP, result.getListView());
+    }
+
+    @Test
+    public void viewEvent_afterRestart_showsSameEvent() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Alice Tan").withEmail("alice@example.com").build());
+        logic.execute(ADD_INTERVIEW + " desc/Round 2 c/1");
+        String beforeRestart = logic.execute("view event 1").getFeedbackToUser();
+
+        // A fresh model loaded from the saved file, as on the next launch.
+        Model reloaded = new ModelManager(hireBaseStorage.readHireBase().orElseThrow(), new UserPrefs());
+        Logic restarted = new LogicManager(reloaded, new StorageManager(hireBaseStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+
+        assertEquals(beforeRestart, restarted.execute("view event 1").getFeedbackToUser());
+        assertTrue(beforeRestart.contains("Description: Round 2\n"));
+        assertTrue(beforeRestart.endsWith("Candidates:  #1 Alice Tan"));
+    }
+
+    @Test
+    public void viewEvent_candidateDeletedByCommand_showsDeletedMarker() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Alice Tan").withEmail("alice@example.com").build());
+        logic.execute(ADD_INTERVIEW + " c/1");
+
+        logic.execute("delete candidate 1");
+
+        assertTrue(logic.execute("view event 1").getFeedbackToUser().endsWith("Candidates:  #1 (deleted)"));
+    }
+
+    @Test
+    public void viewEvent_unknownId_showsNotFoundAndLeavesEventsUnchanged() throws Exception {
+        logic.execute(ADD_INTERVIEW);
+        List<Event> before = List.copyOf(model.getEventList());
+
+        assertThrows(CommandException.class, String.format(Messages.MESSAGE_EVENT_ID_NOT_FOUND, 2), () ->
+                logic.execute("view event 2"));
+        assertEquals(before, model.getEventList());
+        assertEquals(before, savedEvents());
+    }
+
+    @Test
+    public void viewEvent_invalidId_showsViewEventUsage() {
+        assertThrows(ParseException.class, String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT,
+                ViewEventCommand.MESSAGE_USAGE), () -> logic.execute("view event 0"));
     }
 
     private List<Event> savedEvents() throws Exception {

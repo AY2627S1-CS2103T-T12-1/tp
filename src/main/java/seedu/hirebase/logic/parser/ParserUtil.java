@@ -20,6 +20,7 @@ import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
+import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.event.EventName;
 import seedu.hirebase.model.tag.Tag;
 
@@ -95,6 +96,21 @@ public class ParserUtil {
             throw new ParseException(CandidateId.MESSAGE_CONSTRAINTS);
         }
         return new CandidateId(Integer.parseInt(trimmedId));
+    }
+
+    /**
+     * Parses {@code eventId} into an {@code EventId} and returns it. Leading and trailing whitespaces
+     * will be trimmed.
+     *
+     * @throws ParseException if the specified event ID is not a positive integer.
+     */
+    public static EventId parseEventId(String eventId) throws ParseException {
+        requireNonNull(eventId);
+        String trimmedId = eventId.trim();
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
+            throw new ParseException(EventId.MESSAGE_CONSTRAINTS);
+        }
+        return new EventId(Integer.parseInt(trimmedId));
     }
 
     /**

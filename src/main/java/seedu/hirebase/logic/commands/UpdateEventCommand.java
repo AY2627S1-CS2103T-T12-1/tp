@@ -77,7 +77,8 @@ public class UpdateEventCommand extends Command {
                 description == null ? target.getDescription() : description, updatedStart, updatedEnd,
                 cancelled == null ? target.isCancelled() : cancelled,
                 candidateIds == null ? target.getCandidateIds() : candidateIds, targetId);
-        List<CandidateId> unknownIds = updated.getCandidateIds().stream()
+        // Retained historical links may refer to deleted candidates; validate only explicitly supplied replacements.
+        List<CandidateId> unknownIds = candidateIds == null ? List.of() : candidateIds.stream()
                 .filter(id -> model.getHireBase().getPersonByCandidateId(id).isEmpty()).toList();
         if (!unknownIds.isEmpty()) {
             throw new CommandException(String.format(MESSAGE_UNKNOWN_CANDIDATES, unknownIds.stream()

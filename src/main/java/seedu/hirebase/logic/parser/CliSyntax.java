@@ -9,6 +9,7 @@ public class CliSyntax {
     public static final Prefix PREFIX_SKILL = new Prefix("s/");
     public static final Prefix PREFIX_ROLE = new Prefix("r/");
     public static final Prefix PREFIX_STAGE = new Prefix("stage/");
+    public static final Prefix PREFIX_PRIORITY = new Prefix("priority/");
     public static final Prefix PREFIX_NAME = new Prefix("n/");
     public static final Prefix PREFIX_PHONE = new Prefix("p/");
     public static final Prefix PREFIX_EMAIL = new Prefix("e/");

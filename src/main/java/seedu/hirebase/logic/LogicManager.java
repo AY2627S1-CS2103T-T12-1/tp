@@ -14,6 +14,7 @@ import seedu.hirebase.logic.commands.AddJobCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.DeleteCommand;
+import seedu.hirebase.logic.commands.DeleteEventCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.commands.EditCommand;
 import seedu.hirebase.logic.commands.EditJobCommand;
@@ -23,6 +24,8 @@ import seedu.hirebase.logic.commands.ListJobsCommand;
 import seedu.hirebase.logic.commands.NoteCommand;
 import seedu.hirebase.logic.commands.StageCommand;
 import seedu.hirebase.logic.commands.UpdateEventCommand;
+import seedu.hirebase.logic.commands.ViewCalendarCommand;
+import seedu.hirebase.logic.commands.ViewEventCommand;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
 import seedu.hirebase.logic.parser.HireBaseParser;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
@@ -76,6 +79,9 @@ public class LogicManager implements Logic {
         if (command instanceof UpdateEventCommand updateEventCommand) {
             return executeUpdateEvent(updateEventCommand);
         }
+        if (command instanceof DeleteEventCommand deleteEventCommand) {
+            return executeDeleteEvent(deleteEventCommand);
+        }
         if (command instanceof DeleteJobCommand deleteJobCommand) {
             return executeDeleteJob(deleteJobCommand);
         }
@@ -85,6 +91,10 @@ public class LogicManager implements Logic {
         commandResult = command.execute(model);
         if (command instanceof ListJobsCommand) {
             return commandResult.withListView(CommandResult.ListView.JOBS);
+        }
+        if (command instanceof ViewEventCommand || command instanceof ViewCalendarCommand) {
+            // Viewing changes no data, so it skips saving and a failed save cannot hide the details.
+            return commandResult;
         }
 
         try {
@@ -149,6 +159,23 @@ public class LogicManager implements Logic {
         }
         // Publish the exact event that was saved; it keeps its ID, so the app and the file agree.
         model.addEvent(saved);
+        return result.withAddedEvent(saved).withListView(CommandResult.ListView.CALENDAR);
+    }
+
+    /**
+     * Saves the deletion before publishing it, so a failed save leaves the event and observers unchanged.
+     */
+    private CommandResult executeDeleteEvent(DeleteEventCommand command) throws CommandException {
+        Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
+        CommandResult result = command.execute(pending);
+        try {
+            storage.saveHireBase(pending.getHireBase());
+        } catch (AccessDeniedException e) {
+            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+        } catch (IOException e) {
+            throw new CommandException(DeleteEventCommand.MESSAGE_SAVE_FAILURE, e);
+        }
+        command.execute(model);
         return result;
     }
 
@@ -198,6 +225,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<JobOpening> getJobOpeningList() {
         return model.getJobOpeningList();
+    }
+
+    @Override
+    public ObservableList<Event> getEventList() {
+        return model.getEventList();
     }
 
     @Override

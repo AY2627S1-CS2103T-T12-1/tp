@@ -173,6 +173,30 @@ public class UpdateEventIntegrationTest {
     }
 
     @Test
+    public void execute_historicalDeletedCandidateLinks_retainedUnlessExplicitlyReplaced() throws Exception {
+        model.addPerson(ALICE);
+        Event original = model.addEvent(new EventBuilder().withCandidateIds(1).build());
+        model.deletePerson(model.getHireBase().getPersonList().getFirst());
+        Logic logic = logic(model, storage());
+
+        logic.execute("update event 1 cancel/true");
+        assertEquals(original.withCancelled(true), model.getEventList().getFirst());
+        logic.execute("update event 1 n/Cancelled interview");
+        assertTrue(logic.execute("view event 1").getFeedbackToUser().contains("#1 (deleted)"));
+        Event retained = model.getEventList().getFirst();
+        assertEquals(String.format(UpdateEventCommand.MESSAGE_UNKNOWN_CANDIDATES, "1"),
+                assertThrows(CommandException.class, () -> logic.execute("update event 1 c/1")).getMessage());
+        assertEquals(retained, model.getEventList().getFirst());
+
+        model.addPerson(BOB);
+        logic.execute("update event 1 c/2 cancel/false");
+        assertFalse(model.getEventList().getFirst().isCancelled());
+        assertEquals(List.of(2), model.getEventList().getFirst().getCandidateIds().stream()
+                .map(id -> id.getValue()).toList());
+        assertEquals(model.getEventList(), storage().readHireBase().orElseThrow().getEventList());
+    }
+
+    @Test
     public void execute_saveFailure_preservesEventsFileAndObservers() throws Exception {
         model.addPerson(ALICE);
         model.updateFilteredPersonList(person -> false);

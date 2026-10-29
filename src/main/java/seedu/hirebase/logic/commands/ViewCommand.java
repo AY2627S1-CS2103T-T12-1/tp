@@ -15,7 +15,7 @@ import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.model.candidate.SamePersonPredicate;
 
 /**
- * Views the full details of a candidate identified by the index in the displayed candidate list.
+ * Views the full details of a candidate identified by their permanent candidate ID.
  * Shows the details in the result display and collapses the list to only that candidate.
  */
 public class ViewCommand extends Command {
@@ -28,7 +28,9 @@ public class ViewCommand extends Command {
             + ": Views the full details of the candidate identified by their CANDIDATE_ID, "
             + "and shows only that candidate.\n"
             + "Parameters: " + RECORD_TYPE_CANDIDATE + " CANDIDATE_ID (CANDIDATE_ID must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1";
+            + "Example: " + COMMAND_WORD + " " + RECORD_TYPE_CANDIDATE + " 1\n"
+            + "To view an event, use: " + ViewEventCommand.MESSAGE_USAGE + "\n"
+            + "To view the calendar, use: " + ViewCalendarCommand.MESSAGE_USAGE;
 
     private static final String EMPTY_PLACEHOLDER = "—";
 
@@ -77,6 +79,7 @@ public class ViewCommand extends Command {
         String note = person.getNote().value.isEmpty() ? EMPTY_PLACEHOLDER : person.getNote().value;
         return "Name:    " + person.getName().fullName + "\n"
                 + "Stage:   " + stage + "\n"
+                + "Priority score: " + person.getPriorityScore() + "\n"
                 + "Phone:   " + person.getPhone().value + "\n"
                 + "Email:   " + person.getEmail().value + "\n"
                 + "Address: " + person.getAddress().value + "\n"

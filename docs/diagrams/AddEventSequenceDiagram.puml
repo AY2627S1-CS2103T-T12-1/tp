@@ -1,0 +1,66 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "c:AddEventCommand" as AddEventCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "pending:ModelManager" as Pending MODEL_COLOR
+participant "model:ModelManager" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":StorageManager" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("add event ...")
+activate LogicManager
+
+note right of LogicManager
+  Parsing by HireBaseParser and
+  AddEventCommandParser is omitted.
+end note
+
+create Pending
+LogicManager -> Pending : ModelManager(model.getHireBase(), ...)
+activate Pending
+Pending --> LogicManager
+deactivate Pending
+
+LogicManager -> AddEventCommand : execute(pending)
+activate AddEventCommand
+
+AddEventCommand -> Pending : getConflictingEvents(toAdd)
+activate Pending
+Pending --> AddEventCommand : conflicts
+deactivate Pending
+
+AddEventCommand -> Pending : addEvent(toAdd)
+activate Pending
+Pending --> AddEventCommand : stored
+deactivate Pending
+
+AddEventCommand --> LogicManager : result
+deactivate AddEventCommand
+
+LogicManager -> Pending : findEvent(newId)
+activate Pending
+Pending --> LogicManager : saved
+deactivate Pending
+
+LogicManager -> Storage : saveHireBase(pending.getHireBase())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+LogicManager -> Model : addEvent(saved)
+activate Model
+Model --> LogicManager
+deactivate Model
+
+[<-- LogicManager : result
+deactivate LogicManager
+@enduml

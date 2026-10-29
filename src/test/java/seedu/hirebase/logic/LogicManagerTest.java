@@ -31,6 +31,8 @@ import seedu.hirebase.model.Model;
 import seedu.hirebase.model.ModelManager;
 import seedu.hirebase.model.ReadOnlyHireBase;
 import seedu.hirebase.model.UserPrefs;
+import seedu.hirebase.model.calendar.CalendarViewOptions;
+import seedu.hirebase.model.calendar.CalendarViewOptions.Period;
 import seedu.hirebase.model.candidate.Person;
 import seedu.hirebase.storage.JsonHireBaseStorage;
 import seedu.hirebase.storage.JsonUserPrefsStorage;
@@ -72,6 +74,26 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD + " " + ListCommand.RECORD_TYPE_CANDIDATE;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_NO_CANDIDATES, model);
+    }
+
+    @Test
+    public void execute_viewCalendar_doesNotSaveAndReturnsCalendarOptions() throws Exception {
+        Path hireBasePath = temporaryFolder.resolve("viewCalendarHireBase.json");
+        JsonHireBaseStorage hireBaseStorage = new JsonHireBaseStorage(hireBasePath) {
+            @Override
+            public void saveHireBase(ReadOnlyHireBase hireBase) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(
+                temporaryFolder.resolve("viewCalendarUserPrefs.json"));
+        logic = new LogicManager(model, new StorageManager(hireBaseStorage, userPrefsStorage));
+
+        CommandResult result = logic.execute("view calendar period/month upcoming/true");
+
+        assertEquals("Showing calendar.", result.getFeedbackToUser());
+        assertEquals(CommandResult.ListView.CALENDAR, result.getListView());
+        assertEquals(new CalendarViewOptions(Period.MONTH, false, true), result.getCalendarViewOptions().orElseThrow());
     }
 
     @Test

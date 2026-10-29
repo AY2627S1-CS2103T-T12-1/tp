@@ -4,13 +4,14 @@ import static seedu.hirebase.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.DeleteCommand;
+import seedu.hirebase.logic.commands.DeleteEventCommand;
 import seedu.hirebase.logic.commands.DeleteJobCommand;
 import seedu.hirebase.logic.parser.exceptions.ParseException;
 import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.job.JobId;
 
 /**
- * Parses candidate and job deletion commands.
+ * Parses candidate, job and event deletion commands.
  */
 public class DeleteCommandParser implements Parser<Command> {
 
@@ -22,6 +23,9 @@ public class DeleteCommandParser implements Parser<Command> {
     public Command parse(String args) throws ParseException {
         String trimmedArgs = args.trim();
         String[] parts = trimmedArgs.split("\\s+", 2);
+        if (parts[0].equals(DeleteEventCommand.RECORD_TYPE_EVENT)) {
+            return new DeleteEventCommandParser().parse(parts.length > 1 ? parts[1] : "");
+        }
         if (parts[0].equals("job")) {
             return parseJobId(parts.length > 1 ? parts[1] : "");
         }

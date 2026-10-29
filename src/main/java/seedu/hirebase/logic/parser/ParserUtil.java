@@ -18,8 +18,10 @@ import seedu.hirebase.model.candidate.CandidateId;
 import seedu.hirebase.model.candidate.Email;
 import seedu.hirebase.model.candidate.Name;
 import seedu.hirebase.model.candidate.Phone;
+import seedu.hirebase.model.candidate.PriorityScore;
 import seedu.hirebase.model.candidate.Role;
 import seedu.hirebase.model.candidate.Skill;
+import seedu.hirebase.model.event.EventId;
 import seedu.hirebase.model.event.EventName;
 import seedu.hirebase.model.tag.Tag;
 
@@ -95,6 +97,21 @@ public class ParserUtil {
             throw new ParseException(CandidateId.MESSAGE_CONSTRAINTS);
         }
         return new CandidateId(Integer.parseInt(trimmedId));
+    }
+
+    /**
+     * Parses {@code eventId} into an {@code EventId} and returns it. Leading and trailing whitespaces
+     * will be trimmed.
+     *
+     * @throws ParseException if the specified event ID is not a positive integer.
+     */
+    public static EventId parseEventId(String eventId) throws ParseException {
+        requireNonNull(eventId);
+        String trimmedId = eventId.trim();
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedId)) {
+            throw new ParseException(EventId.MESSAGE_CONSTRAINTS);
+        }
+        return new EventId(Integer.parseInt(trimmedId));
     }
 
     /**
@@ -217,5 +234,19 @@ public class ParserUtil {
      */
     private static String normaliseSpaces(String value) {
         return value.trim().replaceAll("\\s+", " ");
+    }
+
+    /**
+     * Parses a priority score, trimming surrounding whitespace.
+     *
+     * @throws ParseException if the score is not 1, 2 or 3.
+     */
+    public static PriorityScore parsePriorityScore(String value) throws ParseException {
+        requireNonNull(value);
+        String trimmedValue = value.trim();
+        if (!PriorityScore.isValidPriorityScore(trimmedValue)) {
+            throw new ParseException(PriorityScore.MESSAGE_CONSTRAINTS);
+        }
+        return new PriorityScore(trimmedValue);
     }
 }

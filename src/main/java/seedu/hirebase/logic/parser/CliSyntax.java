@@ -19,5 +19,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_TO = new Prefix("to/");
     public static final Prefix PREFIX_DESCRIPTION = new Prefix("desc/");
     public static final Prefix PREFIX_CANDIDATE = new Prefix("c/");
+    public static final Prefix PREFIX_CANCEL = new Prefix("cancel/");
 
 }

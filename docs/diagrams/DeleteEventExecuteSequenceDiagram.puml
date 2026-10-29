@@ -1,0 +1,73 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "d:DeleteEventCommand" as DeleteEventCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "pending:ModelManager" as Pending MODEL_COLOR
+participant "model:ModelManager" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":StorageManager" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("delete event 1")
+activate LogicManager
+
+note right of LogicManager
+  Parsing by HireBaseParser,
+  DeleteCommandParser and
+  DeleteEventCommandParser is omitted.
+end note
+
+create Pending
+LogicManager -> Pending : ModelManager(model.getHireBase(), ...)
+activate Pending
+Pending --> LogicManager
+deactivate Pending
+
+LogicManager -> DeleteEventCommand : execute(pending)
+activate DeleteEventCommand
+
+DeleteEventCommand -> Pending : findEvent(targetId)
+activate Pending
+Pending --> DeleteEventCommand : target
+deactivate Pending
+
+DeleteEventCommand -> Pending : deleteEvent(target)
+activate Pending
+Pending --> DeleteEventCommand
+deactivate Pending
+
+DeleteEventCommand --> LogicManager : result
+deactivate DeleteEventCommand
+
+LogicManager -> Storage : saveHireBase(pending.getHireBase())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+LogicManager -> DeleteEventCommand : execute(model)
+activate DeleteEventCommand
+
+DeleteEventCommand -> Model : findEvent(targetId)
+activate Model
+Model --> DeleteEventCommand : target
+deactivate Model
+
+DeleteEventCommand -> Model : deleteEvent(target)
+activate Model
+Model --> DeleteEventCommand
+deactivate Model
+
+DeleteEventCommand --> LogicManager
+deactivate DeleteEventCommand
+
+[<-- LogicManager : result
+deactivate LogicManager
+@enduml

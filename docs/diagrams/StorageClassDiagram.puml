@@ -19,11 +19,20 @@ package "HireBase Storage" #F4F6F6{
 Class JsonHireBaseStorage
 Class JsonSerializableHireBase {
     -nextCandidateId : Integer
+    -nextJobId : Long
+    -nextEventId : Long
 }
 Class JsonAdaptedPerson {
     -candidateId : Integer
+    -priorityScore : String
 }
-Class JsonAdaptedJobOpening
+Class JsonAdaptedJobOpening {
+    -id : Long
+}
+Class JsonAdaptedEvent {
+    -id : Long
+    -cancelled : boolean
+}
 Class JsonAdaptedTag
 }
 
@@ -31,6 +40,8 @@ Class JsonAdaptedTag
 
 show JsonSerializableHireBase fields
 show JsonAdaptedPerson fields
+show JsonAdaptedJobOpening fields
+show JsonAdaptedEvent fields
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage
@@ -42,6 +53,7 @@ StorageManager -down-> "1" JsonHireBaseStorage
 JsonHireBaseStorage ..> JsonSerializableHireBase
 JsonSerializableHireBase --> "*" JsonAdaptedPerson
 JsonSerializableHireBase --> "*" JsonAdaptedJobOpening
+JsonSerializableHireBase --> "*" JsonAdaptedEvent
 JsonAdaptedPerson --> "*" JsonAdaptedTag
 
 @enduml

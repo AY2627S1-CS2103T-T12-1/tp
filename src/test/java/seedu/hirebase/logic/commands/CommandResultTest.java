@@ -3,9 +3,13 @@ package seedu.hirebase.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+
+import seedu.hirebase.model.calendar.CalendarViewOptions;
+import seedu.hirebase.model.calendar.CalendarViewOptions.Period;
 
 public class CommandResultTest {
     @Test
@@ -67,11 +71,30 @@ public class CommandResultTest {
     }
 
     @Test
+    public void withCalendarViewOptions_preservesFlagsAndOptionsWhenCopied() {
+        CommandResult original = new CommandResult("Calendar selected", true, true);
+        CalendarViewOptions options = new CalendarViewOptions(Period.MONTH, true, true);
+        CommandResult calendar = original.withCalendarViewOptions(options);
+        assertEquals(CommandResult.ListView.CALENDAR, calendar.getListView());
+        assertEquals(options, calendar.getCalendarViewOptions().orElseThrow());
+        assertEquals("Calendar selected", calendar.getFeedbackToUser());
+        assertTrue(calendar.isShowHelp());
+        assertTrue(calendar.isExit());
+        assertEquals(calendar, calendar.withListView(CommandResult.ListView.CALENDAR));
+        assertEquals(calendar.hashCode(), original.withCalendarViewOptions(options).hashCode());
+        assertNotEquals(calendar, original.withCalendarViewOptions(CalendarViewOptions.DEFAULT));
+        assertTrue(original.getCalendarViewOptions().isEmpty());
+        assertTrue(calendar.withListView(CommandResult.ListView.JOBS).getCalendarViewOptions().isEmpty());
+        assertThrows(NullPointerException.class, () -> original.withCalendarViewOptions(null));
+    }
+
+    @Test
     public void toStringMethod() {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", listView=" + commandResult.getListView() + "}";
+                + ", exit=" + commandResult.isExit() + ", listView=" + commandResult.getListView()
+                + ", calendarViewOptions=null}";
         assertEquals(expected, commandResult.toString());
     }
 }

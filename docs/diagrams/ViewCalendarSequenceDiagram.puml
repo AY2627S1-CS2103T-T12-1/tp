@@ -1,0 +1,65 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box UI UI_COLOR_T1
+participant ":MainWindow" as MainWindow UI_COLOR
+participant ":CalendarPanel" as CalendarPanel UI_COLOR
+end box
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":ViewCalendarCommandParser" as ViewCalendarCommandParser LOGIC_COLOR
+participant "c:ViewCalendarCommand" as ViewCalendarCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+[-> MainWindow : command entered
+activate MainWindow
+
+MainWindow -> LogicManager : execute(commandText)
+activate LogicManager
+
+note over LogicManager, ViewCalendarCommandParser
+  HireBaseParser and ViewCommandParser route
+  this command to ViewCalendarCommandParser.
+end note
+LogicManager -> ViewCalendarCommandParser : parse("period/month upcoming/true")
+activate ViewCalendarCommandParser
+create ViewCalendarCommand
+ViewCalendarCommandParser -> ViewCalendarCommand : new CalendarViewOptions(MONTH, false, true)
+activate ViewCalendarCommand
+ViewCalendarCommand --> ViewCalendarCommandParser : c
+deactivate ViewCalendarCommand
+ViewCalendarCommandParser --> LogicManager : c
+deactivate ViewCalendarCommandParser
+
+LogicManager -> ViewCalendarCommand : execute(model)
+activate ViewCalendarCommand
+create CommandResult
+ViewCalendarCommand -> CommandResult : withCalendarViewOptions(options)
+activate CommandResult
+CommandResult --> ViewCalendarCommand : r
+deactivate CommandResult
+ViewCalendarCommand --> LogicManager : r
+deactivate ViewCalendarCommand
+note right of LogicManager
+  ViewCalendarCommand is read-only;
+  LogicManager returns without saving.
+end note
+
+LogicManager --> MainWindow : r
+deactivate LogicManager
+MainWindow -> CalendarPanel : setOptions(options)
+activate CalendarPanel
+CalendarPanel --> MainWindow
+deactivate CalendarPanel
+MainWindow -> CalendarPanel : refresh()
+activate CalendarPanel
+CalendarPanel --> MainWindow
+deactivate CalendarPanel
+MainWindow -> MainWindow : select Calendar tab
+
+[<--MainWindow
+deactivate MainWindow
+@enduml

@@ -275,6 +275,67 @@ stores `nextCandidateId`, as shown in the [Storage component](#storage-component
   * Pros: The `Person` has its ID from the moment it is created.
   * Cons: `Logic` would need to know the model's counter, and other ways of adding candidates (e.g. sample data, loading from storage) would each need their own logic.
 
+### Delete candidate feature
+
+The `delete candidate CANDIDATE_ID` command permanently removes one candidate from HireBase. Like `view candidate`
+and `note`, it finds its target by the candidate's permanent `CandidateId`, not by a position in the displayed list,
+so a `find` filter never changes which candidate is deleted.
+
+#### Implementation
+
+The sequence diagram for `delete candidate 1` is in the [Logic component](#logic-component) section. It shows
+parsing and execution; saving is described below.
+
+**Parsing.**
+
+1. `HireBaseParser` sends every `delete ...` command to `DeleteCommandParser`, which splits off the first word. The
+   word `candidate` continues below, while `job` and `event` go to their own parsing code (see
+   [Delete event feature](#delete-event-feature)).
+1. `ParserUtil#parseCandidateId(String)` accepts exactly one positive integer that fits in an `int`. A missing ID, a
+   second token, `0`, a negative number, `+1` or a non-number causes a `ParseException` with the invalid command format
+   message and `DeleteCommand.MESSAGE_USAGE`. Otherwise, the parser returns a `DeleteCommand` holding the ID as
+   `targetId`.
+
+**Executing.** `DeleteCommand#execute(Model)`:
+
+1. looks the candidate up with `ReadOnlyHireBase#getPersonByCandidateId(targetId)`, which searches the full candidate
+   list rather than the filtered one. If no candidate has the ID, including an ID that was already deleted, it throws a
+   `CommandException` with `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`;
+1. calls `Model#deletePerson(personToDelete)`, which removes the candidate from `HireBase`. The `nextCandidateId`
+   counter is not changed, so a deleted ID is never given to a new candidate. The filter is not reset either, so after
+   a deletion from a `find` result, the remaining matches are still shown;
+1. returns a `CommandResult` with `MESSAGE_DELETE_CANDIDATE_SUCCESS`, which shows the deleted candidate's ID, name and
+   email.
+
+**Saving before publishing.** `LogicManager` runs `DeleteCommand` through `executeCandidateChange(...)`, which uses the
+save-before-publish pattern from [How `LogicManager` saves data](#how-logicmanager-saves-data):
+
+1. It runs the command on a `pending` copy of the model and saves that copy with `Storage#saveHireBase(...)`.
+1. If saving fails, it throws a `CommandException` with the file error message. The candidate stays in the app and in
+   the data file.
+1. If saving succeeds, it runs the command again on the real model that the UI observes, and returns the result with
+   `ListView.CANDIDATES` so that the Candidates tab is selected.
+
+**Events.** Deleting a candidate does not change any event. An event keeps the deleted candidate's ID, and
+`view event` shows it as `#ID (deleted)` (see [View event feature](#view-event-feature)).
+
+#### Design considerations
+
+**Aspect: What happens to events that list the deleted candidate**
+
+* **Alternative 1 (current choice):** Keep the candidate ID in the event.
+  * Pros: The interview record stays complete, so the user can still see that an interview involved a candidate who
+    was later deleted. Deletion only changes the candidate list, so it cannot change events by accident.
+  * Cons: An event can hold an ID with no candidate, so `view event` must handle a missing candidate.
+* **Alternative 2:** Remove the ID from every event that lists it.
+  * Pros: Every candidate ID in an event always belongs to an existing candidate.
+  * Cons: Deleting one candidate silently changes other records, and the record of who attended an interview is lost.
+
+**Aspect: How the target candidate is identified**
+
+* The command uses the permanent `CandidateId` instead of the list position used by AddressBook-Level3. The reasons are
+  given in [Candidate ID](#candidate-id).
+
 ### View candidate feature
 
 The `view candidate CANDIDATE_ID` command shows the full details of one candidate in the result display and collapses
@@ -329,6 +390,10 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 1. Because `Person` is immutable, `NoteCommand` constructs a new `Person` (`ep`) that copies every field from `personToEdit` but with the new `Note`, preserving the original `CandidateId` and `InterviewStage`.
 1. It calls `Model#setPerson(personToEdit, ep)`, then `Model#updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)` to show the full candidate list again.
 1. It selects `MESSAGE_ADD_NOTE_SUCCESS` or `MESSAGE_DELETE_NOTE_SUCCESS` depending on whether the note text is empty, formats the edited candidate into a `CommandResult`, and returns it.
+
+**Saving before publishing.** The diagram shows `NoteCommand` running on the model directly. In fact, `LogicManager`
+first runs it on a `pending` copy of the model and saves that copy, using the same save-before-publish pattern as
+[`delete candidate`](#delete-candidate-feature). If saving fails, the note is unchanged in the app and in the data file.
 
 #### Design considerations
 
@@ -1388,6 +1453,98 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `delete candidate 999` (where no candidate has ID `#999`)<br>
       Expected: No candidate is deleted. The status message says that candidate ID `999` does not exist.
+
+1. Deleting a candidate who is listed in an event
+
+   1. Prerequisites: A candidate with ID `#3` exists. Add an event for them with
+      `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/3`, and note the event ID in the status message.
+
+   1. Test case: `delete candidate 3`, then `view event EVENT_ID`<br>
+      Expected: The candidate is deleted, but the event still exists. Its candidates show `#3 (deleted)`.
+
+1. Checking that a deleted ID is not reused
+
+   1. Prerequisites: The candidate with ID `#3` has been deleted.
+
+   1. Test case: `add candidate n/Test User p/91234567 e/test@example.com a/Blk 1 s/Java r/Tester`<br>
+      Expected: The new candidate gets the next unused ID, not `#3`.
+
+### Viewing a candidate
+
+1. Viewing an existing candidate
+
+   1. Prerequisites: List all candidates using the `list candidates` command. A candidate with ID `#1` exists.
+
+   1. Test case: `view candidate 1`<br>
+      Expected: The candidate list shows only candidate `#1`. The result display shows their name, stage, priority
+      score, phone, email, address, role, skills and notes. An empty role, skill list or note is shown as `—`.
+
+   1. Test case: `view candidate 0`<br>
+      Expected: The candidate list does not change. The status message shows the usage message.
+
+   1. Other incorrect view commands to try: `view candidate`, `view candidate x`, `view candidate 1 2`, `view 1`,
+      `view Candidate 1`<br>
+      Expected: Similar to previous.
+
+1. Viewing a candidate hidden by a search
+
+   1. Prerequisites: Run `find` with a keyword that hides the candidate with ID `#2`.
+
+   1. Test case: `view candidate 2`<br>
+      Expected: The details of candidate `#2` are shown, and the candidate list shows only that candidate.
+
+1. Viewing a candidate that does not exist
+
+   1. Test case: `view candidate 999` (where no candidate has ID `#999`)<br>
+      Expected: The candidate list does not change. The status message says that candidate ID `999` does not exist.
+
+1. Returning to the full list
+
+   1. Test case: `list candidates` after any successful `view candidate`<br>
+      Expected: All candidates are shown again.
+
+### Adding or clearing a note
+
+1. Adding and replacing a note
+
+   1. Prerequisites: A candidate with ID `#1` exists and has no note.
+
+   1. Test case: `note 1 Strong SQL round`<br>
+      Expected: The status message starts with `Added note to candidate:`, followed by the candidate's details.
+      `view candidate 1` shows `Strong SQL round` on the notes line.
+
+   1. Test case: `note 1 Follow up next week`<br>
+      Expected: The old note is replaced, not added to. `view candidate 1` shows only `Follow up next week`.
+
+1. Clearing a note
+
+   1. Prerequisites: The candidate with ID `#1` has a note.
+
+   1. Test case: `note 1`<br>
+      Expected: The status message starts with `Removed note from candidate:`. `view candidate 1` shows `—` on the
+      notes line.
+
+1. Adding a note to a candidate hidden by a search
+
+   1. Prerequisites: Run `find` with a keyword that hides the candidate with ID `#2`.
+
+   1. Test case: `note 2 Hidden candidate note`<br>
+      Expected: The note is added to candidate `#2`, and the full candidate list is shown again.
+
+1. Invalid note commands
+
+   1. Test case: `note 999 Some text` (where no candidate has ID `#999`)<br>
+      Expected: No note is changed. The status message says that candidate ID `999` does not exist.
+
+   1. Other incorrect note commands to try: `note`, `note 0 Some text`, `note x Some text`,
+      `note candidate 1 Some text`<br>
+      Expected: No note is changed. The status message shows the usage message. Unlike most candidate commands, `note`
+      does not take the `candidate` keyword.
+
+1. Keeping a note after a restart
+
+   1. Test case: Add a note with `note 1 Keep this`, close the app with `exit`, then launch it again.<br>
+      Expected: `view candidate 1` still shows `Keep this`.
 
 ### Candidate IDs
 

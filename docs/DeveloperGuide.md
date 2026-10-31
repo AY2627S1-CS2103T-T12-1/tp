@@ -275,6 +275,67 @@ stores `nextCandidateId`, as shown in the [Storage component](#storage-component
   * Pros: The `Person` has its ID from the moment it is created.
   * Cons: `Logic` would need to know the model's counter, and other ways of adding candidates (e.g. sample data, loading from storage) would each need their own logic.
 
+### Delete candidate feature
+
+The `delete candidate CANDIDATE_ID` command permanently removes one candidate from HireBase. Like `view candidate`
+and `note`, it finds its target by the candidate's permanent `CandidateId`, not by a position in the displayed list,
+so a `find` filter never changes which candidate is deleted.
+
+#### Implementation
+
+The sequence diagram for `delete candidate 1` is in the [Logic component](#logic-component) section. It shows
+parsing and execution; saving is described below.
+
+**Parsing.**
+
+1. `HireBaseParser` sends every `delete ...` command to `DeleteCommandParser`, which splits off the first word. The
+   word `candidate` continues below, while `job` and `event` go to their own parsing code (see
+   [Delete event feature](#delete-event-feature)).
+1. `ParserUtil#parseCandidateId(String)` accepts exactly one positive integer that fits in an `int`. A missing ID, a
+   second token, `0`, a negative number, `+1` or a non-number causes a `ParseException` with the invalid command format
+   message and `DeleteCommand.MESSAGE_USAGE`. Otherwise, the parser returns a `DeleteCommand` holding the ID as
+   `targetId`.
+
+**Executing.** `DeleteCommand#execute(Model)`:
+
+1. looks the candidate up with `ReadOnlyHireBase#getPersonByCandidateId(targetId)`, which searches the full candidate
+   list rather than the filtered one. If no candidate has the ID, including an ID that was already deleted, it throws a
+   `CommandException` with `Messages#MESSAGE_CANDIDATE_ID_NOT_FOUND`;
+1. calls `Model#deletePerson(personToDelete)`, which removes the candidate from `HireBase`. The `nextCandidateId`
+   counter is not changed, so a deleted ID is never given to a new candidate. The filter is not reset either, so after
+   a deletion from a `find` result, the remaining matches are still shown;
+1. returns a `CommandResult` with `MESSAGE_DELETE_CANDIDATE_SUCCESS`, which shows the deleted candidate's ID, name and
+   email.
+
+**Saving before publishing.** `LogicManager` runs `DeleteCommand` through `executeCandidateChange(...)`, which uses the
+save-before-publish pattern from [How `LogicManager` saves data](#how-logicmanager-saves-data):
+
+1. It runs the command on a `pending` copy of the model and saves that copy with `Storage#saveHireBase(...)`.
+1. If saving fails, it throws a `CommandException` with the file error message. The candidate stays in the app and in
+   the data file.
+1. If saving succeeds, it runs the command again on the real model that the UI observes, and returns the result with
+   `ListView.CANDIDATES` so that the Candidates tab is selected.
+
+**Events.** Deleting a candidate does not change any event. An event keeps the deleted candidate's ID, and
+`view event` shows it as `#ID (deleted)` (see [View event feature](#view-event-feature)).
+
+#### Design considerations
+
+**Aspect: What happens to events that list the deleted candidate**
+
+* **Alternative 1 (current choice):** Keep the candidate ID in the event.
+  * Pros: The interview record stays complete, so the user can still see that an interview involved a candidate who
+    was later deleted. Deletion only changes the candidate list, so it cannot change events by accident.
+  * Cons: An event can hold an ID with no candidate, so `view event` must handle a missing candidate.
+* **Alternative 2:** Remove the ID from every event that lists it.
+  * Pros: Every candidate ID in an event always belongs to an existing candidate.
+  * Cons: Deleting one candidate silently changes other records, and the record of who attended an interview is lost.
+
+**Aspect: How the target candidate is identified**
+
+* The command uses the permanent `CandidateId` instead of the list position used by AddressBook-Level3. The reasons are
+  given in [Candidate ID](#candidate-id).
+
 ### View candidate feature
 
 The `view candidate CANDIDATE_ID` command shows the full details of one candidate in the result display and collapses
@@ -329,6 +390,10 @@ The sequence diagram below shows the interactions within the `Logic` and `Model`
 1. Because `Person` is immutable, `NoteCommand` constructs a new `Person` (`ep`) that copies every field from `personToEdit` but with the new `Note`, preserving the original `CandidateId` and `InterviewStage`.
 1. It calls `Model#setPerson(personToEdit, ep)`, then `Model#updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)` to show the full candidate list again.
 1. It selects `MESSAGE_ADD_NOTE_SUCCESS` or `MESSAGE_DELETE_NOTE_SUCCESS` depending on whether the note text is empty, formats the edited candidate into a `CommandResult`, and returns it.
+
+**Saving before publishing.** The diagram shows `NoteCommand` running on the model directly. In fact, `LogicManager`
+first runs it on a `pending` copy of the model and saves that copy, using the same save-before-publish pattern as
+[`delete candidate`](#delete-candidate-feature). If saving fails, the note is unchanged in the app and in the data file.
 
 #### Design considerations
 
@@ -536,6 +601,98 @@ cannot replace the event details with a save error.
 * **Alternative 2:** Save after viewing, like most commands.
   * Pros: No special case.
   * Cons: If saving fails, the user sees a save error instead of the details, although nothing changed.
+
+### Edit event feature
+
+The `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]...
+[cancel/true|false]` command changes the supplied fields of one event and keeps the others. Cancelling is part of this
+command: `cancel/true` marks the event cancelled but keeps its details, ID and linked candidates, and `cancel/false`
+makes it active again. Like `view event`, the command finds its target by the permanent `EventId`.
+
+#### Implementation
+
+**Parsing.** `HireBaseParser` sends `edit event ...` to `EditEventCommandParser`, passing the whole argument string,
+including the `event` keyword. The parser does not use `ArgumentTokenizer`. Instead, it:
+
+* finds prefixes with its own pattern: a word that starts with a letter and ends with `/`, at the start or after
+  whitespace. Dates such as `05/11/2026` start with a digit, so they are not mistaken for prefixes;
+* requires the text before the first prefix to be exactly `event` and one ID. Otherwise, it throws a `ParseException`
+  with the invalid command format message and `EditEventCommand.MESSAGE_USAGE`. An ID that
+  `ParserUtil#parseIndex(String)` does not accept as a positive integer gives `MESSAGE_INVALID_ID`;
+* throws `MESSAGE_NO_FIELDS` if there is no prefix at all;
+* rejects any prefix other than `n/`, `desc/`, `from/`, `to/`, `c/` and `cancel/` with `Unknown parameter: PREFIX.`;
+* rejects a repeated prefix, except `c/`;
+* accepts only `true` or `false` for `cancel/`, ignoring case. Anything else, including an empty `cancel/`, gives
+  `MESSAGE_INVALID_CANCEL`;
+* turns a single empty `c/` into an empty list, which removes all candidate links. Otherwise, it parses each `c/`
+  value with `ParserUtil#parseCandidateId(String)`.
+
+It returns an `EditEventCommand` in which every field that was not supplied is `null`, meaning "keep the current
+value". Repeated candidate IDs are kept once.
+
+**Executing.** `EditEventCommand#execute(Model)`:
+
+1. calls `Model#findEvent(targetId)`. If there is no such event, it throws a `CommandException` with
+   `MESSAGE_NOT_FOUND`;
+1. combines the supplied start and end with the current ones, and checks the result with
+   `Event#isValidTimeRange(...)`. The check is on the result, so changing only `from/` to another day fails, because
+   the start and end must be on the same day;
+1. builds a new `Event` with the same `EventId`, using the current value for every `null` field;
+1. checks that every candidate ID supplied with `c/` belongs to a candidate, and lists all unknown IDs in the
+   `CommandException` if not. IDs that are kept from before are not checked (see the design considerations below);
+1. calls `Model#getConflictingEvents(updated)`. Because the updated event keeps its ID, `Event#isSameEvent(...)`
+   leaves out the old version of the same event, so an event never conflicts with itself. A cancelled event has no
+   conflicts (see [Add event feature](#add-event-feature));
+1. calls `Model#setEvent(target, updated)`, and returns `Edited event: ` followed by `Event#toCalendarString()` and
+   `Status: Active.` or `Status: Cancelled.`. If there are conflicts, a warning and one line per overlapping event
+   follow. The result does not request a different tab, so the selected tab and the candidate list do not change.
+
+**Saving before publishing.** `LogicManager` handles `EditEventCommand` in `executeEditEvent(...)`, using the same
+save-before-publish pattern as [`delete event`](#delete-event-feature). It runs the command on a `pending` copy of the
+model and saves the copy. If saving fails, it throws a `CommandException` (with `EditEventCommand.MESSAGE_SAVE_FAILURE`,
+or a file permission message), and the original event stays in the app and in the data file. Only then does it run
+the command again on the real model. Running it twice is safe, because both runs start from the same data and replace
+the event with the same ID.
+
+#### Design considerations
+
+**Aspect: How to cancel an event**
+
+* **Alternative 1 (current choice):** Make cancellation a field of `edit event` (`cancel/true` or `cancel/false`).
+  * Pros: One command can record a reason and cancel in a single step (e.g. `desc/Candidate withdrew cancel/true`).
+    Restoring an event uses the same command, and no new command word is needed.
+  * Cons: Users looking for a `cancel` command must learn that cancelling is part of editing.
+* **Alternative 2:** Add separate `cancel event EVENT_ID` and `restore event EVENT_ID` commands.
+  * Pros: Easy to find, and each command does one thing.
+  * Cons: Two more commands to learn, parse and test. Recording a reason would still need a separate `edit event`.
+
+**Aspect: Which candidate IDs to check**
+
+* **Alternative 1 (current choice):** Check only the IDs supplied with `c/`.
+  * Pros: An event that lists a deleted candidate can still be renamed, moved or cancelled. Its history is kept, and
+    `view event` shows the old ID as `#ID (deleted)`.
+  * Cons: An event can keep an ID that no longer belongs to a candidate.
+* **Alternative 2:** Check every candidate ID in the edited event.
+  * Pros: An edited event never lists a deleted candidate.
+  * Cons: Once any linked candidate is deleted, every edit of that event fails until the user also replaces its
+    candidate list.
+
+**Aspect: How to find prefixes**
+
+* **Alternative 1 (current choice):** Find every prefix-like token and reject the ones `edit event` does not use.
+  * Pros: A mistyped or wrong prefix, such as a job's `d/`, is reported instead of becoming part of the name or
+    description without the user noticing.
+  * Cons: Text such as `desc/Discuss CI/CD` is rejected, because `CI/` after a space looks like a prefix. The user
+    must put such text right after the prefix (`desc/CI/CD pipelines`) or in brackets (`desc/Discuss (CI/CD)`), as
+    the [User Guide](UserGuide.html#editing-or-cancelling-an-event-edit-event) explains.
+* **Alternative 2:** Use only `ArgumentTokenizer`, which knows just the expected prefixes, as `add event` does.
+  * Pros: Matches most other parsers, and slashes in text are never mistaken for prefixes.
+  * Cons: An unknown prefix is silently added to the previous field's value.
+* **Alternative 3:** Use `ArgumentTokenizer`, then `ArgumentMultimap#verifyNoUnknownPrefixes()`, as `add candidate`,
+  `edit candidate` and `list candidates` do.
+  * Pros: Reuses shared code, so these commands report unknown prefixes in the same way.
+  * Cons: That check treats any word ending in `/` after a space as a prefix, including one that starts with a digit,
+    such as `05/`. The `edit event` pattern requires a letter first, so date-like text is never mistaken for a prefix.
 
 ### Delete event feature
 
@@ -1094,20 +1251,37 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**Use case: UC9 - Shortlist candidates for a job opening**
+**Use case: UC9 - Shortlist previously rejected candidates for a new job opening**
 
 **MSS**
 
-1.  User <ins>lists job openings (UC6)</ins>
-2.  User finds target job opening skills
-3.  User <ins>filters candidates by the skills (UC7)</ins>
-4.  User <ins>updates candidates' status (UC8)</ins> to shortlisted
+1.  User <ins>adds a job opening (UC4)</ins> with one or more required skills
+2.  HireBase shows the previously rejected candidates who have at least one of the opening's required skills
+3.  User requests to move the suitable candidates back to the SCREENING stage, using their candidate IDs
+4.  HireBase updates the interview stage of each selected candidate to SCREENING
+5.  HireBase shows the full candidate list and displays a success message for each updated candidate
 
     Use case ends.
 
 **Extensions**
 
-*{More to be added}*
+* 1a. The job opening has no required skills
+
+    * 1a1. HireBase shows the job opening list instead of a candidate shortlist.
+
+      Use case ends.
+
+* 2a. No previously rejected candidates have a matching skill
+
+    * 2a1. HireBase displays a message that no matching candidates were found.
+
+      Use case ends.
+
+* 3a. The user command contains an invalid or nonexistent candidate ID
+
+    * 3a1. HireBase displays an error message and changes no candidates.
+
+      Use case resumes at step 3.
 
 **Use case: UC10 - Add an interview event**
 
@@ -1372,6 +1546,98 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `delete candidate 999` (where no candidate has ID `#999`)<br>
       Expected: No candidate is deleted. The status message says that candidate ID `999` does not exist.
 
+1. Deleting a candidate who is listed in an event
+
+   1. Prerequisites: A candidate with ID `#3` exists. Add an event for them with
+      `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/3`, and note the event ID in the status message.
+
+   1. Test case: `delete candidate 3`, then `view event EVENT_ID`<br>
+      Expected: The candidate is deleted, but the event still exists. Its candidates show `#3 (deleted)`.
+
+1. Checking that a deleted ID is not reused
+
+   1. Prerequisites: The candidate with ID `#3` has been deleted.
+
+   1. Test case: `add candidate n/Test User p/91234567 e/test@example.com a/Blk 1 s/Java r/Tester`<br>
+      Expected: The new candidate gets the next unused ID, not `#3`.
+
+### Viewing a candidate
+
+1. Viewing an existing candidate
+
+   1. Prerequisites: List all candidates using the `list candidates` command. A candidate with ID `#1` exists.
+
+   1. Test case: `view candidate 1`<br>
+      Expected: The candidate list shows only candidate `#1`. The result display shows their name, stage, priority
+      score, phone, email, address, role, skills and notes. An empty role, skill list or note is shown as `—`.
+
+   1. Test case: `view candidate 0`<br>
+      Expected: The candidate list does not change. The status message shows the usage message.
+
+   1. Other incorrect view commands to try: `view candidate`, `view candidate x`, `view candidate 1 2`, `view 1`,
+      `view Candidate 1`<br>
+      Expected: Similar to previous.
+
+1. Viewing a candidate hidden by a search
+
+   1. Prerequisites: Run `find` with a keyword that hides the candidate with ID `#2`.
+
+   1. Test case: `view candidate 2`<br>
+      Expected: The details of candidate `#2` are shown, and the candidate list shows only that candidate.
+
+1. Viewing a candidate that does not exist
+
+   1. Test case: `view candidate 999` (where no candidate has ID `#999`)<br>
+      Expected: The candidate list does not change. The status message says that candidate ID `999` does not exist.
+
+1. Returning to the full list
+
+   1. Test case: `list candidates` after any successful `view candidate`<br>
+      Expected: All candidates are shown again.
+
+### Adding or clearing a note
+
+1. Adding and replacing a note
+
+   1. Prerequisites: A candidate with ID `#1` exists and has no note.
+
+   1. Test case: `note 1 Strong SQL round`<br>
+      Expected: The status message starts with `Added note to candidate:`, followed by the candidate's details.
+      `view candidate 1` shows `Strong SQL round` on the notes line.
+
+   1. Test case: `note 1 Follow up next week`<br>
+      Expected: The old note is replaced, not added to. `view candidate 1` shows only `Follow up next week`.
+
+1. Clearing a note
+
+   1. Prerequisites: The candidate with ID `#1` has a note.
+
+   1. Test case: `note 1`<br>
+      Expected: The status message starts with `Removed note from candidate:`. `view candidate 1` shows `—` on the
+      notes line.
+
+1. Adding a note to a candidate hidden by a search
+
+   1. Prerequisites: Run `find` with a keyword that hides the candidate with ID `#2`.
+
+   1. Test case: `note 2 Hidden candidate note`<br>
+      Expected: The note is added to candidate `#2`, and the full candidate list is shown again.
+
+1. Invalid note commands
+
+   1. Test case: `note 999 Some text` (where no candidate has ID `#999`)<br>
+      Expected: No note is changed. The status message says that candidate ID `999` does not exist.
+
+   1. Other incorrect note commands to try: `note`, `note 0 Some text`, `note x Some text`,
+      `note candidate 1 Some text`<br>
+      Expected: No note is changed. The status message shows the usage message. Unlike most candidate commands, `note`
+      does not take the `candidate` keyword.
+
+1. Keeping a note after a restart
+
+   1. Test case: Add a note with `note 1 Keep this`, close the app with `exit`, then launch it again.<br>
+      Expected: `view candidate 1` still shows `Keep this`.
+
 ### Candidate IDs
 
 1. IDs are not reused
@@ -1537,6 +1803,85 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
    1. Test case: `view events 1`<br>
       Expected: An invalid-format error, followed by the `view` usage, which lists both `view candidate` and
       `view event`.
+
+### Editing or cancelling an event
+
+1. Editing an event's fields
+
+   1. Prerequisites: Start with the sample candidates and no events. Add two overlapping events with
+      `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` (event `#1`) and
+      `add event n/Team sync from/05/11/2026 14:30 to/05/11/2026 15:30` (event `#2`).
+
+   1. Test case: `edit event 1 n/Final interview c/2 c/3`<br>
+      Expected: `Edited event: #1 Final interview (05/11/2026 14:00 to 05/11/2026 15:00); Status: Active.`, followed
+      by a warning that lists `#2 Team sync`. `view event 1` lists candidates `#2` and `#3` only.
+
+   1. Test case: `edit event 1 desc/ c/`<br>
+      Expected: The description and candidates are cleared. `view event 1` shows `—` for both. The name and times
+      do not change.
+
+1. Cancelling and restoring an event
+
+   1. Prerequisites: Event `#1` still overlaps event `#2`, as set up above.
+
+   1. Test case: `edit event 1 cancel/TRUE`<br>
+      Expected: The status message ends with `Status: Cancelled.`, with no overlap warning. `true` and `false` ignore
+      case. `view event 1` shows a `Status: Cancelled` line, and the event keeps its name and times.
+
+   1. Test case: `edit event 1 cancel/false`<br>
+      Expected: The status message ends with `Status: Active.`, and the overlap warning listing `#2` appears again.
+
+1. Moving an event
+
+   1. Test case: `edit event 1 from/06/11/2026 14:00 to/06/11/2026 15:00`<br>
+      Expected: The event moves to 6 November, and there is no overlap warning.
+
+1. Editing an event that lists a deleted candidate
+
+   1. Prerequisites: Add `add event n/Screening call from/10/11/2026 09:00 to/10/11/2026 09:30 c/4`, then run
+      `delete candidate 4`.
+
+   1. Test case: `edit event EVENT_ID n/Renamed call`, using the new event's ID<br>
+      Expected: The event is renamed. `view event EVENT_ID` still lists `#4 (deleted)`.
+
+1. Edits that are rejected
+
+   For each test case below, the event does not change, which you can check with `view event 1`.
+
+   1. Test case: `edit event 1 from/07/11/2026 10:00` (on an event that is on another day)<br>
+      Expected: `Event start must be before its end, and both must be on the same day.`
+
+   1. Test case: `edit event 1 to/06/11/2026 13:00` (on an event that starts at 14:00 that day)<br>
+      Expected: The same error as the previous test case.
+
+   1. Test case: `edit event 1 c/999` (where no candidate has ID `#999`)<br>
+      Expected: An error saying that no candidate has ID `999`, and that the event was not edited.
+
+   1. Test case: `edit event 99 n/X` (where no event has ID `#99`)<br>
+      Expected: `Event ID "99" does not exist.`
+
+   1. Test case: `edit event 1`<br>
+      Expected: `Specify at least one field to edit.`, followed by the usage.
+
+   1. Test case: `edit event 0 n/X`<br>
+      Expected: `Event ID must be a positive integer.`, followed by the usage.
+
+   1. Test case: `edit event 1 cancel/maybe` and `edit event 1 cancel/`<br>
+      Expected: `cancel/ must be true or false.`
+
+   1. Test case: `edit event 1 d/Engineering`<br>
+      Expected: `Unknown parameter: d/.`
+
+   1. Test case: `edit event 1 n/A n/B`<br>
+      Expected: An error saying that `n/` has more than one value.
+
+   1. Other incorrect commands to try: `edit event n/X`, `edit event 1 2 n/X`<br>
+      Expected: An invalid-format error, followed by the `edit event` usage.
+
+1. Keeping an edit after a restart
+
+   1. Test case: Cancel an event, close the app with `exit`, then launch it again.<br>
+      Expected: `view event EVENT_ID` still shows `Status: Cancelled`.
 
 ### Deleting an event
 

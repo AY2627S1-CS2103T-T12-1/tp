@@ -602,6 +602,98 @@ cannot replace the event details with a save error.
   * Pros: No special case.
   * Cons: If saving fails, the user sees a save error instead of the details, although nothing changed.
 
+### Edit event feature
+
+The `edit event EVENT_ID [n/NAME] [desc/DESCRIPTION] [from/DD/MM/YYYY HH:MM] [to/DD/MM/YYYY HH:MM] [c/CANDIDATE_ID]...
+[cancel/true|false]` command changes the supplied fields of one event and keeps the others. Cancelling is part of this
+command: `cancel/true` marks the event cancelled but keeps its details, ID and linked candidates, and `cancel/false`
+makes it active again. Like `view event`, the command finds its target by the permanent `EventId`.
+
+#### Implementation
+
+**Parsing.** `HireBaseParser` sends `edit event ...` to `EditEventCommandParser`, passing the whole argument string,
+including the `event` keyword. The parser does not use `ArgumentTokenizer`. Instead, it:
+
+* finds prefixes with its own pattern: a word that starts with a letter and ends with `/`, at the start or after
+  whitespace. Dates such as `05/11/2026` start with a digit, so they are not mistaken for prefixes;
+* requires the text before the first prefix to be exactly `event` and one ID. Otherwise, it throws a `ParseException`
+  with the invalid command format message and `EditEventCommand.MESSAGE_USAGE`. An ID that
+  `ParserUtil#parseIndex(String)` does not accept as a positive integer gives `MESSAGE_INVALID_ID`;
+* throws `MESSAGE_NO_FIELDS` if there is no prefix at all;
+* rejects any prefix other than `n/`, `desc/`, `from/`, `to/`, `c/` and `cancel/` with `Unknown parameter: PREFIX.`;
+* rejects a repeated prefix, except `c/`;
+* accepts only `true` or `false` for `cancel/`, ignoring case. Anything else, including an empty `cancel/`, gives
+  `MESSAGE_INVALID_CANCEL`;
+* turns a single empty `c/` into an empty list, which removes all candidate links. Otherwise, it parses each `c/`
+  value with `ParserUtil#parseCandidateId(String)`.
+
+It returns an `EditEventCommand` in which every field that was not supplied is `null`, meaning "keep the current
+value". Repeated candidate IDs are kept once.
+
+**Executing.** `EditEventCommand#execute(Model)`:
+
+1. calls `Model#findEvent(targetId)`. If there is no such event, it throws a `CommandException` with
+   `MESSAGE_NOT_FOUND`;
+1. combines the supplied start and end with the current ones, and checks the result with
+   `Event#isValidTimeRange(...)`. The check is on the result, so changing only `from/` to another day fails, because
+   the start and end must be on the same day;
+1. builds a new `Event` with the same `EventId`, using the current value for every `null` field;
+1. checks that every candidate ID supplied with `c/` belongs to a candidate, and lists all unknown IDs in the
+   `CommandException` if not. IDs that are kept from before are not checked (see the design considerations below);
+1. calls `Model#getConflictingEvents(updated)`. Because the updated event keeps its ID, `Event#isSameEvent(...)`
+   leaves out the old version of the same event, so an event never conflicts with itself. A cancelled event has no
+   conflicts (see [Add event feature](#add-event-feature));
+1. calls `Model#setEvent(target, updated)`, and returns `Edited event: ` followed by `Event#toCalendarString()` and
+   `Status: Active.` or `Status: Cancelled.`. If there are conflicts, a warning and one line per overlapping event
+   follow. The result does not request a different tab, so the selected tab and the candidate list do not change.
+
+**Saving before publishing.** `LogicManager` handles `EditEventCommand` in `executeEditEvent(...)`, using the same
+save-before-publish pattern as [`delete event`](#delete-event-feature). It runs the command on a `pending` copy of the
+model and saves the copy. If saving fails, it throws a `CommandException` (with `EditEventCommand.MESSAGE_SAVE_FAILURE`,
+or a file permission message), and the original event stays in the app and in the data file. Only then does it run
+the command again on the real model. Running it twice is safe, because both runs start from the same data and replace
+the event with the same ID.
+
+#### Design considerations
+
+**Aspect: How to cancel an event**
+
+* **Alternative 1 (current choice):** Make cancellation a field of `edit event` (`cancel/true` or `cancel/false`).
+  * Pros: One command can record a reason and cancel in a single step (e.g. `desc/Candidate withdrew cancel/true`).
+    Restoring an event uses the same command, and no new command word is needed.
+  * Cons: Users looking for a `cancel` command must learn that cancelling is part of editing.
+* **Alternative 2:** Add separate `cancel event EVENT_ID` and `restore event EVENT_ID` commands.
+  * Pros: Easy to find, and each command does one thing.
+  * Cons: Two more commands to learn, parse and test. Recording a reason would still need a separate `edit event`.
+
+**Aspect: Which candidate IDs to check**
+
+* **Alternative 1 (current choice):** Check only the IDs supplied with `c/`.
+  * Pros: An event that lists a deleted candidate can still be renamed, moved or cancelled. Its history is kept, and
+    `view event` shows the old ID as `#ID (deleted)`.
+  * Cons: An event can keep an ID that no longer belongs to a candidate.
+* **Alternative 2:** Check every candidate ID in the edited event.
+  * Pros: An edited event never lists a deleted candidate.
+  * Cons: Once any linked candidate is deleted, every edit of that event fails until the user also replaces its
+    candidate list.
+
+**Aspect: How to find prefixes**
+
+* **Alternative 1 (current choice):** Find every prefix-like token and reject the ones `edit event` does not use.
+  * Pros: A mistyped or wrong prefix, such as a job's `d/`, is reported instead of becoming part of the name or
+    description without the user noticing.
+  * Cons: Text such as `desc/Discuss CI/CD` is rejected, because `CI/` after a space looks like a prefix. The user
+    must put such text right after the prefix (`desc/CI/CD pipelines`) or in brackets (`desc/Discuss (CI/CD)`), as
+    the [User Guide](UserGuide.html#editing-or-cancelling-an-event-edit-event) explains.
+* **Alternative 2:** Use only `ArgumentTokenizer`, which knows just the expected prefixes, as `add event` does.
+  * Pros: Matches most other parsers, and slashes in text are never mistaken for prefixes.
+  * Cons: An unknown prefix is silently added to the previous field's value.
+* **Alternative 3:** Use `ArgumentTokenizer`, then `ArgumentMultimap#verifyNoUnknownPrefixes()`, as `add candidate`,
+  `edit candidate` and `list candidates` do.
+  * Pros: Reuses shared code, so these commands report unknown prefixes in the same way.
+  * Cons: That check treats any word ending in `/` after a space as a prefix, including one that starts with a digit,
+    such as `05/`. The `edit event` pattern requires a letter first, so date-like text is never mistaken for a prefix.
+
 ### Delete event feature
 
 The `delete event EVENT_ID` command permanently removes one event from the calendar. Like `view event`, it finds its
@@ -1711,6 +1803,85 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
    1. Test case: `view events 1`<br>
       Expected: An invalid-format error, followed by the `view` usage, which lists both `view candidate` and
       `view event`.
+
+### Editing or cancelling an event
+
+1. Editing an event's fields
+
+   1. Prerequisites: Start with the sample candidates and no events. Add two overlapping events with
+      `add event n/Interview from/05/11/2026 14:00 to/05/11/2026 15:00 c/1` (event `#1`) and
+      `add event n/Team sync from/05/11/2026 14:30 to/05/11/2026 15:30` (event `#2`).
+
+   1. Test case: `edit event 1 n/Final interview c/2 c/3`<br>
+      Expected: `Edited event: #1 Final interview (05/11/2026 14:00 to 05/11/2026 15:00); Status: Active.`, followed
+      by a warning that lists `#2 Team sync`. `view event 1` lists candidates `#2` and `#3` only.
+
+   1. Test case: `edit event 1 desc/ c/`<br>
+      Expected: The description and candidates are cleared. `view event 1` shows `—` for both. The name and times
+      do not change.
+
+1. Cancelling and restoring an event
+
+   1. Prerequisites: Event `#1` still overlaps event `#2`, as set up above.
+
+   1. Test case: `edit event 1 cancel/TRUE`<br>
+      Expected: The status message ends with `Status: Cancelled.`, with no overlap warning. `true` and `false` ignore
+      case. `view event 1` shows a `Status: Cancelled` line, and the event keeps its name and times.
+
+   1. Test case: `edit event 1 cancel/false`<br>
+      Expected: The status message ends with `Status: Active.`, and the overlap warning listing `#2` appears again.
+
+1. Moving an event
+
+   1. Test case: `edit event 1 from/06/11/2026 14:00 to/06/11/2026 15:00`<br>
+      Expected: The event moves to 6 November, and there is no overlap warning.
+
+1. Editing an event that lists a deleted candidate
+
+   1. Prerequisites: Add `add event n/Screening call from/10/11/2026 09:00 to/10/11/2026 09:30 c/4`, then run
+      `delete candidate 4`.
+
+   1. Test case: `edit event EVENT_ID n/Renamed call`, using the new event's ID<br>
+      Expected: The event is renamed. `view event EVENT_ID` still lists `#4 (deleted)`.
+
+1. Edits that are rejected
+
+   For each test case below, the event does not change, which you can check with `view event 1`.
+
+   1. Test case: `edit event 1 from/07/11/2026 10:00` (on an event that is on another day)<br>
+      Expected: `Event start must be before its end, and both must be on the same day.`
+
+   1. Test case: `edit event 1 to/06/11/2026 13:00` (on an event that starts at 14:00 that day)<br>
+      Expected: The same error as the previous test case.
+
+   1. Test case: `edit event 1 c/999` (where no candidate has ID `#999`)<br>
+      Expected: An error saying that no candidate has ID `999`, and that the event was not edited.
+
+   1. Test case: `edit event 99 n/X` (where no event has ID `#99`)<br>
+      Expected: `Event ID "99" does not exist.`
+
+   1. Test case: `edit event 1`<br>
+      Expected: `Specify at least one field to edit.`, followed by the usage.
+
+   1. Test case: `edit event 0 n/X`<br>
+      Expected: `Event ID must be a positive integer.`, followed by the usage.
+
+   1. Test case: `edit event 1 cancel/maybe` and `edit event 1 cancel/`<br>
+      Expected: `cancel/ must be true or false.`
+
+   1. Test case: `edit event 1 d/Engineering`<br>
+      Expected: `Unknown parameter: d/.`
+
+   1. Test case: `edit event 1 n/A n/B`<br>
+      Expected: An error saying that `n/` has more than one value.
+
+   1. Other incorrect commands to try: `edit event n/X`, `edit event 1 2 n/X`<br>
+      Expected: An invalid-format error, followed by the `edit event` usage.
+
+1. Keeping an edit after a restart
+
+   1. Test case: Cancel an event, close the app with `exit`, then launch it again.<br>
+      Expected: `view event EVENT_ID` still shows `Status: Cancelled`.
 
 ### Deleting an event
 

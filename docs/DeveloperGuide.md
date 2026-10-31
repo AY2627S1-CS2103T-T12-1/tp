@@ -1094,20 +1094,37 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
-**Use case: UC9 - Shortlist candidates for a job opening**
+**Use case: UC9 - Shortlist previously rejected candidates for a new job opening**
 
 **MSS**
 
-1.  User <ins>lists job openings (UC6)</ins>
-2.  User finds target job opening skills
-3.  User <ins>filters candidates by the skills (UC7)</ins>
-4.  User <ins>updates candidates' status (UC8)</ins> to shortlisted
+1.  User <ins>adds a job opening (UC4)</ins> with one or more required skills
+2.  HireBase shows the previously rejected candidates who have at least one of the opening's required skills
+3.  User requests to move the suitable candidates back to the SCREENING stage, using their candidate IDs
+4.  HireBase updates the interview stage of each selected candidate to SCREENING
+5.  HireBase shows the full candidate list and displays a success message for each updated candidate
 
     Use case ends.
 
 **Extensions**
 
-*{More to be added}*
+* 1a. The job opening has no required skills
+
+    * 1a1. HireBase shows the job opening list instead of a candidate shortlist.
+
+      Use case ends.
+
+* 2a. No previously rejected candidates have a matching skill
+
+    * 2a1. HireBase displays a message that no matching candidates were found.
+
+      Use case ends.
+
+* 3a. The user command contains an invalid or nonexistent candidate ID
+
+    * 3a1. HireBase displays an error message and changes no candidates.
+
+      Use case resumes at step 3.
 
 **Use case: UC10 - Add an interview event**
 

@@ -84,6 +84,14 @@ public class JsonSerializableHireBaseTest {
     }
 
     @Test
+    public void toModelType_nullPerson_throwsIllegalValueException() throws Exception {
+        JsonSerializableHireBase data = JsonUtil.fromJsonString(
+                "{\"persons\":[null]}", JsonSerializableHireBase.class);
+
+        assertThrows(IllegalValueException.class, JsonSerializableHireBase.MESSAGE_NULL_PERSON, data::toModelType);
+    }
+
+    @Test
     public void toModelType_storedCounterAboveExistingIds_isRespected() throws Exception {
         Person first = TypicalPersons.ALICE.withCandidateId(new CandidateId(2));
         JsonSerializableHireBase data = new JsonSerializableHireBase(

@@ -1,5 +1,6 @@
 package seedu.hirebase.storage;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.hirebase.testutil.Assert.assertThrows;
@@ -69,6 +70,33 @@ public class JsonHireBaseStorageTest {
     @Test
     public void readHireBase_invalidHireBase_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readHireBase("invalidPersonHireBase.json"));
+    }
+
+    @Test
+    public void readHireBase_nullCandidate_throwsDataLoadingExceptionAndPreservesFile() throws Exception {
+        Path filePath = testFolder.resolve("nullCandidate.json");
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonSerializableHireBase(getTypicalHireBase())), ObjectNode.class);
+        json.withArray("persons").addNull();
+        JsonUtil.saveJsonFile(json, filePath);
+        byte[] original = Files.readAllBytes(filePath);
+
+        assertThrows(DataLoadingException.class, () -> new JsonHireBaseStorage(filePath).readHireBase());
+        assertArrayEquals(original, Files.readAllBytes(filePath));
+    }
+
+    @Test
+    public void readHireBase_nullTag_throwsDataLoadingExceptionAndPreservesFile() throws Exception {
+        Path filePath = testFolder.resolve("nullTag.json");
+        ObjectNode json = JsonUtil.fromJsonString(
+                JsonUtil.toJsonString(new JsonSerializableHireBase(getTypicalHireBase())), ObjectNode.class);
+        ObjectNode person = (ObjectNode) json.get("persons").get(0);
+        person.withArray("tags").addNull();
+        JsonUtil.saveJsonFile(json, filePath);
+        byte[] original = Files.readAllBytes(filePath);
+
+        assertThrows(DataLoadingException.class, () -> new JsonHireBaseStorage(filePath).readHireBase());
+        assertArrayEquals(original, Files.readAllBytes(filePath));
     }
 
     @Test

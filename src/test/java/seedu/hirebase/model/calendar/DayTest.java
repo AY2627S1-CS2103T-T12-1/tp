@@ -78,6 +78,13 @@ public class DayTest {
     }
 
     @Test
+    public void toString_yearZeroLeapDay_preservesYearInHeading() {
+        Day leapDay = new Day(LocalDate.of(0, 2, 29));
+
+        assertEquals("29/02/0000\n(No event on this day)", leapDay.toString());
+    }
+
+    @Test
     public void toString_oneEvent() {
         assertEquals("26/10/2026\n\n* #1 Interview (26/10/2026 10:00 to 26/10/2026 11:00)",
                 new Day(DATE, List.of(interview)).toString());

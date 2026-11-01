@@ -46,6 +46,20 @@ public class ViewEventCommandTest {
     }
 
     @Test
+    public void execute_yearZeroLeapDay_preservesYearInStartAndEnd() throws Exception {
+        model.addEvent(new EventBuilder().withName("Leap day")
+                .withTimes(LocalDateTime.of(0, 2, 29, 10, 0), LocalDateTime.of(0, 2, 29, 11, 0)).build());
+
+        String text = new ViewEventCommand(ID_1).execute(model).getFeedbackToUser();
+
+        assertEquals("Event:       #1 Leap day\n"
+                + "Description: —\n"
+                + "Start:       29/02/0000 10:00\n"
+                + "End:         29/02/0000 11:00\n"
+                + "Candidates:  —", text);
+    }
+
+    @Test
     public void execute_noDescriptionAndNoCandidates_showsPlaceholders() throws Exception {
         model.addEvent(new EventBuilder().build());
 

@@ -191,6 +191,14 @@ public class EventTest {
     }
 
     @Test
+    public void toCalendarString_yearZeroLeapDay_preservesYear() {
+        Event leapDay = stored.withTimes(LocalDateTime.of(0, 2, 29, 10, 0),
+                LocalDateTime.of(0, 2, 29, 11, 0));
+
+        assertEquals("#1 Interview (29/02/0000 10:00 to 29/02/0000 11:00)", leapDay.toCalendarString());
+    }
+
+    @Test
     public void equalsAndHashCode() {
         Event copy = stored.withName(new EventName("Interview"));
 

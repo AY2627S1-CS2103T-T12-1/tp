@@ -23,7 +23,7 @@ public final class Event {
     public static final String MESSAGE_TIME_CONSTRAINTS =
             "Event start must be before its end, and both must be on the same day.";
     public static final String MESSAGE_ID_ALREADY_ASSIGNED = "An event's ID cannot be changed once assigned.";
-    public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    public static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/uuuu HH:mm");
 
     // Assigned by the model when the event is added; null until then. Permanent once assigned.
     private final EventId eventId;

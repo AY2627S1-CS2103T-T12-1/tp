@@ -18,7 +18,7 @@ import seedu.hirebase.model.event.Event;
  */
 public class Day {
 
-    public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/uuuu");
     public static final String MESSAGE_NO_EVENT = "(No event on this day)";
     public static final String MESSAGE_WRONG_DAY = "Event does not start on this day.";
 

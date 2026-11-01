@@ -546,6 +546,7 @@ Examples:
 Shows the full details of one candidate in the result display and collapses the candidate list to only that candidate.
 
 Click a candidate card to open **Candidate Details**. Scroll vertically to read long notes and other details.
+Long names wrap onto multiple lines while the interview-stage badge remains fully visible.
 Deleting the displayed candidate or running `clear` closes the details window.
 
 Format: `view candidate CANDIDATE_ID`

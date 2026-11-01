@@ -119,11 +119,17 @@ public class JobUiTest {
                     singleLine.setFont(department.getFont());
                     if (departmentText.equals("Engineering")) {
                         assertEquals(department.prefWidth(-1), department.getWidth(), 1);
+                    }
+                    // Font metrics and native window sizes differ between operating systems.
+                    double availableTextWidth = department.getWidth() - department.getInsets().getLeft()
+                            - department.getInsets().getRight();
+                    if (singleLine.getLayoutBounds().getWidth() > availableTextWidth + 1) {
+                        assertTrue(renderedText.getLayoutBounds().getHeight()
+                                > singleLine.getLayoutBounds().getHeight(),
+                                "Department text wider than the available space should wrap: " + departmentText);
+                    } else {
                         assertEquals(singleLine.getLayoutBounds().getHeight(),
                                 renderedText.getLayoutBounds().getHeight(), 1);
-                    } else {
-                        assertTrue(renderedText.getLayoutBounds().getHeight()
-                                > singleLine.getLayoutBounds().getHeight());
                     }
                     assertTrue(department.getHeight() >= department.prefHeight(department.getWidth()) - 1);
                     assertTrue(department.localToScene(department.getBoundsInLocal()).getMaxX() <= scene.getWidth());

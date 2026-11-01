@@ -195,6 +195,10 @@ The `Storage` component,
 * saves each event in `JsonAdaptedEvent`, and the `nextEventId` counter in `JsonSerializableHireBase`, in the same data file as candidates and job openings.
 * keeps a timestamped copy of a data file that cannot be loaded, so that the user's data is not lost when the app starts empty (see [Backing up an invalid data file](#backing-up-an-invalid-data-file)).
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonHireBaseStorage` and `JsonUserPrefsStorage` (one class per data file).
+* records the data-file bytes at load/save and rejects a save if those bytes changed. A companion `.lock` file
+  coordinates writers across the check and atomic replacement; the lock file stays on disk after release.
+  The stale-write approach was inspired by
+  [ClientDesk's stale-save fix](https://github.com/AY2627S1-CS2103T-T10-1/tp/issues/127).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes

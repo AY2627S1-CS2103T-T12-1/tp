@@ -184,7 +184,7 @@ public class AddJobIntegrationTest {
         assertEquals("existing data", Files.readString(existing));
         assertTrue(model.getJobOpeningList().isEmpty());
         try (var files = Files.list(temporaryFolder)) {
-            assertEquals(List.of(destination), files.toList());
+            assertEquals(List.of(destination, destination.resolveSibling("data.json.lock")), files.sorted().toList());
         }
     }
 

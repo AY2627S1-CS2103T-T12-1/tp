@@ -906,6 +906,9 @@ Format: `exit`
 
 HireBase automatically saves data after commands, except the read-only `list jobs`, `view event` and `view calendar` commands. You do not need to save manually.
 Candidate records, job openings and events are saved together in the same data file and loaded on the next launch.
+If another HireBase window or an external editor changes that file, this window cannot overwrite those newer
+changes. Close this application window using its close button, then reopen HireBase to load the latest data
+before retrying. Use one window for changes; the `exit` command may also report the save error in a stale window.
 Changing calendar controls does not save the data file; the selected calendar period and filters are temporary.
 Older data files without a `jobs` field still load normally, with an empty job-opening list.
 Events are saved in the same file. Older data files without an `events` field load normally, with no events.

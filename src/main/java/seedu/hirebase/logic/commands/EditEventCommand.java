@@ -29,7 +29,7 @@ public class EditEventCommand extends Command {
     public static final String MESSAGE_INVALID_CANCEL = "cancel/ must be true or false.";
     public static final String MESSAGE_NOT_FOUND = "Event ID \"%d\" does not exist.";
     public static final String MESSAGE_UNKNOWN_CANDIDATES =
-            "No candidate has ID(s): %s. Use list to view candidate IDs. The event was not edited.";
+            "No candidate has ID(s): %s. Use list candidates to view candidate IDs. The event was not edited.";
     public static final String MESSAGE_SUCCESS = "Edited event: %s; Status: %s.";
     public static final String MESSAGE_CONFLICT_WARNING =
             "\nWarning: this event overlaps with %d existing event(s). It was still edited:";

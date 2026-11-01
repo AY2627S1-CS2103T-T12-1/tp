@@ -1,12 +1,18 @@
 package seedu.hirebase.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import seedu.hirebase.commons.exceptions.DataLoadingException;
 import seedu.hirebase.testutil.SerializableTestClass;
 import seedu.hirebase.testutil.TestUtil;
 
@@ -39,7 +45,41 @@ public class JsonUtilTest {
         assertEquals(serializableTestClass.getMapOfIntegerToString(), SerializableTestClass.getHashMapTestValues());
     }
 
-    // TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()
+    @Test
+    public void fromJsonString_trailingContent_throwsIoException() {
+        String json = "{\"name\":\"Alice\"}";
+        for (String suffix : new String[] {"{}", "[]", "true", "42", "\"extra\"", "invalid"}) {
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(json + suffix, JsonNode.class), suffix);
+        }
+    }
 
-    // TODO: @Test jsonUtil_writeThenReadObjectToJson_correctObject()
+    @Test
+    public void fromJsonString_duplicateFields_throwsIoException() {
+        for (String json : new String[] {
+            "{\"name\":\"Alice\",\"name\":\"Bob\"}",
+            "{\"profile\":{\"name\":\"Alice\",\"name\":\"Bob\"}}"}) {
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(json, JsonNode.class), json);
+        }
+    }
+
+    @Test
+    public void fromJsonString_trailingWhitespace_readsCompleteValue() throws IOException {
+        SerializableTestClass actual = JsonUtil.fromJsonString(
+                SerializableTestClass.JSON_STRING_REPRESENTATION + " \t\r\n", SerializableTestClass.class);
+
+        assertEquals(SerializableTestClass.getNameTestValue(), actual.getName());
+        assertEquals(SerializableTestClass.getListTestValues(), actual.getListOfLocalDateTimes());
+        assertEquals(SerializableTestClass.getHashMapTestValues(), actual.getMapOfIntegerToString());
+    }
+
+    @Test
+    public void readJsonFile_invalidDocument_preservesOriginalBytes(@TempDir Path directory) throws IOException {
+        Path file = directory.resolve("invalid.json");
+        for (String json : new String[] {"{\"name\":\"Alice\"} {}", "{\"name\":\"Alice\",\"name\":\"Bob\"}"}) {
+            Files.writeString(file, json);
+
+            assertThrows(DataLoadingException.class, () -> JsonUtil.readJsonFile(file, JsonNode.class));
+            assertEquals(json, Files.readString(file));
+        }
+    }
 }

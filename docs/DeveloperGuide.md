@@ -201,6 +201,11 @@ The `Storage` component,
 
 Classes used by multiple components are in the `seedu.hirebase.commons` package.
 
+`JsonUtil` enables duplicate-key detection and verifies that no tokens remain after one JSON value.
+Invalid documents become `DataLoadingException` when read from disk; trailing whitespace remains valid.
+The complete-document validation approach was informed by
+[Scoutly's JSON validation fix](https://github.com/AY2627S1-CS2103T-T09-3/tp/commit/4732385eae).
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Implementation**

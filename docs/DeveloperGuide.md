@@ -132,7 +132,7 @@ chosen by the type of command:
 
 1. **Read-only commands** (`list jobs`, `view event` and `view calendar`) return their result without saving. A failed
    save can therefore never replace what the user asked to see with a save error.
-1. **Save-before-publish commands** (`add job`, `edit job`, `delete job`, `add event`, `edit event`, `delete event`, and the candidate
+1. **Save-before-publish commands** (`add job`, `edit job`, `delete job`, `add event`, `edit event`, `delete event`, `clear`, and the candidate
    commands `add candidate`, `delete candidate`, `edit candidate`, `note` and `stage candidate`, which `accept candidate`
    and `reject candidate` extend) are first run on a `pending` copy of the model. `LogicManager` saves the copy, and only
    then changes the real model that the UI observes. If the command or the save fails, the real model, the filters, the
@@ -141,7 +141,7 @@ chosen by the type of command:
    [Add event feature](#add-event-feature)), while the other commands run again on the real model, which gives the same
    result because it holds the same data as the copy. The [`delete event` sequence diagram](#delete-event-feature)
    shows the replay pattern.
-1. **All other commands** (for example `find`, `list candidates`, `clear` and `view candidate`) run on the real model, and
+1. **All other commands** (for example `find`, `list candidates` and `view candidate`) run on the real model, and
    the data file is saved afterwards.
 
 ### Model component

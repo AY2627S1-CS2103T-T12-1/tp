@@ -11,6 +11,7 @@ import seedu.hirebase.commons.core.LogsCenter;
 import seedu.hirebase.logic.commands.AddCommand;
 import seedu.hirebase.logic.commands.AddEventCommand;
 import seedu.hirebase.logic.commands.AddJobCommand;
+import seedu.hirebase.logic.commands.ClearCommand;
 import seedu.hirebase.logic.commands.Command;
 import seedu.hirebase.logic.commands.CommandResult;
 import seedu.hirebase.logic.commands.DeleteCommand;
@@ -89,7 +90,8 @@ public class LogicManager implements Logic {
             return executeEditJob(editJobCommand);
         }
         if (command instanceof AddCommand || command instanceof DeleteCommand || command instanceof EditCommand
-                || command instanceof NoteCommand || command instanceof StageCommand) {
+                || command instanceof NoteCommand || command instanceof StageCommand
+                || command instanceof ClearCommand) {
             return executeCandidateChange(command);
         }
         commandResult = command.execute(model);
@@ -116,7 +118,7 @@ public class LogicManager implements Logic {
     }
 
     /**
-     * Saves candidate changes before publishing them, preserving records, filters and IDs on a failed save.
+     * Saves candidate changes and clearing before publishing, preserving live state on a failed save.
      */
     private CommandResult executeCandidateChange(Command command) throws CommandException {
         Model pending = new ModelManager(model.getHireBase(), model.getUserPrefs());
@@ -130,7 +132,7 @@ public class LogicManager implements Logic {
         }
         // Replay only after saving so the live model keeps each command's existing filter behaviour.
         command.execute(model);
-        return result.withListView(CommandResult.ListView.CANDIDATES);
+        return command instanceof ClearCommand ? result : result.withListView(CommandResult.ListView.CANDIDATES);
     }
 
     private CommandResult executeAddJob(AddJobCommand command) throws CommandException {

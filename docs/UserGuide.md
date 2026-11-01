@@ -891,6 +891,9 @@ Examples:
 
 Clears all candidates, job openings and events from HireBase.
 
+The deletion is saved before records disappear. If saving fails, all records, searches and ID counters
+remain unchanged. A later command will not save a clear that was reported as failed.
+
 Format: `clear`
 
 Candidate IDs, job IDs and event IDs used before `clear` are not reused. New candidates, job openings and events

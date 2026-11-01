@@ -10,7 +10,8 @@ import static seedu.hirebase.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-        "Names should only contain letters, spaces, hyphens and apostrophes, and should not be blank.";
+        "Names should be 1-100 characters long, start with a letter, and contain only letters, spaces, "
+                + "hyphens and apostrophes.";
     /*
      * The regular expression for a valid name.
      * It should start with a letter, and can contain letters, spaces, hyphens and apostrophes.

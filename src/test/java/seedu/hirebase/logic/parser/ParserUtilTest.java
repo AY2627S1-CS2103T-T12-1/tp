@@ -130,6 +130,13 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_tooLong_explainsLengthLimit() {
+        String expectedMessage = "Names should be 1-100 characters long, start with a letter, "
+                + "and contain only letters, spaces, hyphens and apostrophes.";
+        assertThrows(ParseException.class, expectedMessage, () -> ParserUtil.parseName("a".repeat(101)));
+    }
+
+    @Test
     public void parseName_validValueWithoutWhitespace_returnsName() throws Exception {
         Name expectedName = new Name(VALID_NAME);
         assertEquals(expectedName, ParserUtil.parseName(VALID_NAME));

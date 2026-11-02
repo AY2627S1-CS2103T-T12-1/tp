@@ -840,6 +840,8 @@ be lost. To prevent this, HireBase copies the invalid file before it starts empt
 
 `MainApp#initModelManager(...)` catches the `DataLoadingException` thrown when the data file is invalid, and calls
 `FileUtil#tryBackUpInvalidFile(Path)` before creating the empty `HireBase`.
+Null candidate or tag entries are rejected with `IllegalValueException` by the adapters, then wrapped in
+`DataLoadingException` by storage, so they follow the same backup path as other invalid records.
 
 * `FileUtil#backUpInvalidFile(Path, LocalDateTime)` copies the file next to itself as
   `<name>-invalid-<yyyyMMdd-HHmmss>.<extension>`, for example `hirebase-invalid-20261027-183000.json`. If that name is

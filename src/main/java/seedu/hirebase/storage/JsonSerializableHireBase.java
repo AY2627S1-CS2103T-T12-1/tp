@@ -29,6 +29,7 @@ import seedu.hirebase.model.job.exceptions.DuplicateJobOpeningException;
 class JsonSerializableHireBase {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_NULL_PERSON = "Persons list contains a null candidate.";
 
     public static final String MESSAGE_DUPLICATE_JOB = "Jobs list contains duplicate job opening(s).";
     public static final String MESSAGE_NULL_JOB = "Jobs list contains a null job opening.";
@@ -130,6 +131,9 @@ class JsonSerializableHireBase {
         Set<CandidateId> seenIds = new HashSet<>();
         List<Person> loadedPersons = new ArrayList<>();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
+            if (jsonAdaptedPerson == null) {
+                throw new IllegalValueException(MESSAGE_NULL_PERSON);
+            }
             Person person = jsonAdaptedPerson.toModelType();
             if (loadedPersons.stream().anyMatch(person::isSamePerson)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);

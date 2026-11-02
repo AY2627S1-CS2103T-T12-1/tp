@@ -921,6 +921,9 @@ in the same folder before it starts with an empty HireBase. See [Editing the dat
 
 HireBase data is saved automatically as a JSON file `[JAR file location]/data/hirebase.json`. Advanced users are welcome to update data directly by editing that data file.
 
+The `persons` array must not contain null entries, and a candidate's `tags` array must not contain null entries.
+These invalidate the file and trigger the backup and startup warning described below.
+
 Each candidate's `candidateId` must be a positive integer, and no two candidates may share the same `candidateId`.
 The top-level `nextCandidateId` counter keeps track of the next unused candidate ID, including after deletion or
 `clear`; do not lower it or change assigned IDs manually. Older candidates with no `candidateId` (or a `null` one)

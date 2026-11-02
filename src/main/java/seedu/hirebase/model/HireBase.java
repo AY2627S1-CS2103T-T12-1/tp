@@ -101,8 +101,12 @@ public class HireBase implements ReadOnlyHireBase {
         requireNonNull(p);
         if (p.getCandidateId().isPresent()) {
             persons.add(p);
-            nextCandidateId = Math.max(nextCandidateId, p.getCandidateId().get().getValue() + 1);
+            nextCandidateId = Math.max(nextCandidateId, (int) Math.min(Integer.MAX_VALUE,
+                    (long) p.getCandidateId().get().getValue() + 1));
         } else {
+            if (nextCandidateId == Integer.MAX_VALUE) {
+                throw new IllegalStateException("No more candidate IDs are available.");
+            }
             persons.add(p.withCandidateId(new CandidateId(nextCandidateId)));
             nextCandidateId++;
         }
@@ -154,7 +158,8 @@ public class HireBase implements ReadOnlyHireBase {
         int next = Math.max(nextCandidateId, 1);
         for (Person person : newPersons) {
             if (person.getCandidateId().isPresent()) {
-                next = Math.max(next, person.getCandidateId().get().getValue() + 1);
+                next = Math.max(next, (int) Math.min(Integer.MAX_VALUE,
+                        (long) person.getCandidateId().get().getValue() + 1));
             }
         }
         List<Person> result = new ArrayList<>();
@@ -162,6 +167,9 @@ public class HireBase implements ReadOnlyHireBase {
             if (person.getCandidateId().isPresent()) {
                 result.add(person);
             } else {
+                if (next == Integer.MAX_VALUE) {
+                    throw new IllegalStateException("No more candidate IDs are available.");
+                }
                 result.add(person.withCandidateId(new CandidateId(next)));
                 next++;
             }

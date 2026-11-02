@@ -975,6 +975,9 @@ for example:
   `nextJobId`: do not lower it or change assigned IDs manually. Events with no `id` are given new IDs in file order,
   starting after every stored ID. A missing `events` array loads as no events.
 
+The file must contain exactly one JSON object. Duplicate field names, including inside a record, and any
+non-whitespace content after the object make the file invalid and trigger the backup/recovery described below.
+
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, HireBase starts with no candidates, job openings or events at the next run. Before that happens, it copies the invalid file to `[JAR file location]/data/hirebase-invalid-<yyyyMMdd-HHmmss>.json` so that you can fix it and restore your data, and the result box shows a message naming that copy. The original file stays in place until you run a command that saves data (`list jobs` does not save). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the HireBase to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.

@@ -13,6 +13,10 @@ title: Developer Guide
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
 * Diagrams are drawn with [PlantUML](https://plantuml.com/), using the styles from the SE-EDU AddressBook-Level3 `diagrams` folder.
 * The checkstyle and Codecov setup follows the SE-EDU AddressBook-Level3 project.
+* The check that the data file contains exactly one JSON object with no duplicate field names (`JsonUtil#fromJsonString`)
+  was adapted from [Scoutly (AY2627S1-CS2103T-T09-3)](https://github.com/AY2627S1-CS2103T-T09-3/tp/commit/4732385eae).
+* The protection against saving over newer data written by another HireBase window (`JsonHireBaseStorage`) was
+  inspired by [ClientDesk (AY2627S1-CS2103T-T10-1)](https://github.com/AY2627S1-CS2103T-T10-1/tp/issues/127).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -882,95 +886,6 @@ calls, so `MainApp` itself has no extra logic.
   * Cons: Needs the `UI` to read start-up problems, which the `Main` component does not currently pass on. The backup
     is currently reported only in the log file.
 
-### \[Proposed\] Undo/redo feature
-
-#### Proposed Implementation
-
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
-
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
-
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-![UndoRedoState0](images/UndoRedoState0.png)
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-![UndoRedoState1](images/UndoRedoState1.png)
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-![UndoRedoState2](images/UndoRedoState2.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Documentation, logging, testing, dev-ops**
@@ -1523,7 +1438,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with six sample candidates. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -1607,6 +1522,106 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `list candidates` after any successful `view candidate`<br>
       Expected: All candidates are shown again.
+
+### Adding a candidate
+
+1. Adding a valid candidate
+
+   1. Test case: `add candidate n/John Doe p/98765432 e/johnd@example.com a/John street, block 123 s/Java s/SQL r/Backend Engineer`<br>
+      Expected: A new card appears with the next unused ID. The candidate's stage is Screening and their priority is
+      `1 (Low)`. The status message shows the new candidate's name and email.
+
+   1. Test case: `add candidate n/Amy Tan p/91234567 e/amy.tan@example.com a/Singapore s/Java r/Backend Engineer priority/3`<br>
+      Expected: The candidate is added with priority `3 (High)`.
+
+1. Adding an invalid candidate
+
+   1. Test case: `add candidate n/Copy Cat p/91234567 e/ALEXYEOH@example.com a/Blk 1 s/Java r/Tester`<br>
+      Expected: No candidate is added, because the email matches Alex Yeoh's (ignoring case). An error message is shown.
+
+   1. Other incorrect add commands to try: a command without `s/`, a command without `r/`, a command with `t/friend`,
+      a command with `priority/4`<br>
+      Expected: No candidate is added. An error or usage message is shown.
+
+### Editing a candidate
+
+1. Editing some fields
+
+   1. Test case: `edit candidate 1 p/91234567 priority/3`<br>
+      Expected: Only the phone number and priority of candidate `#1` change. The candidate keeps ID `#1`, and the full
+      candidate list is shown.
+
+   1. Test case: `edit candidate 2 s/Java s/SQL`<br>
+      Expected: Candidate `#2`'s skills are replaced by exactly `Java` and `SQL`. Their other details do not change.
+
+   1. Test case: `edit candidate 2 s/`<br>
+      Expected: All skills of candidate `#2` are removed.
+
+1. Editing with invalid input
+
+   1. Test case: `edit candidate 1 e/berniceyu@example.com`<br>
+      Expected: Candidate `#1` is not changed. The status message shows `This candidate already exists (matching email).`
+
+   1. Other incorrect edit commands to try: `edit candidate 1` (no fields), `edit candidate 999 n/Test` (where no
+      candidate has ID `#999`), `edit 1 n/Test`<br>
+      Expected: No candidate is changed. An error or usage message is shown.
+
+### Finding and listing candidates
+
+1. Searching by name or email
+
+   1. Test case: `find alex`<br>
+      Expected: Only Alex Yeoh is shown. Candidate IDs on the cards do not change.
+
+   1. Test case: `find Ale`<br>
+      Expected: Alex Yeoh is still shown, because `ale` is part of his email address, even though it is not a whole
+      word of his name.
+
+   1. Test case: `find @example.com`<br>
+      Expected: All candidates with an `@example.com` email are shown.
+
+1. Filtering the candidate list
+
+   1. Test case: `list candidates s/java`<br>
+      Expected: Alex Yeoh, Irfan Ibrahim and any candidates you added with the `Java` skill are shown. Bernice Yu
+      (`JavaScript`) is not shown, because skills must match completely.
+
+   1. Test case: `list candidates r/Backend`<br>
+      Expected: `No candidates found.`, because roles must match completely.
+
+   1. Test case: `list candidates s/Java r/QA Engineer`<br>
+      Expected: Only Irfan Ibrahim is shown.
+
+   1. Test case: `list candidates`<br>
+      Expected: All candidates are shown again.
+
+   1. Other incorrect commands to try: `list candidates s/Java s/SQL` (repeated field), `list`<br>
+      Expected: The list does not change. An error message is shown.
+
+### Changing interview stages
+
+1. Changing stages of existing candidates
+
+   1. Test case: `stage candidate 1 ACCEPTED`<br>
+      Expected: Candidate `#1`'s card shows **Accepted**. The full candidate list is shown.
+
+   1. Test case: `accept candidate 2 3`, then `reject candidate 4`<br>
+      Expected: Candidates `#2` and `#3` show **Accepted**, and candidate `#4` shows **Rejected**.
+
+   1. Test case: `list candidates stage/rejected`<br>
+      Expected: Only rejected candidates, including candidate `#4`, are shown.
+
+1. Changing stages with invalid input
+
+   1. Test case: `stage candidate 1 99 REJECTED` (where no candidate has ID `#99`)<br>
+      Expected: No candidate is changed. Candidate `#1` is still **Accepted**. The status message says that candidate
+      ID `99` does not exist.
+
+   1. Test case: `stage candidate 1 HIRED`<br>
+      Expected: No candidate is changed. The status message lists the accepted stages.
+
+   1. Other incorrect commands to try: `accept candidate 1 ACCEPTED`, `reject candidate`, `stage candidate ACCEPTED`<br>
+      Expected: No candidate is changed. An error or usage message is shown.
 
 ### Adding or clearing a note
 
@@ -1948,6 +1963,73 @@ add candidate n/High Priority p/91234567 e/priority.high@example.com a/Singapore
    1. Test case: `delete event E3`<br>
       Expected: An error says that the data could not be saved. The event stays in the Calendar tab, and `view event E3` still
       shows it.
+
+### Managing job openings
+
+1. Adding job openings
+
+   1. Prerequisites: No job openings exist yet.
+
+   1. Test case: `add job t/Software Engineer d/Engineering desc/Build backend services using Java.`<br>
+      Expected: The Job openings tab is selected. The status message shows
+      `Added job opening 1: Software Engineer — Engineering.`
+
+   1. Test case: `add job t/software engineer d/ENGINEERING desc/Other services`<br>
+      Expected: No opening is added, because the title and department match job `1` (ignoring case). The status
+      message names the existing opening.
+
+   1. Test case: `reject candidate 5`, then `add job t/QA Engineer d/Engineering desc/Test releases s/Java`<br>
+      Expected: The opening is added as job `2`. The Candidates tab is selected and shows only rejected candidates who
+      have the `Java` skill, such as Irfan Ibrahim (`#5`). The status message reports how many candidates matched.
+
+   1. Other incorrect add commands to try: `add job t/Engineer d/Engineering` (missing `desc/`),
+      `add job t/Engineer d/Engineering desc/Build services salary/5000`<br>
+      Expected: No opening is added. An error message is shown.
+
+1. Listing job openings
+
+   1. Test case: `list jobs`<br>
+      Expected: The Job openings tab shows all openings with their IDs, titles, departments, descriptions and required
+      skills.
+
+   1. Test case: `list jobs 2`<br>
+      Expected: The status message shows
+      `The list jobs command does not accept parameters. Usage: list jobs`
+
+1. Editing a job opening
+
+   1. Test case: `edit job 1 d/Research`<br>
+      Expected: The status message shows `Edited job opening 1: Software Engineer — Research.`
+
+   1. Test case: `edit job 1 s/Java s/SQL`, then `edit job 1 s/`<br>
+      Expected: Job `1` first requires `Java` and `SQL`, then has no required skills.
+
+   1. Test case: `edit job 99 d/Research` (where no job has ID `99`)<br>
+      Expected: No opening is changed. The status message says that job ID `99` does not exist.
+
+1. Deleting a job opening
+
+   1. Test case: `delete job 1`<br>
+      Expected: Job `1` is removed. Job `2` keeps its ID.
+
+   1. Test case: `delete job 1` again<br>
+      Expected: No opening is deleted. The status message says that job ID `1` does not exist.
+
+   1. Other incorrect delete commands to try: `delete job`, `delete job 0`, `delete job 1 2`<br>
+      Expected: No opening is deleted. An error or usage message is shown.
+
+### Clearing all data
+
+1. Clearing and adding afterwards
+
+   1. Prerequisites: Note the highest candidate ID currently shown.
+
+   1. Test case: `clear`<br>
+      Expected: All candidates, job openings and events are removed. The status message shows
+      `All candidates, job openings and events have been cleared!`
+
+   1. Test case: `add candidate n/After Clear p/91234567 e/after@example.com a/Blk 1 s/Java r/Tester`<br>
+      Expected: The new candidate gets the ID after the highest one you noted, not `#1`.
 
 ### Saving data
 

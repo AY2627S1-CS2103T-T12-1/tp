@@ -4,8 +4,6 @@ title: About Us
 ---
 We are a team based in the [School of Computing, National University of Singapore](https://www.comp.nus.edu.sg).
 
-You can reach us at the email `seer[at]comp.nus.edu.sg`
-
 ## Project team
 
 ### Raphael Yeo
@@ -30,12 +28,12 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/jolneetanky.png" width="200px">
 
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/jolneetanky)]
 
 * Role: Integration
 * Responsibilities: Ensure the software as a whole works
 
-### Srivathsan ram
+### Srivathsan Ram
 
 <img src="images/srivathsanram.png" width="200px">
 
@@ -48,7 +46,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/yexintai.png" width="200px">
 
-[[github](http://github.com/yexintai)]
+[[github](https://github.com/YeXintai)]
 
 * Role: Developer
 * Responsibilities: UI

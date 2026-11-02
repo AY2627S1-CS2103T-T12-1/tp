@@ -150,7 +150,14 @@ class JsonSerializableHireBase {
             hireBase.reserveCandidateIdsUpTo(nextCandidateId);
         }
         // Candidates without an ID (older files) are numbered in file order after every stored ID.
-        hireBase.setPersons(loadedPersons);
+        try {
+            hireBase.setPersons(loadedPersons);
+        } catch (IllegalStateException e) {
+            if (HireBase.MESSAGE_CANDIDATE_IDS_EXHAUSTED.equals(e.getMessage())) {
+                throw new IllegalValueException(HireBase.MESSAGE_CANDIDATE_IDS_EXHAUSTED);
+            }
+            throw e;
+        }
         if (nextJobId != null && (nextJobId < 1 || nextJobId > (long) Integer.MAX_VALUE + 1)) {
             throw new IllegalValueException(MESSAGE_INVALID_NEXT_JOB_ID);
         }

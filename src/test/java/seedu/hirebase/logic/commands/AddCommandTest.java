@@ -59,6 +59,23 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_candidateIdsExhausted_throwsCommandException() {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded() {
+            @Override
+            public ReadOnlyHireBase getHireBase() {
+                HireBase hireBase = new HireBase();
+                hireBase.reserveCandidateIdsUpTo(Integer.MAX_VALUE);
+                return hireBase;
+            }
+        };
+
+        assertThrows(CommandException.class,
+            HireBase.MESSAGE_CANDIDATE_IDS_EXHAUSTED, () ->
+                new AddCommand(ALICE).execute(modelStub));
+        assertTrue(modelStub.personsAdded.isEmpty());
+    }
+
+    @Test
     public void equals() {
         Person alice = new PersonBuilder().withName("Alice").build();
         Person bob = new PersonBuilder().withName("Bob").build();

@@ -25,6 +25,7 @@ import seedu.hirebase.model.job.UniqueJobOpeningList;
  */
 public class HireBase implements ReadOnlyHireBase {
     public static final String MESSAGE_JOB_IDS_EXHAUSTED = "No more job IDs are available.";
+    public static final String MESSAGE_CANDIDATE_IDS_EXHAUSTED = "No more candidate IDs are available.";
     public static final String MESSAGE_EVENT_IDS_EXHAUSTED = "No more event IDs are available.";
     public static final String MESSAGE_INVALID_NEXT_EVENT_ID = "Next event ID is out of range.";
 
@@ -105,7 +106,7 @@ public class HireBase implements ReadOnlyHireBase {
                     (long) p.getCandidateId().get().getValue() + 1));
         } else {
             if (nextCandidateId == Integer.MAX_VALUE) {
-                throw new IllegalStateException("No more candidate IDs are available.");
+                throw new IllegalStateException(MESSAGE_CANDIDATE_IDS_EXHAUSTED);
             }
             persons.add(p.withCandidateId(new CandidateId(nextCandidateId)));
             nextCandidateId++;
@@ -168,7 +169,7 @@ public class HireBase implements ReadOnlyHireBase {
                 result.add(person);
             } else {
                 if (next == Integer.MAX_VALUE) {
-                    throw new IllegalStateException("No more candidate IDs are available.");
+                    throw new IllegalStateException(MESSAGE_CANDIDATE_IDS_EXHAUSTED);
                 }
                 result.add(person.withCandidateId(new CandidateId(next)));
                 next++;

@@ -11,6 +11,7 @@ import static seedu.hirebase.logic.parser.CliSyntax.PREFIX_SKILL;
 
 import seedu.hirebase.commons.util.ToStringBuilder;
 import seedu.hirebase.logic.commands.exceptions.CommandException;
+import seedu.hirebase.model.HireBase;
 import seedu.hirebase.model.Model;
 import seedu.hirebase.model.candidate.Person;
 
@@ -63,6 +64,9 @@ public class AddCommand extends Command {
 
         if (model.hasPerson(toAdd)) {
             throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, toAdd.getEmail()));
+        }
+        if (model.getHireBase().getNextCandidateId() == Integer.MAX_VALUE) {
+            throw new CommandException(HireBase.MESSAGE_CANDIDATE_IDS_EXHAUSTED);
         }
 
         model.addPerson(toAdd);

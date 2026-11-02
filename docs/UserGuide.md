@@ -119,6 +119,7 @@ Adds a candidate to HireBase.
 Format: `add candidate n/NAME p/PHONE e/EMAIL a/ADDRESS s/SKILL [s/MORE_SKILLS]... r/ROLE [priority/SCORE]`
 
 * A candidate must have at least one skill (`s/`) and exactly one target role (`r/`).
+* A name is 1–100 characters long, starts with a letter, and contains only letters, spaces, hyphens and apostrophes.
 * A skill is 1 to 30 characters long and may contain letters, digits, spaces and `+ # . /`. Repeating `s/` adds more skills; duplicates that differ only in letter case are merged.
 * A role is 1 to 100 characters long and may contain letters, digits, spaces, hyphens and slashes.
 * `priority/` is optional. Use `1` for Low, `2` for Medium, or `3` for High. Omitting it gives the candidate
@@ -545,6 +546,7 @@ Examples:
 Shows the full details of one candidate in the result display and collapses the candidate list to only that candidate.
 
 Click a candidate card to open **Candidate Details**. Scroll vertically to read long notes and other details.
+Long names wrap onto multiple lines while the interview-stage badge remains fully visible.
 Deleting the displayed candidate or running `clear` closes the details window.
 
 Format: `view candidate CANDIDATE_ID`

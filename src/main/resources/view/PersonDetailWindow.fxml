@@ -31,9 +31,9 @@
 
           <VBox fx:id="content" spacing="7">
             <HBox alignment="CENTER_LEFT" spacing="9">
-              <Label fx:id="name" styleClass="detail-name" />
+              <Label fx:id="name" styleClass="detail-name" minWidth="0" wrapText="true" />
               <Region HBox.hgrow="ALWAYS" />
-              <Label fx:id="stage" styleClass="stage-badge" />
+              <Label fx:id="stage" styleClass="stage-badge" minWidth="-Infinity" />
             </HBox>
 
             <Label fx:id="priorityScore" styleClass="cell_small_label, detail-value" wrapText="true" />

@@ -11,9 +11,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import seedu.hirebase.model.candidate.InterviewStage;
 import seedu.hirebase.testutil.PersonBuilder;
@@ -127,6 +130,44 @@ public class PersonDetailWindowTest {
             // Hiding an already-hidden window is a safe no-op.
             window.hide();
             assertFalse(window.isShowing());
+        });
+    }
+
+    @Test
+    public void showPerson_longName_wrapsWithoutTruncatingStage() throws Exception {
+        runOnFxThread(() -> {
+            for (String longName : new String[] {"W".repeat(100), "Anne Marie ".repeat(9) + "A"}) {
+                for (InterviewStage interviewStage : InterviewStage.values()) {
+                    PersonDetailWindow window = new PersonDetailWindow();
+                    try {
+                        window.showPerson(new PersonBuilder().withName(longName)
+                                .withInterviewStage(interviewStage).build());
+                        window.getRoot().getScene().getRoot().layout();
+                        Label name = (Label) lookup(window, "#name");
+                        Label stage = (Label) lookup(window, "#stage");
+                        Label priorityScore = (Label) lookup(window, "#priorityScore");
+                        ScrollPane scroll = (ScrollPane) lookup(window, "#detailsScrollPane");
+                        Text renderedName = (Text) name.lookup(".text");
+                        Text renderedStage = (Text) stage.lookup(".text");
+                        Text singleLineName = new Text(longName);
+                        singleLineName.setFont(name.getFont());
+                        Node viewport = scroll.lookup(".viewport");
+                        Bounds viewportBounds = viewport.localToScene(viewport.getBoundsInLocal());
+                        Bounds stageBounds = stage.localToScene(stage.getBoundsInLocal());
+
+                        assertEquals(longName, renderedName.getText());
+                        assertTrue(name.getHeight() > singleLineName.getLayoutBounds().getHeight());
+                        assertEquals(stage.getText(), renderedStage.getText());
+                        assertTrue(stage.getWidth() >= stage.prefWidth(-1));
+                        assertTrue(stageBounds.getMinX() >= viewportBounds.getMinX());
+                        assertTrue(stageBounds.getMaxX() <= viewportBounds.getMaxX());
+                        assertTrue(name.localToScene(name.getBoundsInLocal()).getMaxY()
+                                <= priorityScore.localToScene(priorityScore.getBoundsInLocal()).getMinY());
+                    } finally {
+                        window.hide();
+                    }
+                }
+            }
         });
     }
 

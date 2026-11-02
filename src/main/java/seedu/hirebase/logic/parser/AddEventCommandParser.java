@@ -28,9 +28,12 @@ public class AddEventCommandParser implements Parser<AddEventCommand> {
 
     public static final String MESSAGE_DEPARTMENT_PREFIX = "add event has no d/ parameter (d/ is a job's department). "
             + "Use desc/ for a description.\n" + AddEventCommand.MESSAGE_USAGE;
+    public static final String MESSAGE_CANCEL_PREFIX = "add event does not support cancel/. Use edit event to cancel.\n"
+            + AddEventCommand.MESSAGE_USAGE;
 
     // Recognised only to be rejected: otherwise it would be silently absorbed into the previous field.
     private static final Prefix PREFIX_DEPARTMENT = new Prefix("d/");
+    private static final Prefix PREFIX_CANCEL = new Prefix("cancel/");
 
     /**
      * Parses the arguments that follow {@code add event} into an {@code AddEventCommand}.
@@ -42,10 +45,13 @@ public class AddEventCommandParser implements Parser<AddEventCommand> {
     public AddEventCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_FROM, PREFIX_TO,
-                PREFIX_DESCRIPTION, PREFIX_CANDIDATE, PREFIX_DEPARTMENT);
+                PREFIX_DESCRIPTION, PREFIX_CANDIDATE, PREFIX_DEPARTMENT, PREFIX_CANCEL);
 
         if (argMultimap.getValue(PREFIX_DEPARTMENT).isPresent()) {
             throw new ParseException(MESSAGE_DEPARTMENT_PREFIX);
+        }
+        if (argMultimap.getValue(PREFIX_CANCEL).isPresent()) {
+            throw new ParseException(MESSAGE_CANCEL_PREFIX);
         }
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_FROM, PREFIX_TO)
                 || !argMultimap.getPreamble().isEmpty()) {

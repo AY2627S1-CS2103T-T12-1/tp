@@ -102,7 +102,7 @@ class JsonAdaptedEvent {
         }
         List<CandidateId> modelCandidateIds = new ArrayList<>();
         for (long candidateId : candidateIds) {
-            if (candidateId > Integer.MAX_VALUE || !CandidateId.isValidCandidateId((int) candidateId)) {
+            if (candidateId < 1 || candidateId > Integer.MAX_VALUE) {
                 throw new IllegalValueException(CandidateId.MESSAGE_CONSTRAINTS);
             }
             modelCandidateIds.add(new CandidateId((int) candidateId));

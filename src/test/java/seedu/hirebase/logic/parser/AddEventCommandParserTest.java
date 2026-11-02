@@ -182,6 +182,13 @@ public class AddEventCommandParserTest {
     }
 
     @Test
+    public void parse_cancelPrefix_rejectedWithHint() {
+        assertParseFailure(parser, NAME + FROM + TO + " cancel/true", AddEventCommandParser.MESSAGE_CANCEL_PREFIX);
+        assertParseFailure(parser, NAME + FROM + TO + " desc/Discussion cancel/true",
+                AddEventCommandParser.MESSAGE_CANCEL_PREFIX);
+    }
+
+    @Test
     public void parse_prefixInsideName_splitsAtPrefix() {
         // Known limitation, shared with every AB3 command: " to/" inside a value starts a new field.
         assertParseFailure(parser, " n/Talk to/Bob" + FROM + TO,

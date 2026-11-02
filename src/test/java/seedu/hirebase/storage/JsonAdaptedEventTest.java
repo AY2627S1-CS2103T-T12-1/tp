@@ -189,7 +189,7 @@ public class JsonAdaptedEventTest {
     @Test
     public void toModelType_invalidCandidateIds_rejected() {
         for (String ids : List.of("1", "\"1\"", "{}", "[null]", "[0]", "[-1]", "[\"1\"]", "[1.5]", "[true]",
-                "[2147483648]", "[9223372036854775808]", "[[1]]")) {
+                "[2147483648]", "[9223372036854775808]", "[-4294967295]", "[[1]]")) {
             assertInvalid("{" + required() + ",\"candidateIds\":" + ids + "}");
         }
     }

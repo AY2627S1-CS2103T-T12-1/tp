@@ -190,6 +190,8 @@ The `Model` component,
 
 The `Storage` component,
 * can save both HireBase data and user preference data in JSON format, and read them back into corresponding objects.
+* rejects explicit null GUI settings when reading preferences, so `MainApp#initPrefs` uses and saves default
+  window settings while leaving the HireBase data file unchanged.
 * saves each candidate's `candidateId` in `JsonAdaptedPerson`, and the `nextCandidateId` counter in `JsonSerializableHireBase`, so that candidate IDs stay the same across restarts.
 * saves each job opening in `JsonAdaptedJobOpening`, and the `nextJobId` counter in `JsonSerializableHireBase`, so that job IDs stay the same across restarts.
 * saves each event in `JsonAdaptedEvent`, and the `nextEventId` counter in `JsonSerializableHireBase`, in the same data file as candidates and job openings.

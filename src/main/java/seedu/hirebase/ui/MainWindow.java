@@ -310,7 +310,6 @@ public class MainWindow extends UiPart<Stage> {
                             .isPresent()) {
                 feedback += "\n" + MESSAGE_EVENT_NOT_VISIBLE;
             }
-            logger.info("Result: " + feedback);
             resultDisplay.setFeedbackToUser(feedback);
             resultDisplay.setStyleToIndicateSuccess();
 

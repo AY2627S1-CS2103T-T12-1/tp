@@ -14,9 +14,19 @@ title: Developer Guide
 * Diagrams are drawn with [PlantUML](https://plantuml.com/), using the styles from the SE-EDU AddressBook-Level3 `diagrams` folder.
 * The checkstyle and Codecov setup follows the SE-EDU AddressBook-Level3 project.
 * The check that the data file contains exactly one JSON object with no duplicate field names (`JsonUtil#fromJsonString`)
-  was adapted from [Scoutly (AY2627S1-CS2103T-T09-3)](https://github.com/AY2627S1-CS2103T-T09-3/tp/commit/4732385eae).
+  was inspired by [Scoutly (AY2627S1-CS2103T-T09-3)](https://github.com/AY2627S1-CS2103T-T09-3/tp/commit/4732385eae),
+  although our implementation is our own.
 * The protection against saving over newer data written by another HireBase window (`JsonHireBaseStorage`) was
-  inspired by [ClientDesk (AY2627S1-CS2103T-T10-1)](https://github.com/AY2627S1-CS2103T-T10-1/tp/issues/127).
+  inspired by [ClientDesk (AY2627S1-CS2103T-T10-1)](https://github.com/AY2627S1-CS2103T-T10-1/tp/issues/127),
+  although our implementation is our own.
+
+**Notable uses of AI:**
+
+* @LittleLittleLittleR used Claude to plan GitHub issues, check work against the course's tP requirements, suggest code changes for features they implemented, and draft parts of the User Guide and Developer Guide. All suggestions were reviewed, edited and tested before being committed.
+* @jolneetanky used Codex to plan GitHub issues, check work against the course's tP requirements, suggest code changes for features they implemented, and draft parts of the User Guide and Developer Guide. All suggestions were reviewed, edited and tested before being committed.
+* @rayyanwong used Claude to assist with parts of the of Candidate Info Pop up UI component, verify and validate work against course’s tP requirements, provide possible edge test cases for manual testing and draft parts of User Guide and Devloper Guide. All suggestions and implementations were reviewed, modified to match our use cases and tested before being committed.
+* @YeXintai used Codex to plan GitHub issues, check work against the course's tP requirements, suggest code changes for features they implemented, and draft parts of the User Guide and Developer Guide. All suggestions were reviewed, edited and tested before being committed.
+* @SrivathsanRam used Codex to plan github issues, read through pull requests, double check if commit messages and pull request titles met course requirements, determining edge cases during testing and review code before pushing. All suggestions were reviewed, edited and tested before being committed.
 
 --------------------------------------------------------------------------------------------------------------------
 

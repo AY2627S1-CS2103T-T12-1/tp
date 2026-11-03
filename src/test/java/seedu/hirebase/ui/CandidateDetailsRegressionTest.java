@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Filter;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -282,6 +284,30 @@ public class CandidateDetailsRegressionTest {
                 assertEquals("Accepted", ((Label) details.getScene().lookup("#stage")).getText());
                 assertEquals("Strong system design skills", ((Label) details.getScene().lookup("#note")).getText());
             } finally {
+                primary.close();
+            }
+        });
+    }
+
+    @Test
+    public void viewCandidate_doesNotLogPrivateFeedback() throws Exception {
+        onFxThread(() -> {
+            MainWindow window = createWindowWithCandidates();
+            Stage primary = window.getPrimaryStage();
+            Logger logger = Logger.getLogger("ab3.MainWindow");
+            StringBuilder logged = new StringBuilder();
+            Filter previousFilter = logger.getFilter();
+            logger.setFilter(record -> {
+                logged.append(record.getMessage());
+                return true;
+            });
+            try {
+                submit(primary, "note 1 Private candidate note");
+                logged.setLength(0);
+                submit(primary, "view candidate 1");
+                assertFalse(logged.toString().matches("(?s).*(Alice|alice@example.com|Private candidate note).*"));
+            } finally {
+                logger.setFilter(previousFilter);
                 primary.close();
             }
         });

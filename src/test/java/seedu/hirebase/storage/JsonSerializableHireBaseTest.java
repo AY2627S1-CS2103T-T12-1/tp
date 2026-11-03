@@ -84,6 +84,15 @@ public class JsonSerializableHireBaseTest {
     }
 
     @Test
+    public void toModelType_candidateIdsExhaustedWithUnassignedPerson_throwsIllegalValueException() {
+        JsonSerializableHireBase data = new JsonSerializableHireBase(List.of(
+                new JsonAdaptedPerson(TypicalPersons.ALICE.withCandidateId(new CandidateId(Integer.MAX_VALUE))),
+                new JsonAdaptedPerson(TypicalPersons.BENSON.withCandidateId(null))), List.of(), null);
+
+        assertThrows(IllegalValueException.class, HireBase.MESSAGE_CANDIDATE_IDS_EXHAUSTED, data::toModelType);
+    }
+
+    @Test
     public void toModelType_nullPerson_throwsIllegalValueException() throws Exception {
         JsonSerializableHireBase data = JsonUtil.fromJsonString(
                 "{\"persons\":[null]}", JsonSerializableHireBase.class);
